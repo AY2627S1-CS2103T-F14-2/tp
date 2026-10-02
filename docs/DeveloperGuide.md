@@ -321,7 +321,157 @@ Priorities: High (must have) - `* * *`, Medium (nice to have) - `* *`, Low (unli
 
       Use case resumes at step 2.
 
-*{More to be added}*
+### Use cases
+
+(For all use cases below, the **System** is `TutorRoster` and the **Actor** is the `user`.)
+
+**Use case: Add a student**
+
+**MSS**
+
+1. User enters a command to add a student with their name, phone number, subject(s), education level and optional email address
+2. TutorRoster validates the command and student details
+3. TutorRoster checks that the student is not a duplicate
+4. TutorRoster stores the new student record
+5. TutorRoster displays the updated student list and a confirmation message
+
+   Use case ends.
+
+**Extensions**
+
+- 2a. The command or student details are invalid.
+
+  - 2a1. TutorRoster shows an error message.
+
+    Use case ends.
+
+- 3a. The student is already in the roster.
+
+  - 3a1. TutorRoster rejects the duplicate record and shows an error message.
+
+    Use case ends.
+
+- 4a. TutorRoster cannot save the student data.
+
+  - 4a1. TutorRoster shows an error message and makes no changes.
+
+    Use case ends.
+
+---
+
+**Use case: List students**
+
+**MSS**
+
+1. User requests to list students
+2. TutorRoster displays all stored students in roster order
+3. TutorRoster displays the number of students listed
+
+   Use case ends.
+
+**Extensions**
+
+- 1a. The user provides additional text or parameters.
+
+  - 1a1. TutorRoster shows an error message.
+
+    Use case ends.
+
+- 2a. The roster is empty.
+
+  - 2a1. TutorRoster displays `No students in TutorRoster`.
+
+    Use case ends.
+
+---
+
+**Use case: Find a student by name**
+
+**MSS**
+
+1. User enters one or more name keywords
+2. TutorRoster searches student names using case-insensitive partial matching
+3. TutorRoster displays the matching students in roster order
+4. TutorRoster displays the number of students found
+
+   Use case ends.
+
+**Extensions**
+
+- 1a. The user does not provide a search keyword.
+
+  - 1a1. TutorRoster shows an error message.
+
+    Use case ends.
+
+- 3a. No students match the search keywords.
+
+  - 3a1. TutorRoster displays an empty list and shows `No students found`.
+
+    Use case ends.
+
+---
+
+**Use case: Delete a student**
+
+**MSS**
+
+1. User requests to list students
+2. TutorRoster displays a numbered list of students
+3. User requests to delete a specific student using its index
+4. TutorRoster validates the index and deletes the selected student
+5. TutorRoster displays the remaining student list and a confirmation message
+
+   Use case ends.
+
+**Extensions**
+
+- 2a. The displayed list is the result of a previous search.
+
+  - 2a1. TutorRoster interprets the index using the filtered list.
+
+    Use case resumes at step 3.
+
+- 3a. The given index is invalid.
+
+  - 3a1. TutorRoster shows an error message.
+
+    Use case resumes at step 2.
+
+- 4a. TutorRoster cannot save the updated roster.
+
+  - 4a1. TutorRoster shows an error message and makes no changes.
+
+    Use case ends.
+
+---
+
+**Use case: Restore persistent student records**
+
+**MSS**
+
+1. User starts or reopens TutorRoster
+2. TutorRoster loads the previously stored student records
+3. TutorRoster displays the restored student list
+
+   Use case ends.
+
+**Extensions**
+
+- 2a. No previous student data exists.
+
+  - 2a1. TutorRoster starts with an empty roster.
+
+    Use case ends.
+
+- 2b. TutorRoster cannot load the existing student data.
+
+  - 2b1. TutorRoster shows an error message and starts with an empty roster without overwriting the existing data.
+
+    Use case ends.
+
+
+
 
 ### Non-Functional Requirements
 
