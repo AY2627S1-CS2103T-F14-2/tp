@@ -325,11 +325,16 @@ Priorities: High (must have) - `* * *`, Medium (nice to have) - `* *`, Low (unli
 
 ### Non-Functional Requirements
 
-1.  Should work on any _mainstream OS_ as long as it has Java `25` or above installed.
-2.  Should be able to hold up to 1000 persons without noticeable sluggishness in performance for typical usage.
-3.  A user with above average typing speed for regular English text (i.e. not code, not system admin commands) should be able to accomplish most of the tasks faster using commands than using the mouse.
-
-*{More to be added}*
+1.  TutorRoster should work on any _mainstream OS_ as long as it has Java `25` installed.
+2.  TutorRoster should be able to hold at least 1000 student records.
+3.  With up to 1000 student records, common operations such as adding, editing, deleting, finding, filtering, and listing students should normally complete within one second.
+4.  All core student-management operations should be executable entirely through keyboard commands without requiring a mouse.
+5.  A user who is familiar with TutorRoster's commands should be able to perform common student-management operations faster than with a typical mouse-driven contact-management application.
+6.  After TutorRoster reports that a data-modifying operation was successful, the updated student information should be saved and available when the application is restarted.
+7.  Invalid commands, invalid student information, and failed operations should not modify or remove any existing student records.
+8.  If the data file is missing, unreadable, or corrupted, TutorRoster should start safely, inform the user of the problem, and avoid automatically overwriting the affected file.
+9.  TutorRoster should store all student data locally in a human-editable text file. All core student-management functions should remain usable without an Internet connection and should not depend on a database management system or remote server.
+10. Error messages should identify the invalid field or command and explain the expected input format. Successful data-changing operations should also provide confirmation.
 
 ### Glossary
 
