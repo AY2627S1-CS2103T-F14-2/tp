@@ -333,8 +333,37 @@ Priorities: High (must have) - `* * *`, Medium (nice to have) - `* *`, Low (unli
 
 ### Glossary
 
-* **Mainstream OS**: Windows, Linux, Unix, or macOS
-* **Private contact detail**: A contact detail that is not meant to be shared with others
+| Term | Definition |
+|---|---|
+| **TutorRoster** | A keyboard-driven application for private tutors to store, retrieve, and manage students’ contact and tutoring information. |
+| **Private tutor** | A person who independently teaches students individually or in small groups. The intended user of TutorRoster. |
+| **Student** | A person taught by the tutor whose information is stored in TutorRoster. |
+| **Student record** | A stored entry representing one student. In the strict MVP, it contains a name, contact phone number, optional email address, one or more subjects, and an education level. |
+| **Roster / Student list** | The collection of student records managed by the tutor. |
+| **Contact information** | Details used to reach a student or their parent or guardian, such as a phone number or email address. |
+| **Main contact number** | The phone number stored in a student record. It may belong to the student or a parent or guardian. |
+| **Guardian** | A person responsible for a student who may serve as the tutor’s contact person. |
+| **Subject** | An academic subject the tutor teaches a student, such as Mathematics or Physics. A student may have multiple subjects. |
+| **Education level** | The academic stage at which a student is taught, such as Primary 6, Secondary 4, or JC 1. |
+| **School** | The educational institution a student attends. A planned field beyond the strict MVP. |
+| **Tag** | A tutor-defined label used to categorize students, such as `exam-prep`. A planned feature beyond the strict MVP. |
+| **Student notes** | Free-text information about a student that does not fit into the standard fields. A planned feature beyond the strict MVP. |
+| **Preferred contact person** | The student or guardian whom the tutor should contact first. A planned feature beyond the strict MVP. |
+| **Command** | A typed instruction that performs an operation, such as `list` or `delete 1`. |
+| **CLI-first interface** | An interface where typing commands is the primary way to interact with the application, while a graphical interface displays records and feedback. |
+| **Parameter** | A value supplied to a command, such as a student’s name or the index of a record to delete. |
+| **Prefix** | A marker identifying a parameter’s type, such as `n/` for name or `s/` for subject. |
+| **Student index (`INDEX`)** | A student’s position in the currently displayed numbered list, starting from 1. After a search, it refers to the search results. |
+| **Search keyword** | Text used to find matching records. In the strict MVP, keywords match parts of student names, and every supplied keyword must match. |
+| **Filtered list** | A displayed subset of the roster containing only students who match the current search or filter criteria. |
+| **Case-insensitive matching** | Comparing text without distinguishing uppercase from lowercase letters. For example, `Ryan` and `ryan` match. |
+| **Whitespace normalization** | Removing surrounding spaces and treating consecutive internal spaces as one space where specified. |
+| **Duplicate student record** | Under the MVP rules, a record with the same normalized name as an existing record and either the same phone number or the same email address. Sharing contact details alone does not make students duplicates. |
+| **Input validation** | Checking that command input meets the required format and field rules before accepting it. |
+| **Result area** | The part of the interface that displays command feedback, such as success messages or errors. |
+| **Data persistence** | Automatically retaining student records between application sessions so they remain available after reopening TutorRoster. |
+| **Application session** | One period of using TutorRoster, from opening the application until closing it. |
+| **Minimum viable product (MVP)** | The smallest usable version of TutorRoster that supports its essential student-management needs. |
 
 --------------------------------------------------------------------------------------------------------------------
 
