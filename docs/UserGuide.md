@@ -130,19 +130,28 @@ Examples:
 * `find alex david` returns `Alex Yeoh`, `David Li`<br>
   ![result for 'find alex david'](images/findAlexDavidResult.png)
 
-### Deleting a person: `delete`
+### Deleting a student: `delete`
 
-Deletes the specified person from the address book.
+Removes a student from TutorRoster's active roster.
 
 Format: `delete INDEX`
 
-* Deletes the person at the specified `INDEX`.
-* The index refers to the index number shown in the displayed person list.
-* The index **must be a positive integer** 1, 2, 3, ...
+* The index is a positive integer starting from 1 and refers to the currently displayed list.
+* After a `find` command, use the index shown in the search results.
+* After deletion, the complete remaining roster is displayed in its original order with updated indices.
+* The result area shows `Student removed: NAME`, for example `Student removed: Ryan Tan`.
+* Deleting the last student leaves an empty roster.
+* Deletion takes effect immediately, without a confirmation dialog.
+* To replace outdated information, delete the record and add the corrected record.
 
 Examples:
-* `list` followed by `delete 2` deletes the 2nd person in the address book.
-* `find Betsy` followed by `delete 1` deletes the 1st person in the results of the `find` command.
+* `list` followed by `delete 2` removes the second student in the full roster.
+* `find Ryan` followed by `delete 1` removes the first student in the search results, then shows the full roster.
+
+If no index is supplied, the index is malformed, or extra arguments are present (for example `delete 1 n/Ryan`),
+the result area shows `Invalid command format. Usage: delete INDEX`.
+If a positive index is outside the displayed list, it shows `The student index provided is invalid.`.
+In either case, the roster and displayed list remain unchanged.
 
 ### Clearing all entries: `clear`
 

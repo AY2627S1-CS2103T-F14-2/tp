@@ -1,0 +1,25 @@
+{
+  "persons": [
+    {
+      "name": "Alicia Lim",
+      "phone": "81234567",
+      "email": "alicia@example.com",
+      "address": "Test address 1",
+      "tags": []
+    },
+    {
+      "name": "Ryan Tan",
+      "phone": "91234567",
+      "email": "ryan@example.com",
+      "address": "Test address 2",
+      "tags": []
+    },
+    {
+      "name": "Sarah Lee",
+      "phone": "82345678",
+      "email": "sarah@example.com",
+      "address": "Test address 3",
+      "tags": []
+    }
+  ]
+}
