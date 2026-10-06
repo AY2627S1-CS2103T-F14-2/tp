@@ -29,6 +29,7 @@ Optimized for tutors who type fast and prefer a **Command Line Interface (CLI)**
 
 * [User Guide](docs/UserGuide.md)
 * [Developer Guide](docs/DeveloperGuide.md)
+* [Design System](docs/DesignSystem.md)
 * [About Us](docs/AboutUs.md)
 
 ---
