@@ -16,17 +16,18 @@
   <scene>
     <Scene>
       <stylesheets>
-        <URL value="@HelpWindow.css" />
+        <URL value="@DesignSystem.css" />
       </stylesheets>
 
-      <HBox alignment="CENTER" fx:id="helpMessageContainer">
+      <HBox alignment="CENTER" fx:id="helpMessageContainer" styleClass="help-container">
         <children>
           <Label fx:id="helpMessage" text="Label">
             <HBox.margin>
               <Insets right="5.0" />
             </HBox.margin>
           </Label>
-          <Button fx:id="copyButton" mnemonicParsing="false" onAction="#copyUrl" text="Copy URL">
+          <Button fx:id="copyButton" mnemonicParsing="false" onAction="#copyUrl" styleClass="primary-button"
+                  text="Copy URL">
             <HBox.margin>
               <Insets left="5.0" />
             </HBox.margin>

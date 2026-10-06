@@ -1,6 +1,7 @@
 package seedu.address.ui;
 
 import java.util.Comparator;
+import java.util.concurrent.atomic.AtomicInteger;
 
 import javafx.fxml.FXML;
 import javafx.scene.control.Label;
@@ -31,6 +32,8 @@ public class PersonCard extends UiPart<Region> {
     @FXML
     private Label name;
     @FXML
+    private Label initials;
+    @FXML
     private Label id;
     @FXML
     private Label phone;
@@ -49,11 +52,30 @@ public class PersonCard extends UiPart<Region> {
         this.person = person;
         id.setText(displayedIndex + ". ");
         name.setText(person.getName().fullName);
+        initials.setText(getInitials(person.getName().fullName));
         phone.setText(person.getPhone().value);
         address.setText(person.getAddress().value);
         email.setText(person.getEmail().value);
+        AtomicInteger tagIndex = new AtomicInteger();
         person.getTags().stream()
                 .sorted(Comparator.comparing(tag -> tag.tagName))
-                .forEach(tag -> tags.getChildren().add(new Label(tag.tagName)));
+                .forEach(tag -> {
+                    Label tagLabel = new Label(tag.tagName);
+                    tagLabel.getStyleClass().add("tag-chip");
+                    if (tagIndex.getAndIncrement() % 3 == 1) {
+                        tagLabel.getStyleClass().add("tag-chip-secondary");
+                    } else if (tagIndex.get() % 3 == 0) {
+                        tagLabel.getStyleClass().add("tag-chip-tertiary");
+                    }
+                    tags.getChildren().add(tagLabel);
+                });
+    }
+
+    private String getInitials(String fullName) {
+        String[] nameParts = fullName.trim().split("\\s+");
+        if (nameParts.length == 1) {
+            return nameParts[0].substring(0, 1).toUpperCase();
+        }
+        return (nameParts[0].substring(0, 1) + nameParts[nameParts.length - 1].substring(0, 1)).toUpperCase();
     }
 }

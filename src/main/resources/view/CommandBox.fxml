@@ -1,9 +1,17 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
 <?import javafx.scene.control.TextField?>
+<?import javafx.scene.control.Button?>
+<?import javafx.scene.control.Label?>
+<?import javafx.scene.layout.HBox?>
 <?import javafx.scene.layout.StackPane?>
 
-<StackPane styleClass="stack-pane" xmlns="http://javafx.com/javafx/17" xmlns:fx="http://javafx.com/fxml/1">
-  <TextField fx:id="commandTextField" onAction="#handleCommandEntered" promptText="Enter command here..."/>
+<StackPane styleClass="command-box" xmlns="http://javafx.com/javafx/17" xmlns:fx="http://javafx.com/fxml/1">
+  <HBox alignment="CENTER_LEFT" spacing="10">
+    <Label styleClass="command-icon" text=">_" />
+    <TextField fx:id="commandTextField" onAction="#handleCommandEntered"
+               promptText="Enter a command… e.g. /list" HBox.hgrow="ALWAYS" />
+    <Button mnemonicParsing="false" onAction="#handleCommandEntered" styleClass="primary-button"
+            text="Run command" />
+  </HBox>
 </StackPane>
-
