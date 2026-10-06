@@ -24,6 +24,27 @@
       "headingKeywords": {}
     },
     {
+      "src": "DesignSystem.md",
+      "headings": {
+        "tutorroster-design-system": "TutorRoster design system",
+        "design-principles": "Design principles",
+        "foundations": "Foundations",
+        "colour-tokens": "Colour tokens",
+        "type": "Type",
+        "spacing-and-shape": "Spacing and shape",
+        "component-catalogue": "Component catalogue",
+        "application-shell": "Application shell",
+        "roster-surface-and-student-card": "Roster surface and student card",
+        "primary-button": "Primary button",
+        "command-bar": "Command bar",
+        "feedback": "Feedback",
+        "adding-a-component": "Adding a component",
+        "accessibility-and-interaction-rules": "Accessibility and interaction rules",
+        "verification-checklist": "Verification checklist"
+      },
+      "headingKeywords": {}
+    },
+    {
       "src": "DevOps.md",
       "title": "DevOps guide",
       "headings": {
