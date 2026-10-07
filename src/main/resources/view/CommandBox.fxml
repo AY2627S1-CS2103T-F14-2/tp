@@ -10,7 +10,7 @@
   <HBox alignment="CENTER_LEFT" spacing="10">
     <Label styleClass="command-icon" text=">_" />
     <TextField fx:id="commandTextField" onAction="#handleCommandEntered"
-               promptText="Enter a command… e.g. /list" HBox.hgrow="ALWAYS" />
+               promptText="Enter a command… e.g. list" HBox.hgrow="ALWAYS" />
     <Button mnemonicParsing="false" onAction="#handleCommandEntered" styleClass="primary-button"
             text="Run command" />
   </HBox>
