@@ -1,0 +1,20 @@
+
+.error {
+    -fx-text-fill: #B84C4C !important; /* The error class should always override the default text-fill style */
+}
+
+.list-cell:empty {
+    /* Empty cells should reveal the roster surface. */
+    -fx-background-color: transparent;
+}
+
+.tag-selector {
+    -fx-border-width: 1;
+    -fx-border-color: #B9D9CE;
+    -fx-border-radius: 3;
+    -fx-background-radius: 3;
+}
+
+.tooltip-text {
+    -fx-text-fill: #173734;
+}
