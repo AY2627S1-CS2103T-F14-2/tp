@@ -159,6 +159,24 @@ Classes used by multiple components are in the `seedu.address.commons` package.
 
 This section describes some noteworthy details on how certain features are implemented.
 
+### Delete student
+
+`DeleteCommandParser` accepts a single positive displayed index through `ParserUtil.parseIndex`.
+Malformed arguments produce `Invalid command format. Usage: delete INDEX`.
+
+`DeleteCommand.execute` reads the currently filtered list and validates the index against its size.
+An out-of-range index produces `The student index provided is invalid.` without changing the model or filter.
+For a valid index, it resolves the student before deleting the record, then resets the filter with
+`Model.PREDICATE_SHOW_ALL_PERSONS`. Resolving the student before clearing the filter is necessary because a search
+result's index can differ from its index in the complete roster.
+The command returns `Student removed: NAME`; it does not display contact details or ask for confirmation.
+
+<puml src="diagrams/DeleteSequenceDiagram.puml" alt="Delete student sequence" />
+
+`LogicManager` performs the existing automatic save after command execution.
+The shared persistence requirement to restore records and the previous filter after a failed save is still pending;
+the current inherited save-error handling does not roll back an in-memory deletion.
+
 ### \[Proposed\] Undo/redo feature
 
 #### Proposed Implementation
@@ -550,20 +568,24 @@ testers are expected to do more *exploratory* testing.
 
 1. _{ more test cases … }_
 
-### Deleting a person
+### Deleting a student
 
-1. Deleting a person while all persons are being shown
+1. Deleting a student while the full roster is shown
 
    1. Prerequisites: List all persons using the `list` command, with multiple persons in the list.
 
    1. Test case: `delete 1`<br>
-      Expected: The first contact is deleted from the list. The status message shows the deleted contact's details.
+      Expected: The first student is removed, all remaining students are displayed, and the result area shows
+      `Student removed: NAME`.
 
    1. Test case: `delete 0`<br>
-      Expected: No person is deleted. The status message shows error details.
+      Expected: No student is removed, the displayed list is unchanged, and the result area shows
+      `Invalid command format. Usage: delete INDEX`.
 
    1. Other incorrect delete commands to try: `delete`, `delete x`, `...` (where x is larger than the list size)<br>
-      Expected: Similar to previous.
+      Expected: Missing or malformed indices show `Invalid command format. Usage: delete INDEX`.
+      Positive indices outside the displayed list show `The student index provided is invalid.`.
+      No student is removed and the displayed list remains unchanged.
 
 1. _{ more test cases … }_
 
