@@ -12,6 +12,9 @@ import seedu.address.commons.util.ToStringBuilder;
 public class NameContainsKeywordsPredicate implements Predicate<Person> {
     private final List<String> keywords;
 
+    /**
+     * Creates a predicate that matches names against any of the given keywords.
+     */
     public NameContainsKeywordsPredicate(List<String> keywords) {
         this.keywords = keywords;
     }
@@ -19,6 +22,7 @@ public class NameContainsKeywordsPredicate implements Predicate<Person> {
     @Override
     public boolean test(Person person) {
         String normalizedName = person.getName().fullName.toLowerCase(Locale.ROOT);
+
         return keywords.stream()
                 .anyMatch(keyword -> !keyword.isBlank()
                         && normalizedName.contains(keyword.toLowerCase(Locale.ROOT)));
