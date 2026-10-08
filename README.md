@@ -1,24 +1,40 @@
 # TutorRoster
 
-TutorRoster is a keyboard-driven desktop application for private tutors to manage students' contact and tutoring
-information. It is built on AddressBook Level 3 using Java 25 and JavaFX.
+[![CI Status](https://github.com/AY2627S1-CS2103T-F14-2/tp/workflows/Java%20CI/badge.svg)](https://github.com/AY2627S1-CS2103T-F14-2/tp/actions)
 
-Add a student:
+![Ui](docs/images/Ui.png)
 
-```text
-add n/Ryan Tan p/+6591234567 e/ryan@example.com s/Mathematics s/Physics l/Secondary 4
-```
+## About TutorRoster
 
-Email is optional. Name, phone, at least one subject, and education level are required.
-Existing contacts and new students share one roster. Existing files remain readable without automatic migration;
-student editing is not available in this release.
+**TutorRoster** is a desktop student management application designed specifically for **private freelance tutors** who manage between 10 to 20 students.
+
+Tutors often juggle scattered chat messages, spreadsheets, and sticky notes across multiple devices. **TutorRoster** centralizes all student contact details and tutoring information into a single, cohesive, and distraction-free workspace.
+
+Optimized for tutors who type fast and prefer a **Command Line Interface (CLI)** with the visual clarity of a **Graphical User Interface (GUI)**, TutorRoster allows you to retrieve, update, and manage your students much faster than traditional mouse-driven applications.
+
+---
+
+## Key Features
+
+* **Student & Guardian Profiles**: Track crucial tutoring-specific details including subjects taught, education level, school, parent/guardian contacts, and customized student notes.
+* **Rapid CLI-First Workflow**: Perform common operations (adding, searching, filtering, and updating student profiles) with concise keyboard commands.
+* **Targeted Search & Tagging**: Quickly filter students by subject, academic level, school, or custom tags without needing to memorize full names.
+* **Data Integrity & Safety**: Built-in duplicate warnings, validation checks, and deletion safeguards to keep your records accurate and secure.
+
+> **Note**: TutorRoster focuses on student contact and profile management. It intentionally does not handle lesson scheduling, attendance tracking, billing/payments, or teaching materials.
+
+---
+
+## Documentation
+
+
 
 * [User Guide](docs/UserGuide.md)
 * [Developer Guide](docs/DeveloperGuide.md)
-* [Setting up](docs/SettingUp.md)
-* [Testing](docs/Testing.md)
+* [Design System](docs/DesignSystem.md)
+* [About Us](docs/AboutUs.md)
 
-Run `gradlew.bat check` on Windows or `./gradlew check` on macOS/Linux.
-Build with `gradlew.bat shadowJar`, then run `java -jar build/libs/addressbook.jar`.
+---
 
-Acknowledgement: this project is based on [se-edu/addressbook-level3](https://github.com/se-edu/addressbook-level3).
+## Acknowledgements
+* This project is based on the AddressBook-Level3 project created by the [SE-EDU initiative](https://se-education.org).

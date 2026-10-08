@@ -2,6 +2,7 @@ package seedu.address.ui;
 
 import java.util.Comparator;
 import java.util.stream.Collectors;
+import java.util.concurrent.atomic.AtomicInteger;
 
 import javafx.fxml.FXML;
 import javafx.scene.control.Label;
@@ -31,6 +32,8 @@ public class PersonCard extends UiPart<Region> {
     private HBox cardPane;
     @FXML
     private Label name;
+    @FXML
+    private Label initials;
     @FXML
     private Label id;
     @FXML
@@ -75,6 +78,23 @@ public class PersonCard extends UiPart<Region> {
         }
         person.getTags().stream()
                 .sorted(Comparator.comparing(tag -> tag.tagName))
-                .forEach(tag -> tags.getChildren().add(new Label(tag.tagName)));
+                .forEach(tag -> {
+                    Label tagLabel = new Label(tag.tagName);
+                    tagLabel.getStyleClass().add("tag-chip");
+                    if (tagIndex.getAndIncrement() % 3 == 1) {
+                        tagLabel.getStyleClass().add("tag-chip-secondary");
+                    } else if (tagIndex.get() % 3 == 0) {
+                        tagLabel.getStyleClass().add("tag-chip-tertiary");
+                    }
+                    tags.getChildren().add(tagLabel);
+                });
+    }
+
+    private String getInitials(String fullName) {
+        String[] nameParts = fullName.trim().split("\\s+");
+        if (nameParts.length == 1) {
+            return nameParts[0].substring(0, 1).toUpperCase();
+        }
+        return (nameParts[0].substring(0, 1) + nameParts[nameParts.length - 1].substring(0, 1)).toUpperCase();
     }
 }

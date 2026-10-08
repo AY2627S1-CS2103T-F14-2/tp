@@ -159,6 +159,24 @@ Classes used by multiple components are in the `seedu.address.commons` package.
 
 This section describes some noteworthy details on how certain features are implemented.
 
+### Delete student
+
+`DeleteCommandParser` accepts a single positive displayed index through `ParserUtil.parseIndex`.
+Malformed arguments produce `Invalid command format. Usage: delete INDEX`.
+
+`DeleteCommand.execute` reads the currently filtered list and validates the index against its size.
+An out-of-range index produces `The student index provided is invalid.` without changing the model or filter.
+For a valid index, it resolves the student before deleting the record, then resets the filter with
+`Model.PREDICATE_SHOW_ALL_PERSONS`. Resolving the student before clearing the filter is necessary because a search
+result's index can differ from its index in the complete roster.
+The command returns `Student removed: NAME`; it does not display contact details or ask for confirmation.
+
+<puml src="diagrams/DeleteSequenceDiagram.puml" alt="Delete student sequence" />
+
+`LogicManager` performs the existing automatic save after command execution.
+The shared persistence requirement to restore records and the previous filter after a failed save is still pending;
+the current inherited save-error handling does not roll back an in-memory deletion.
+
 ### \[Proposed\] Undo/redo feature
 
 #### Proposed Implementation
@@ -356,15 +374,170 @@ Priorities: High (must have) - `* * *`, Medium (nice to have) - `* *`, Low (unli
 
       Use case resumes at step 2.
 
-*{More to be added}*
+### Use cases
+
+(For all use cases below, the **System** is `TutorRoster` and the **Actor** is the `user`.)
+
+**Use case: Add a student**
+
+**MSS**
+
+1. User enters a command to add a student with their name, phone number, subject(s), education level and optional email address
+2. TutorRoster validates the command and student details
+3. TutorRoster checks that the student is not a duplicate
+4. TutorRoster stores the new student record
+5. TutorRoster displays the updated student list and a confirmation message
+
+   Use case ends.
+
+**Extensions**
+
+- 2a. The command or student details are invalid.
+
+  - 2a1. TutorRoster shows an error message.
+
+    Use case ends.
+
+- 3a. The student is already in the roster.
+
+  - 3a1. TutorRoster rejects the duplicate record and shows an error message.
+
+    Use case ends.
+
+- 4a. TutorRoster cannot save the student data.
+
+  - 4a1. TutorRoster shows an error message and makes no changes.
+
+    Use case ends.
+
+---
+
+**Use case: List students**
+
+**MSS**
+
+1. User requests to list students
+2. TutorRoster displays all stored students in roster order
+3. TutorRoster displays the number of students listed
+
+   Use case ends.
+
+**Extensions**
+
+- 1a. The user provides additional text or parameters.
+
+  - 1a1. TutorRoster shows an error message.
+
+    Use case ends.
+
+- 2a. The roster is empty.
+
+  - 2a1. TutorRoster displays `No students in TutorRoster`.
+
+    Use case ends.
+
+---
+
+**Use case: Find a student by name**
+
+**MSS**
+
+1. User enters one or more name keywords
+2. TutorRoster searches student names using case-insensitive partial matching
+3. TutorRoster displays the matching students in roster order
+4. TutorRoster displays the number of students found
+
+   Use case ends.
+
+**Extensions**
+
+- 1a. The user does not provide a search keyword.
+
+  - 1a1. TutorRoster shows an error message.
+
+    Use case ends.
+
+- 3a. No students match the search keywords.
+
+  - 3a1. TutorRoster displays an empty list and shows `No students found`.
+
+    Use case ends.
+
+---
+
+**Use case: Delete a student**
+
+**MSS**
+
+1. User requests to list students
+2. TutorRoster displays a numbered list of students
+3. User requests to delete a specific student using its index
+4. TutorRoster validates the index and deletes the selected student
+5. TutorRoster displays the remaining student list and a confirmation message
+
+   Use case ends.
+
+**Extensions**
+
+- 2a. The displayed list is the result of a previous search.
+
+  - 2a1. TutorRoster interprets the index using the filtered list.
+
+    Use case resumes at step 3.
+
+- 3a. The given index is invalid.
+
+  - 3a1. TutorRoster shows an error message.
+
+    Use case resumes at step 2.
+
+- 4a. TutorRoster cannot save the updated roster.
+
+  - 4a1. TutorRoster shows an error message and makes no changes.
+
+    Use case ends.
+
+---
+
+**Use case: Restore persistent student records**
+
+**MSS**
+
+1. User starts or reopens TutorRoster
+2. TutorRoster loads the previously stored student records
+3. TutorRoster displays the restored student list
+
+   Use case ends.
+
+**Extensions**
+
+- 2a. No previous student data exists.
+
+  - 2a1. TutorRoster starts with an empty roster.
+
+    Use case ends.
+
+- 2b. TutorRoster cannot load the existing student data.
+
+  - 2b1. TutorRoster shows an error message and starts with an empty roster without overwriting the existing data.
+
+    Use case ends.
+
+
+
 
 ### Non-Functional Requirements
 
-1.  Should work on any _mainstream OS_ as long as it has Java `25` or above installed.
-2.  Should be able to hold up to 1000 persons without noticeable sluggishness in performance for typical usage.
-3.  A user with above average typing speed for regular English text (i.e. not code, not system admin commands) should be able to accomplish most of the tasks faster using commands than using the mouse.
-
-*{More to be added}*
+1.  TutorRoster should work on any _mainstream OS_ as long as it has Java `25` installed.
+2.  TutorRoster should be able to hold at least 1000 student records.
+3.  With up to 1000 student records, common operations such as adding, editing, deleting, finding, filtering, and listing students should normally complete within one second.
+4.  All core student-management operations should be executable entirely through keyboard commands without requiring a mouse.
+5.  A user who is familiar with TutorRoster's commands should be able to perform common student-management operations faster than with a typical mouse-driven contact-management application.
+6.  After TutorRoster reports that a data-modifying operation was successful, the updated student information should be saved and available when the application is restarted.
+7.  Invalid commands, invalid student information, and failed operations should not modify or remove any existing student records.
+8.  If the data file is missing, unreadable, or corrupted, TutorRoster should start safely, inform the user of the problem, and avoid automatically overwriting the affected file.
+9.  TutorRoster should store all student data locally in a human-editable text file. All core student-management functions should remain usable without an Internet connection and should not depend on a database management system or remote server.
+10. Error messages should identify the invalid field or command and explain the expected input format. Successful data-changing operations should also provide confirmation.
 
 ### Glossary
 
@@ -430,20 +603,24 @@ testers are expected to do more *exploratory* testing.
 
 1. _{ more test cases … }_
 
-### Deleting a person
+### Deleting a student
 
-1. Deleting a person while all persons are being shown
+1. Deleting a student while the full roster is shown
 
    1. Prerequisites: List all persons using the `list` command, with multiple persons in the list.
 
    1. Test case: `delete 1`<br>
-      Expected: The first contact is deleted from the list. The status message shows the deleted contact's details.
+      Expected: The first student is removed, all remaining students are displayed, and the result area shows
+      `Student removed: NAME`.
 
    1. Test case: `delete 0`<br>
-      Expected: No person is deleted. The status message shows error details.
+      Expected: No student is removed, the displayed list is unchanged, and the result area shows
+      `Invalid command format. Usage: delete INDEX`.
 
    1. Other incorrect delete commands to try: `delete`, `delete x`, `...` (where x is larger than the list size)<br>
-      Expected: Similar to previous.
+      Expected: Missing or malformed indices show `Invalid command format. Usage: delete INDEX`.
+      Positive indices outside the displayed list show `The student index provided is invalid.`.
+      No student is removed and the displayed list remains unchanged.
 
 1. _{ more test cases … }_
 

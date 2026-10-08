@@ -1,0 +1,396 @@
+/*
+ * TutorRoster design system
+ *
+ * JavaFX does not support CSS custom properties, so the token values below are
+ * repeated in the component rules. Keep this file as the single source of
+ * truth for application-wide visual decisions.
+ *
+ * Colour tokens
+ *   ink            #173734   Primary text
+ *   ink-muted      #647572   Secondary text
+ *   brand          #177565   Primary action and brand colour
+ *   brand-dark     #0F5B50   Pressed and high-contrast brand state
+ *   canvas         #F5F7F5   Application background
+ *   surface        #FFFFFF   Cards and controls
+ *   surface-soft   #EFF6F2   Feedback and selected surfaces
+ *   border         #DCE5E1   Quiet dividers and outlines
+ *   danger         #B84C4C   Validation and command errors
+ *
+ * Spacing tokens
+ *   4, 8, 12, 16, 24, 28, 32 px
+ *
+ * Shape tokens
+ *   small radius   8 px
+ *   card radius    14 px
+ *   shell radius   16 px
+ */
+
+.app-shell {
+    -fx-background-color: #F5F7F5;
+    -fx-font-family: "Helvetica", "Segoe UI", sans-serif;
+    -fx-font-weight: normal;
+}
+
+.app-shell .label,
+.app-shell .text-field,
+.app-shell .text-area,
+.app-shell .button,
+.app-shell .menu-bar {
+    -fx-font-family: "Helvetica", "Segoe UI", sans-serif;
+    -fx-font-weight: normal;
+}
+
+.top-bar {
+    -fx-background-color: #FFFFFF;
+    -fx-border-color: transparent transparent #DCE5E1 transparent;
+    -fx-border-width: 0 0 1 0;
+    -fx-padding: 18 28 16 28;
+}
+
+.brand-lockup {
+    -fx-padding: 0;
+}
+
+.brand-mark {
+    -fx-background-color: #177565;
+    -fx-background-radius: 11;
+    -fx-min-width: 38;
+    -fx-min-height: 38;
+    -fx-max-width: 38;
+    -fx-max-height: 38;
+    -fx-alignment: CENTER;
+    -fx-font-size: 12px;
+    -fx-font-weight: normal;
+    -fx-text-fill: #FFFFFF;
+}
+
+.brand-name {
+    -fx-font-size: 17px;
+    -fx-font-weight: normal;
+    -fx-text-fill: #173734;
+}
+
+.brand-caption,
+.section-hint,
+.top-hint {
+    -fx-font-size: 11px;
+    -fx-text-fill: #647572;
+}
+
+.app-menu-bar {
+    -fx-background-color: transparent;
+    -fx-padding: 0 0 0 16;
+}
+
+.app-menu-bar .label {
+    -fx-font-size: 12px;
+    -fx-font-weight: normal;
+    -fx-text-fill: #647572;
+}
+
+.app-menu-bar .menu:hover,
+.app-menu-bar .menu:showing {
+    -fx-background-color: #EFF6F2;
+    -fx-background-radius: 8;
+}
+
+.content-area {
+    -fx-padding: 0 28 0 28;
+}
+
+.section-heading {
+    -fx-padding: 22 0 12 0;
+}
+
+.eyebrow {
+    -fx-font-size: 10px;
+    -fx-font-weight: normal;
+    -fx-opacity: 0.85;
+    -fx-text-fill: #177565;
+}
+
+.section-title {
+    -fx-font-size: 22px;
+    -fx-font-weight: bold;
+    -fx-text-fill: #173734;
+}
+
+.app-shell .section-title {
+    -fx-font-weight: bold;
+}
+
+.roster-surface {
+    -fx-background-color: #FFFFFF;
+    -fx-background-radius: 16;
+    -fx-border-color: #DCE5E1;
+    -fx-border-radius: 16;
+    -fx-border-width: 1;
+    -fx-padding: 12;
+}
+
+.person-list-panel {
+    -fx-background-color: transparent;
+}
+
+.list-view {
+    -fx-background-color: transparent;
+    -fx-background-insets: 0;
+    -fx-padding: 0;
+}
+
+.list-cell {
+    -fx-background-color: transparent;
+    -fx-background-insets: 0;
+    -fx-padding: 0 0 10 0;
+}
+
+.list-cell:empty {
+    -fx-background-color: transparent;
+    -fx-padding: 0;
+}
+
+.list-cell:filled:selected {
+    -fx-background-color: transparent;
+}
+
+.person-card {
+    -fx-background-color: #FFFFFF;
+    -fx-background-radius: 14;
+    -fx-border-color: #DCE5E1;
+    -fx-border-radius: 14;
+    -fx-border-width: 1;
+    -fx-padding: 14;
+}
+
+.list-cell:filled:hover .person-card {
+    -fx-background-color: #F8FBF9;
+    -fx-border-color: #B9D9CE;
+}
+
+.list-cell:filled:selected .person-card {
+    -fx-background-color: #EFF6F2;
+    -fx-border-color: #177565;
+}
+
+.person-avatar {
+    -fx-background-color: #E5F1EC;
+    -fx-background-radius: 24;
+    -fx-min-width: 44;
+    -fx-min-height: 44;
+    -fx-max-width: 44;
+    -fx-max-height: 44;
+}
+
+.avatar-label {
+    -fx-font-size: 13px;
+    -fx-font-weight: normal;
+    -fx-text-fill: #177565;
+}
+
+.card-name {
+    -fx-font-size: 15px;
+    -fx-font-weight: normal;
+    -fx-text-fill: #173734;
+}
+
+.card-index {
+    -fx-font-size: 10px;
+    -fx-text-fill: #94A39E;
+}
+
+.contact-row {
+    -fx-padding: 0;
+}
+
+.card-meta,
+.card-address {
+    -fx-font-size: 11px;
+    -fx-text-fill: #647572;
+}
+
+.card-address {
+    -fx-text-fill: #82908C;
+}
+
+.tag-chip {
+    -fx-background-color: #F1ECFB;
+    -fx-background-radius: 8;
+    -fx-padding: 4 8 4 8;
+    -fx-font-size: 10px;
+    -fx-font-weight: normal;
+    -fx-text-fill: #6D5AA5;
+}
+
+.tag-chip-secondary {
+    -fx-background-color: #FFF1D6;
+    -fx-text-fill: #93611C;
+}
+
+.tag-chip-tertiary {
+    -fx-background-color: #E5F1EC;
+    -fx-text-fill: #277562;
+}
+
+.result-surface {
+    -fx-padding: 10 0 0 0;
+}
+
+.result-display-shell {
+    -fx-background-color: #EFF6F2;
+    -fx-background-radius: 12;
+    -fx-border-color: #D4E8DF;
+    -fx-border-radius: 12;
+    -fx-border-width: 1;
+    -fx-padding: 8 12 8 12;
+}
+
+.result-display {
+    -fx-background-color: transparent;
+    -fx-border-color: transparent;
+    -fx-font-size: 11px;
+    -fx-text-fill: #35625A;
+}
+
+.result-display .content {
+    -fx-background-color: transparent;
+    -fx-background-radius: 0;
+    -fx-padding: 0;
+}
+
+.command-region {
+    -fx-padding: 16 28 8 28;
+}
+
+.command-box {
+    -fx-background-color: #FFFFFF;
+    -fx-background-radius: 14;
+    -fx-border-color: #B9D9CE;
+    -fx-border-radius: 14;
+    -fx-border-width: 1;
+    -fx-padding: 5 6 5 14;
+}
+
+.command-icon {
+    -fx-font-family: "Menlo", "Consolas", monospace;
+    -fx-font-size: 15px;
+    -fx-font-weight: normal;
+    -fx-text-fill: #177565;
+}
+
+.command-box .text-field {
+    -fx-background-color: transparent;
+    -fx-border-color: transparent;
+    -fx-font-family: "Helvetica", "Segoe UI", sans-serif;
+    -fx-font-size: 13px;
+    -fx-font-weight: normal;
+    -fx-text-fill: #173734;
+    -fx-prompt-text-fill: #647572;
+}
+
+.command-box .text-field:focused {
+    -fx-background-color: transparent;
+    -fx-border-color: transparent;
+}
+
+.primary-button {
+    -fx-background-color: #177565;
+    -fx-background-radius: 9;
+    -fx-border-color: transparent;
+    -fx-border-radius: 9;
+    -fx-padding: 9 14 9 14;
+    -fx-font-size: 12px;
+    -fx-font-weight: normal;
+    -fx-text-fill: #FFFFFF;
+}
+
+.primary-button:hover {
+    -fx-background-color: #0F5B50;
+}
+
+.primary-button:pressed {
+    -fx-background-color: #0B473F;
+}
+
+.primary-button:focused {
+    -fx-border-color: #A7D9CF;
+    -fx-border-width: 2;
+}
+
+.error {
+    -fx-text-fill: #B84C4C !important;
+}
+
+.command-box .error {
+    -fx-border-color: #B84C4C;
+}
+
+.status-region {
+    -fx-padding: 0 28 12 28;
+}
+
+.status-bar {
+    -fx-background-color: transparent;
+}
+
+.status-bar .label {
+    -fx-font-size: 10px;
+    -fx-text-fill: #94A39E;
+}
+
+.context-menu,
+.dialog-pane {
+    -fx-background-color: #FFFFFF;
+}
+
+.context-menu .label,
+.dialog-pane .label {
+    -fx-text-fill: #173734;
+}
+
+.dialog-pane > *.button-bar > *.container {
+    -fx-background-color: #F5F7F5;
+}
+
+.dialog-pane:header *.header-panel {
+    -fx-background-color: #EFF6F2;
+}
+
+.dialog-pane:header *.header-panel *.label {
+    -fx-font-weight: bold;
+}
+
+.dialog-pane .button {
+    -fx-background-color: #177565;
+    -fx-background-radius: 8;
+    -fx-text-fill: #FFFFFF;
+}
+
+.scroll-bar {
+    -fx-background-color: transparent;
+}
+
+.scroll-bar .thumb {
+    -fx-background-color: #C7D8D1;
+    -fx-background-radius: 8;
+}
+
+.scroll-bar .increment-button,
+.scroll-bar .decrement-button {
+    -fx-background-color: transparent;
+    -fx-padding: 0;
+}
+
+.scroll-bar .increment-arrow,
+.scroll-bar .decrement-arrow {
+    -fx-shape: " ";
+}
+
+.help-container {
+    -fx-background-color: #FFFFFF;
+    -fx-padding: 18;
+}
+
+.help-container .label {
+    -fx-font-size: 12px;
+    -fx-text-fill: #173734;
+}
