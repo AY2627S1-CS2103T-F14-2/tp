@@ -1,8 +1,8 @@
 package seedu.address.ui;
 
 import java.util.Comparator;
-import java.util.stream.Collectors;
 import java.util.concurrent.atomic.AtomicInteger;
+import java.util.stream.Collectors;
 
 import javafx.fxml.FXML;
 import javafx.scene.control.Label;
@@ -69,6 +69,7 @@ public class PersonCard extends UiPart<Region> {
         subjects.setManaged(person.isStudent());
         level.setVisible(person.isStudent());
         level.setManaged(person.isStudent());
+        AtomicInteger tagIndex = new AtomicInteger();
         if (person.isStudent()) {
             subjects.setText("Subjects: " + person.getSubjects().stream().map(Object::toString)
                     .collect(Collectors.joining(", ")));
