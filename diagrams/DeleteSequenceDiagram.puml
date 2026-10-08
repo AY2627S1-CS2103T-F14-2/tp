@@ -49,9 +49,24 @@ deactivate AddressBookParser
 LogicManager -> DeleteCommand : execute(m)
 activate DeleteCommand
 
-DeleteCommand -> Model : deletePerson(1)
+DeleteCommand -> Model : getFilteredPersonList()
+activate Model
+Model --> DeleteCommand : displayed students
+deactivate Model
+
+note right of DeleteCommand
+Validate the index and resolve the student
+before changing the filter.
+end note
+
+DeleteCommand -> Model : deletePerson(student)
 activate Model
 
+Model --> DeleteCommand
+deactivate Model
+
+DeleteCommand -> Model : updateFilteredPersonList(PREDICATE_SHOW_ALL_PERSONS)
+activate Model
 Model --> DeleteCommand
 deactivate Model
 
