@@ -2,6 +2,7 @@ package seedu.address.logic.commands;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static seedu.address.logic.Messages.MESSAGE_PERSONS_LISTED_OVERVIEW;
 import static seedu.address.logic.commands.CommandTestUtil.assertCommandSuccess;
@@ -51,6 +52,13 @@ public class FindCommandTest {
 
         // different predicates -> returns false
         assertFalse(findFirstCommand.equals(findSecondCommand));
+    }
+
+    @Test
+    public void execute_nullModel_throwsNullPointerException() {
+        FindCommand command = new FindCommand(preparePredicate("Alice"));
+
+        assertThrows(NullPointerException.class, () -> command.execute(null));
     }
 
     @Test
