@@ -264,6 +264,41 @@ _{Explain here how the data archiving feature will be implemented}_
 
 --------------------------------------------------------------------------------------------------------------------
 
+## Add student implementation
+
+The add command creates student records in the existing roster. Person has two forms:
+legacy contacts contain address and tags; students contain an ordered, immutable subject list and a required level.
+An absent student email is represented by Email.absent(), while an empty e/ is rejected by the parser.
+The subject list and level persist, so the student edit restriction also applies after restarting.
+
+AddCommandParser recognizes whitespace-separated single-letter prefixes, rejects unknown prefixes first, and checks
+repeated n/, p/, e/, and l/ before required fields. It validates all fields before repeated subjects.
+Name, Subject, and Level normalize Unicode whitespace and count Unicode code points for length limits.
+Phone uses 3–15 ASCII digits with an optional leading +. Email implements the written local-part/domain rule.
+
+Person.isSamePerson compares normalized names and either phone or present email across the whole roster.
+This relation is not transitive: two records may match a proposed record through different contacts without matching
+each other. UniquePersonList.setPerson and EditCommand compare against every other record, excluding
+the edited record itself, rather than skipping checks when the proposed record matches its original.
+
+ModelManager.addPerson preserves the existing filter. Command success returns only the student's name.
+PersonCard hides absent email and legacy-only fields for students and displays subjects in entered order.
+EditCommand rejects student edits with "Student editing is not available yet."; legacy contacts remain editable.
+
+JsonAdaptedPerson extends the existing persons array with subjects and level. Old records with neither field remain
+legacy contacts and retain their original values. Records with either student field must have both valid fields.
+Legacy readers retain formerly accepted long names, long digit-only phones, and emails without a domain full stop.
+New additions use the current student rules. No automatic migration is performed.
+
+LogicManager executes before saving. An IOException after add leaves the new record in memory and reports
+"Unable to save student data. The student remains in this session but may be lost when you restart."
+There is no rollback. A later successful save writes the entire roster.
+
+Automated coverage includes parser error priority and Unicode boundaries, mixed-format storage round trips,
+invalid persisted student records, whole-roster duplicates, filtered additions, edit rejection after restart,
+save failures, and loading the student/legacy JavaFX cards.
+
+
 ## **Appendix: Requirements**
 
 ### Product scope
@@ -354,7 +389,7 @@ Priorities: High (must have) - `* * *`, Medium (nice to have) - `* *`, Low (unli
 | **Parameter** | A value supplied to a command, such as a student’s name or the index of a record to delete. |
 | **Prefix** | A marker identifying a parameter’s type, such as `n/` for name or `s/` for subject. |
 | **Student index (`INDEX`)** | A student’s position in the currently displayed numbered list, starting from 1. After a search, it refers to the search results. |
-| **Search keyword** | Text used to find matching records. In the strict MVP, keywords match parts of student names, and every supplied keyword must match. |
+| **Search keyword** | Text used to find matching records. The current find command matches whole words of student names; at least one supplied keyword must match. |
 | **Filtered list** | A displayed subset of the roster containing only students who match the current search or filter criteria. |
 | **Case-insensitive matching** | Comparing text without distinguishing uppercase from lowercase letters. For example, `Ryan` and `ryan` match. |
 | **Whitespace normalization** | Removing surrounding spaces and treating consecutive internal spaces as one space where specified. |
@@ -411,6 +446,21 @@ testers are expected to do more *exploratory* testing.
       Expected: Similar to previous.
 
 1. _{ more test cases … }_
+
+### Adding students
+
+1. Add `add n/Sam Tan p/+123 e/sam@example.com s/Mathematics s/Physics l/Year 10`.
+   Expected: `New student added: Sam Tan`, with both subjects displayed in entered order.
+2. Add `add n/sam tan p/123 s/English l/Year 9`.
+   Expected: `This student already exists in TutorRoster.`, with the original record unchanged.
+3. Add `add n/Sibling Tan p/123 s/English l/Year 9`.
+   Expected: success; siblings may share contact details.
+4. Try a repeated subject, empty `e/`, unknown `x/Test`, or missing level.
+   Expected: the documented validation error and no new record.
+5. Run `find Sam`, then add a student whose name does not contain Sam.
+   Expected: the search remains active. Run `list` to see the added student.
+6. Restart the app and run `edit INDEX p/456` on a newly added student.
+   Expected: `Student editing is not available yet.`; subjects and level survive restarting.
 
 ### Saving data
 

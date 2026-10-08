@@ -17,5 +17,7 @@ Person -up-> "*" Tag
 Person *--> Name
 Person *--> Phone
 Person *--> Email
-Person *--> Address
+Person *--> "0..1" Address
+Person *--> "* ordered" Subject
+Person *--> "0..1" Level
 @enduml

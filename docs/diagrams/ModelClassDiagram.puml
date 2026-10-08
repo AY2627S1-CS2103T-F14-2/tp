@@ -19,6 +19,8 @@ Class Email
 Class Name
 Class Phone
 Class Tag
+Class Subject
+Class Level
 
 Class I #FFFFFF
 }
@@ -40,8 +42,14 @@ UniquePersonList --> "~* all" Person
 Person *--> Name
 Person *--> Phone
 Person *--> Email
-Person *--> Address
+Person *--> "0..1" Address
 Person *--> "*" Tag
+Person *--> "* ordered" Subject
+Person *--> "0..1" Level
+note right of Person
+  Student: subjects and level, optional email
+  Legacy contact: address and tags
+end note
 
 Person -[hidden]up--> I
 UniquePersonList -[hidden]right-> I
