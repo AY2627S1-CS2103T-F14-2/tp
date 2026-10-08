@@ -1,6 +1,7 @@
 package seedu.address.ui;
 
 import java.util.Comparator;
+import java.util.stream.Collectors;
 
 import javafx.fxml.FXML;
 import javafx.scene.control.Label;
@@ -39,6 +40,10 @@ public class PersonCard extends UiPart<Region> {
     @FXML
     private Label email;
     @FXML
+    private Label subjects;
+    @FXML
+    private Label level;
+    @FXML
     private FlowPane tags;
 
     /**
@@ -49,9 +54,25 @@ public class PersonCard extends UiPart<Region> {
         this.person = person;
         id.setText(displayedIndex + ". ");
         name.setText(person.getName().fullName);
-        phone.setText(person.getPhone().value);
-        address.setText(person.getAddress().value);
-        email.setText(person.getEmail().value);
+        phone.setText("Phone: " + person.getPhone().value);
+        email.setText("Email: " + person.getEmail().value);
+        email.setVisible(person.getEmail().isPresent());
+        email.setManaged(person.getEmail().isPresent());
+        address.setVisible(!person.isStudent());
+        address.setManaged(!person.isStudent());
+        tags.setVisible(!person.isStudent());
+        tags.setManaged(!person.isStudent());
+        subjects.setVisible(person.isStudent());
+        subjects.setManaged(person.isStudent());
+        level.setVisible(person.isStudent());
+        level.setManaged(person.isStudent());
+        if (person.isStudent()) {
+            subjects.setText("Subjects: " + person.getSubjects().stream().map(Object::toString)
+                    .collect(Collectors.joining(", ")));
+            level.setText("Level: " + person.getLevel());
+        } else {
+            address.setText("Address: " + person.getAddress().value);
+        }
         person.getTags().stream()
                 .sorted(Comparator.comparing(tag -> tag.tagName))
                 .forEach(tag -> tags.getChildren().add(new Label(tag.tagName)));

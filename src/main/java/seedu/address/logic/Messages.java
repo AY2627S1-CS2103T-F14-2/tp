@@ -35,6 +35,13 @@ public class Messages {
      * Formats the {@code person} for display to the user.
      */
     public static String format(Person person) {
+        if (person.isStudent()) {
+            return person.getName() + "; Phone: " + person.getPhone()
+                    + (person.getEmail().isPresent() ? "; Email: " + person.getEmail() : "")
+                    + "; Subjects: " + person.getSubjects().stream().map(Object::toString)
+                            .collect(Collectors.joining(", "))
+                    + "; Level: " + person.getLevel();
+        }
         final StringBuilder builder = new StringBuilder();
         builder.append(person.getName())
                 .append("; Phone: ")

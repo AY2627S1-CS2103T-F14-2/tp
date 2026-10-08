@@ -10,13 +10,14 @@ import static seedu.address.commons.util.AppUtil.checkArgument;
 public class Name {
 
     public static final String MESSAGE_CONSTRAINTS =
-            "Names should only contain alphanumeric characters and spaces, and should not be blank";
+            "Invalid name. Names must be 1–100 characters and contain at least one letter or number. "
+            + "Only letters, numbers, spaces, apostrophes, hyphens and full stops are allowed.";
 
     /*
      * The first character of the name must not be a whitespace,
      * otherwise " " (a blank string) becomes a valid input.
      */
-    public static final String VALIDATION_REGEX = "[\\p{Alnum}][\\p{Alnum} ]*";
+    public static final String VALIDATION_REGEX = "[\\p{L}\\p{N} '.-]+";
 
     public final String fullName;
 
@@ -28,15 +29,30 @@ public class Name {
     public Name(String name) {
         requireNonNull(name);
         checkArgument(isValidName(name), MESSAGE_CONSTRAINTS);
-        fullName = name;
+        fullName = StudentText.normalize(name);
+    }
+
+    private Name(String value, boolean legacy) {
+        fullName = value;
     }
 
     /**
      * Returns true if a given string is a valid name.
      */
     public static boolean isValidName(String test) {
-        return test.matches(VALIDATION_REGEX);
+        String normalized = StudentText.normalize(test);
+        int length = normalized.codePointCount(0, normalized.length());
+        return length >= 1 && length <= 100 && normalized.matches(VALIDATION_REGEX)
+                && normalized.matches(".*[\\p{L}\\p{N}].*");
     }
+
+    /** Reads a legacy name without imposing new student length limits or changing its display. */
+    public static Name fromLegacy(String value) {
+        requireNonNull(value);
+        checkArgument(value.matches("[\\p{Alnum}][\\p{Alnum} ]*") || isValidName(value), MESSAGE_CONSTRAINTS);
+        return new Name(value, true);
+    }
+
 
 
     @Override

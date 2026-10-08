@@ -4,51 +4,52 @@ import static java.util.Objects.requireNonNull;
 import static seedu.address.commons.util.AppUtil.checkArgument;
 
 /**
- * Represents a Person's email in the address book.
- * Guarantees: immutable; is valid as declared in {@link #isValidEmail(String)}
+ * An immutable contact email. Display capitalization is preserved.
  */
 public class Email {
+    public static final String MESSAGE_CONSTRAINTS =
+            "Invalid email. Email must be in the form local-part@domain and must not contain spaces.";
+    public static final String VALIDATION_REGEX = "(?U)[^@\\s]+@[^@\\s.]+(?:\\.[^@\\s.]+)+";
 
-    private static final String SPECIAL_CHARACTERS = "+_.-";
-    public static final String MESSAGE_CONSTRAINTS = "Emails should be of the format local-part@domain "
-            + "and adhere to the following constraints:\n"
-            + "1. The local-part should only contain alphanumeric characters and these special characters, excluding "
-            + "the parentheses, (" + SPECIAL_CHARACTERS + "). The local-part may not start or end with any special "
-            + "characters.\n"
-            + "2. The local-part is followed by an '@' and then a domain name. The domain name is made up of domain "
-            + "labels separated by periods.\n"
-            + "The domain name must:\n"
-            + "    - end with a domain label at least 2 characters long\n"
-            + "    - have each domain label start and end with alphanumeric characters\n"
-            + "    - have each domain label consist of alphanumeric characters, separated only by hyphens, if any.";
-    // alphanumeric and special characters
-    private static final String ALPHANUMERIC_NO_UNDERSCORE = "[^\\W_]+"; // alphanumeric characters except underscore
-    private static final String LOCAL_PART_REGEX = "^" + ALPHANUMERIC_NO_UNDERSCORE + "([" + SPECIAL_CHARACTERS + "]"
-            + ALPHANUMERIC_NO_UNDERSCORE + ")*";
-    private static final String DOMAIN_PART_REGEX = ALPHANUMERIC_NO_UNDERSCORE
-            + "(-" + ALPHANUMERIC_NO_UNDERSCORE + ")*";
-    private static final String DOMAIN_LAST_PART_REGEX = "(" + DOMAIN_PART_REGEX + "){2,}$"; // At least two chars
-    private static final String DOMAIN_REGEX = "(" + DOMAIN_PART_REGEX + "\\.)*" + DOMAIN_LAST_PART_REGEX;
-    public static final String VALIDATION_REGEX = LOCAL_PART_REGEX + "@" + DOMAIN_REGEX;
+    private static final String ALPHANUMERIC = "[^\\W_]+";
+    private static final String LOCAL_PART = "^" + ALPHANUMERIC + "([+_.-]" + ALPHANUMERIC + ")*";
+    private static final String DOMAIN_PART = ALPHANUMERIC + "(-" + ALPHANUMERIC + ")*";
+    private static final String LEGACY_VALIDATION_REGEX =
+            LOCAL_PART + "@(" + DOMAIN_PART + "\\.)*(" + DOMAIN_PART + "){2,}$";
 
     public final String value;
 
-    /**
-     * Constructs an {@code Email}.
-     *
-     * @param email A valid email address.
-     */
+    /** Creates a supplied email, rejecting empty values. */
     public Email(String email) {
         requireNonNull(email);
         checkArgument(isValidEmail(email), MESSAGE_CONSTRAINTS);
         value = email;
     }
 
-    /**
-     * Returns true if a given string is a valid email.
-     */
+    private Email(String value, boolean legacy) {
+        this.value = value;
+    }
+
+    /** Checks exactly one @, no whitespace, and nonempty dot-separated domain labels. */
     public static boolean isValidEmail(String test) {
         return test.matches(VALIDATION_REGEX);
+    }
+
+    /** Represents an omitted optional email without accepting an empty e/ parameter. */
+    public static Email absent() {
+        return new Email("", true);
+    }
+
+    /** Retains emails accepted by the legacy contact format. */
+    public static Email fromLegacy(String value) {
+        requireNonNull(value);
+        checkArgument(value.matches(LEGACY_VALIDATION_REGEX) || isValidEmail(value), MESSAGE_CONSTRAINTS);
+        return new Email(value, true);
+    }
+
+    /** Returns whether this record has an email. */
+    public boolean isPresent() {
+        return !value.isEmpty();
     }
 
     @Override
@@ -58,21 +59,11 @@ public class Email {
 
     @Override
     public boolean equals(Object other) {
-        if (other == this) {
-            return true;
-        }
-
-        // instanceof handles nulls
-        if (!(other instanceof Email otherEmail)) {
-            return false;
-        }
-
-        return value.equals(otherEmail.value);
+        return other instanceof Email email && value.equals(email.value);
     }
 
     @Override
     public int hashCode() {
         return value.hashCode();
     }
-
 }

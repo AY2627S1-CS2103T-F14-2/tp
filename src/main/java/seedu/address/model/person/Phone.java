@@ -11,8 +11,8 @@ public class Phone {
 
 
     public static final String MESSAGE_CONSTRAINTS =
-            "Phone numbers should only contain digits, and should be at least 3 digits long";
-    public static final String VALIDATION_REGEX = "\\d{3,}";
+            "Invalid phone number. Phone numbers must contain 3–15 digits and may optionally begin with '+'.";
+    public static final String VALIDATION_REGEX = "\\+?[0-9]{3,15}";
     public final String value;
 
     /**
@@ -26,12 +26,24 @@ public class Phone {
         value = phone;
     }
 
+    private Phone(String value, boolean legacy) {
+        this.value = value;
+    }
+
     /**
      * Returns true if a given string is a valid phone number.
      */
     public static boolean isValidPhone(String test) {
         return test.matches(VALIDATION_REGEX);
     }
+
+    /** Retains previously valid contact numbers, including numbers longer than 15 digits. */
+    public static Phone fromLegacy(String value) {
+        requireNonNull(value);
+        checkArgument(value.matches("[0-9]{3,}") || isValidPhone(value), MESSAGE_CONSTRAINTS);
+        return new Phone(value, true);
+    }
+
 
     @Override
     public String toString() {
