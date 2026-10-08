@@ -33,7 +33,7 @@ public class NameContainsKeywordsPredicateTest {
         // null -> returns false
         assertFalse(firstPredicate.equals(null));
 
-        // different person -> returns false
+        // different keywords -> returns false
         assertFalse(firstPredicate.equals(secondPredicate));
     }
 
@@ -59,15 +59,23 @@ public class NameContainsKeywordsPredicateTest {
     @Test
     public void test_nameContainsPartialKeywords_returnsTrue() {
         Person person = new PersonBuilder().withName("Alice Bob").build();
+
         assertTrue(new NameContainsKeywordsPredicate(List.of("aLI")).test(person));
         assertTrue(new NameContainsKeywordsPredicate(List.of("LIC")).test(person));
         assertTrue(new NameContainsKeywordsPredicate(List.of("ICE")).test(person));
+    }
+
+    @Test
+    public void test_onlyOnePartialKeywordMatches_returnsTrue() {
+        Person person = new PersonBuilder().withName("Alice Bob").build();
+
         assertTrue(new NameContainsKeywordsPredicate(List.of("Carol", "oB")).test(person));
     }
 
     @Test
     public void test_blankKeywords_returnsFalse() {
         Person person = new PersonBuilder().withName("Alice Bob").build();
+
         assertFalse(new NameContainsKeywordsPredicate(List.of("", " ", "\t")).test(person));
     }
 
