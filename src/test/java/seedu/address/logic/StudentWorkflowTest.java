@@ -14,6 +14,7 @@ import org.junit.jupiter.api.io.TempDir;
 import seedu.address.logic.commands.AddCommand;
 import seedu.address.logic.commands.EditCommand;
 import seedu.address.logic.commands.exceptions.CommandException;
+import seedu.address.logic.parser.EditCommandParser;
 import seedu.address.logic.parser.exceptions.ParseException;
 import seedu.address.model.ModelManager;
 import seedu.address.model.UserPrefs;
@@ -87,9 +88,8 @@ public class StudentWorkflowTest {
         assertEquals("New student added: Ryan Tan",
                 logic.execute("add n/Ryan Tan p/111 s/Math l/Year 10").getFeedbackToUser());
         ModelManager reloaded = new ModelManager(storage.readAddressBook().orElseThrow(), new UserPrefs());
-        LogicManager reopened = new LogicManager(reloaded, new StorageManager(storage,
-                new JsonUserPrefsStorage(directory.resolve("preferences.json"))));
-        CommandException error = assertThrows(CommandException.class, () -> reopened.execute("edit 1 p/222"));
+        EditCommand command = new EditCommandParser().parse(" 1 p/222");
+        CommandException error = assertThrows(CommandException.class, () -> command.execute(reloaded));
         assertEquals(EditCommand.MESSAGE_STUDENT_EDIT_UNAVAILABLE, error.getMessage());
         assertEquals("111", reloaded.getAddressBook().getPersonList().getFirst().getPhone().value);
     }
@@ -98,7 +98,8 @@ public class StudentWorkflowTest {
     public void edit_legacyContactCannotDuplicateAnotherDespiteMatchingTarget() throws Exception {
         model.addPerson(new PersonBuilder().withName("Ryan").withPhone("111").withEmail("a@example.com").build());
         model.addPerson(new PersonBuilder().withName("Ryan").withPhone("222").withEmail("b@example.com").build());
-        CommandException error = assertThrows(CommandException.class, () -> logic.execute("edit 1 e/b@example.com"));
+        EditCommand command = new EditCommandParser().parse(" 1 e/b@example.com");
+        CommandException error = assertThrows(CommandException.class, () -> command.execute(model));
         assertEquals(EditCommand.MESSAGE_DUPLICATE_PERSON, error.getMessage());
         assertEquals("a@example.com", model.getAddressBook().getPersonList().getFirst().getEmail().value);
         assertFalse(model.getAddressBook().getPersonList().getFirst().isStudent());
