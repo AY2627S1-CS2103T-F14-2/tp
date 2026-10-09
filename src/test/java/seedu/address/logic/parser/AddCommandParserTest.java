@@ -68,6 +68,21 @@ public class AddCommandParserTest {
     }
 
     @Test
+    public void parse_allowedPunctuationAndHyphenatedLevel_success() {
+        Person expected = new Person("O'Neil Jr.", "123", null,
+                List.of("English & Lit.", "Tutor's Notes", "Math-A"), "Grade-8");
+        assertParseSuccess(parser,
+                " n/O'Neil Jr. p/123 s/English & Lit. s/Tutor's Notes s/Math-A l/Grade-8",
+                new AddCommand(expected));
+    }
+
+    @Test
+    public void parse_unicodeNumberCharacters_success() {
+        Person expected = new Person("Ⅻ", "123", null, List.of("Math ²"), "Level Ⅻ");
+        assertParseSuccess(parser, " n/Ⅻ p/123 s/Math ² l/Level Ⅻ", new AddCommand(expected));
+    }
+
+    @Test
     public void parse_missingRequiredOrNoParameters_usage() {
         assertParseFailure(parser, "", AddCommand.MESSAGE_USAGE);
         assertParseFailure(parser, " n/A p/123 l/JC 1", AddCommand.MESSAGE_USAGE);
@@ -114,12 +129,17 @@ public class AddCommandParserTest {
         assertParseFailure(parser, " n/A p/123 e/a@b s/Math l/JC 1", StudentFields.INVALID_EMAIL);
         assertParseFailure(parser, " n/A p/123 e/a@b..c s/Math l/JC 1", StudentFields.INVALID_EMAIL);
         assertParseFailure(parser, " n/A p/123 e/a @b.c s/Math l/JC 1", StudentFields.INVALID_EMAIL);
+        assertParseFailure(parser, " n/A p/123 e/abc s/Math l/JC 1", StudentFields.INVALID_EMAIL);
+        assertParseFailure(parser, " n/A p/123 e/@b.c s/Math l/JC 1", StudentFields.INVALID_EMAIL);
+        assertParseFailure(parser, " n/A p/123 e/a@ s/Math l/JC 1", StudentFields.INVALID_EMAIL);
+        assertParseFailure(parser, " n/A p/123 e/a@@b.c s/Math l/JC 1", StudentFields.INVALID_EMAIL);
     }
 
     @Test
     public void parse_invalidOrRepeatedSubject_failure() {
         assertParseFailure(parser, " n/A p/123 s/ l/JC 1", StudentFields.INVALID_SUBJECT);
         assertParseFailure(parser, " n/A p/123 s/--- l/JC 1", StudentFields.INVALID_SUBJECT);
+        assertParseFailure(parser, " n/A p/123 s/Math_1 l/JC 1", StudentFields.INVALID_SUBJECT);
         assertParseFailure(parser, " n/A p/123 s/" + "A".repeat(51) + " l/JC 1",
                 StudentFields.INVALID_SUBJECT);
         assertParseFailure(parser, " n/A p/123 s/Math s/ math  l/JC 1", "Duplicate subject: math");

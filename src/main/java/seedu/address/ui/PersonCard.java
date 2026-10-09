@@ -47,14 +47,27 @@ public class PersonCard extends UiPart<Region> {
     public PersonCard(Person person, int displayedIndex) {
         super(FXML);
         this.person = person;
+        CardContent content = CardContent.from(person);
         id.setText(displayedIndex + ". ");
-        name.setText(person.getName().fullName);
-        initials.setText(getInitials(person.getName().fullName));
-        phone.setText("Phone: " + person.getPhone().value);
-        setOptionalText(email, person.getEmail() == null ? null : "Email: " + person.getEmail().value);
-        setOptionalText(subjects, person.getSubjects().isEmpty()
-                ? null : "Subjects: " + String.join(", ", person.getSubjects()));
-        setOptionalText(level, person.getLevel() == null ? null : "Level: " + person.getLevel());
+        name.setText(content.name());
+        initials.setText(content.initials());
+        phone.setText(content.phone());
+        setOptionalText(email, content.email());
+        setOptionalText(subjects, content.subjects());
+        setOptionalText(level, content.level());
+    }
+
+    /** Text shown on a student card; absent optional values are hidden when applied to labels. */
+    record CardContent(String name, String initials, String phone, String email, String subjects, String level) {
+        static CardContent from(Person person) {
+            String fullName = person.getName().fullName;
+            String emailText = person.getEmail() == null ? null : "Email: " + person.getEmail().value;
+            String subjectsText = person.getSubjects().isEmpty()
+                    ? null : "Subjects: " + String.join(", ", person.getSubjects());
+            String levelText = person.getLevel() == null ? null : "Level: " + person.getLevel();
+            return new CardContent(fullName, getInitials(fullName), "Phone: " + person.getPhone().value,
+                    emailText, subjectsText, levelText);
+        }
     }
 
     private static void setOptionalText(Label label, String text) {
@@ -66,7 +79,7 @@ public class PersonCard extends UiPart<Region> {
         }
     }
 
-    private String getInitials(String fullName) {
+    private static String getInitials(String fullName) {
         String trimmedName = StudentFields.trim(fullName);
         if (trimmedName.isEmpty()) {
             return "?";

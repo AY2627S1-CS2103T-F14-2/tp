@@ -93,6 +93,45 @@ public class AddCommandIntegrationTest {
     }
 
     @Test
+    public void execute_sameNameDifferentPhonesAndEmails_allowed() {
+        Person existing = new Person("Ryan Tan", "91234567", "ryan@example.com",
+                List.of("Mathematics"), "Secondary 4");
+        model.addPerson(existing);
+        Person another = new Person("RYAN TAN", "81234567", "other@example.com",
+                List.of("Physics"), "JC 1");
+        Model expectedModel = new ModelManager(model.getAddressBook(), new UserPrefs());
+        expectedModel.addPerson(another);
+
+        assertCommandSuccess(new AddCommand(another), model, "New student added: RYAN TAN", expectedModel);
+    }
+
+    @Test
+    public void execute_sameNameExistingEmailButNewEmailAbsentAndDifferentPhone_allowed() {
+        Person existing = new Person("Ryan Tan", "91234567", "ryan@example.com",
+                List.of("Mathematics"), "Secondary 4");
+        model.addPerson(existing);
+        Person another = new Person("Ryan Tan", "81234567", null,
+                List.of("Physics"), "JC 1");
+        Model expectedModel = new ModelManager(model.getAddressBook(), new UserPrefs());
+        expectedModel.addPerson(another);
+
+        assertCommandSuccess(new AddCommand(another), model, "New student added: Ryan Tan", expectedModel);
+    }
+
+    @Test
+    public void execute_sameNameNewEmailButExistingEmailAbsentAndDifferentPhone_allowed() {
+        Person existing = new Person("Ryan Tan", "91234567", null,
+                List.of("Mathematics"), "Secondary 4");
+        model.addPerson(existing);
+        Person another = new Person("Ryan Tan", "81234567", "ryan@example.com",
+                List.of("Physics"), "JC 1");
+        Model expectedModel = new ModelManager(model.getAddressBook(), new UserPrefs());
+        expectedModel.addPerson(another);
+
+        assertCommandSuccess(new AddCommand(another), model, "New student added: Ryan Tan", expectedModel);
+    }
+
+    @Test
     public void execute_differentNameSharedContact_allowed() {
         Person existing = new Person("Ryan Tan", "91234567", "family@example.com",
                 List.of("Mathematics"), "Secondary 4");
