@@ -10,7 +10,7 @@ public interface ReadOnlyAddressBook {
 
     /**
      * Returns an unmodifiable view of the persons list.
-     * This list will not contain any duplicate persons.
+     * Existing stored records may include duplicates; new additions are checked separately.
      */
     ObservableList<Person> getPersonList();
 

@@ -19,8 +19,6 @@ import seedu.address.model.person.Person;
 @JsonRootName(value = "addressbook")
 class JsonSerializableAddressBook {
 
-    public static final String MESSAGE_DUPLICATE_PERSON = "Persons list contains duplicate person(s).";
-
     private final List<JsonAdaptedPerson> persons = new ArrayList<>();
 
     /**
@@ -47,13 +45,11 @@ class JsonSerializableAddressBook {
      */
     public AddressBook toModelType() throws IllegalValueException {
         AddressBook addressBook = new AddressBook();
+        List<Person> restoredPersons = new ArrayList<>();
         for (JsonAdaptedPerson jsonAdaptedPerson : persons) {
-            Person person = jsonAdaptedPerson.toModelType();
-            if (addressBook.hasPerson(person)) {
-                throw new IllegalValueException(MESSAGE_DUPLICATE_PERSON);
-            }
-            addressBook.addPerson(person);
+            restoredPersons.add(jsonAdaptedPerson.toModelType());
         }
+        addressBook.restorePersons(restoredPersons);
         return addressBook;
     }
 

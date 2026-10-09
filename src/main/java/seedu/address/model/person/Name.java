@@ -26,9 +26,19 @@ public class Name {
      * @param name A valid name.
      */
     public Name(String name) {
+        this(name, true);
+    }
+
+    private Name(String name, boolean validate) {
         requireNonNull(name);
-        checkArgument(isValidName(name), MESSAGE_CONSTRAINTS);
+        if (validate) {
+            checkArgument(isValidName(name), MESSAGE_CONSTRAINTS);
+        }
         fullName = name;
+    }
+
+    static Name fromStoredValue(String name) {
+        return new Name(name, false);
     }
 
     /**

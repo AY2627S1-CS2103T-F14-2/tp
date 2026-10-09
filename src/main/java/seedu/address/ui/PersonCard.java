@@ -1,14 +1,11 @@
 package seedu.address.ui;
 
-import java.util.Comparator;
-import java.util.concurrent.atomic.AtomicInteger;
-
 import javafx.fxml.FXML;
 import javafx.scene.control.Label;
-import javafx.scene.layout.FlowPane;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.Region;
 import seedu.address.model.person.Person;
+import seedu.address.model.person.StudentFields;
 
 /**
  * A UI component that displays information of a {@code Person}.
@@ -38,11 +35,11 @@ public class PersonCard extends UiPart<Region> {
     @FXML
     private Label phone;
     @FXML
-    private Label address;
+    private Label subjects;
     @FXML
     private Label email;
     @FXML
-    private FlowPane tags;
+    private Label level;
 
     /**
      * Creates a {@code PersonCard} with the given {@code Person} and index to display.
@@ -53,29 +50,38 @@ public class PersonCard extends UiPart<Region> {
         id.setText(displayedIndex + ". ");
         name.setText(person.getName().fullName);
         initials.setText(getInitials(person.getName().fullName));
-        phone.setText(person.getPhone().value);
-        address.setText(person.getAddress().value);
-        email.setText(person.getEmail().value);
-        AtomicInteger tagIndex = new AtomicInteger();
-        person.getTags().stream()
-                .sorted(Comparator.comparing(tag -> tag.tagName))
-                .forEach(tag -> {
-                    Label tagLabel = new Label(tag.tagName);
-                    tagLabel.getStyleClass().add("tag-chip");
-                    if (tagIndex.getAndIncrement() % 3 == 1) {
-                        tagLabel.getStyleClass().add("tag-chip-secondary");
-                    } else if (tagIndex.get() % 3 == 0) {
-                        tagLabel.getStyleClass().add("tag-chip-tertiary");
-                    }
-                    tags.getChildren().add(tagLabel);
-                });
+        phone.setText("Phone: " + person.getPhone().value);
+        setOptionalText(email, person.getEmail() == null ? null : "Email: " + person.getEmail().value);
+        setOptionalText(subjects, person.getSubjects().isEmpty()
+                ? null : "Subjects: " + String.join(", ", person.getSubjects()));
+        setOptionalText(level, person.getLevel() == null ? null : "Level: " + person.getLevel());
+    }
+
+    private static void setOptionalText(Label label, String text) {
+        boolean present = text != null;
+        label.setVisible(present);
+        label.setManaged(present);
+        if (present) {
+            label.setText(text);
+        }
     }
 
     private String getInitials(String fullName) {
-        String[] nameParts = fullName.trim().split("\\s+");
-        if (nameParts.length == 1) {
-            return nameParts[0].substring(0, 1).toUpperCase();
+        String trimmedName = StudentFields.trim(fullName);
+        if (trimmedName.isEmpty()) {
+            return "?";
         }
-        return (nameParts[0].substring(0, 1) + nameParts[nameParts.length - 1].substring(0, 1)).toUpperCase();
+        String[] nameParts = trimmedName.split("(?U)\\s+");
+        if (nameParts.length == 1) {
+            return firstInitial(nameParts[0]).toUpperCase(java.util.Locale.ROOT);
+        }
+        return (firstInitial(nameParts[0]) + firstInitial(nameParts[nameParts.length - 1]))
+                .toUpperCase(java.util.Locale.ROOT);
+    }
+
+    private static String firstInitial(String part) {
+        int codePoint = part.codePoints().filter(Character::isLetterOrDigit)
+                .findFirst().orElse(part.codePointAt(0));
+        return new String(Character.toChars(codePoint));
     }
 }
