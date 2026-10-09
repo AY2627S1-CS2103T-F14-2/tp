@@ -31,7 +31,7 @@ AddressBook Level 3 (AB3) is a **desktop application for managing contacts, opti
 
    * `list` : Lists all contacts.
 
-   * `add n/John Doe p/98765432 e/johnd@example.com a/John street, block 123, #01-01` : Adds a contact named `John Doe` to the Address Book.
+   * `add n/Ryan Tan p/+6591234567 s/Mathematics l/Secondary 4` : Adds a student named `Ryan Tan`.
 
    * `delete 3` : Deletes the 3rd contact shown in the current list.
 
@@ -76,20 +76,43 @@ Shows a message explaining how to access the help page.
 Format: `help`
 
 
-### Adding a person: `add`
+### Adding a student: `add`
 
-Adds a person to the address book.
+Adds a student to TutorRoster and shows the full roster with the new student. The result area shows
+`New student added: NAME`.
 
-Format: `add n/NAME p/PHONE_NUMBER e/EMAIL a/ADDRESS [t/TAG]... `
+Format: `add n/NAME p/PHONE [e/EMAIL] s/SUBJECT [s/SUBJECT]... l/LEVEL`
 
 <box type="tip" seamless>
 
-**Tip:** A person can have any number of tags, including zero.
+**Tip:** Email is optional. Supply at least one subject; repeat `s/` for additional subjects.
+Parameters may appear in any order. Only `s/` may be repeated.
 </box>
 
 Examples:
-* `add n/John Doe p/98765432 e/johnd@example.com a/John street, block 123, #01-01`
-* `add n/Betsy Crowe t/friend e/betsycrowe@example.com a/Newgate Prison p/1234567 t/criminal`
+* `add n/Ryan Tan p/+6591234567 e/ryan@example.com s/Mathematics l/Secondary 4`
+* `add n/Alicia Lim p/81234567 s/Mathematics s/Physics l/JC 1`
+* `add l/Grade 8 s/English n/Sarah Lee p/+821012345678`
+
+Names are 1–100 characters after surrounding and repeated whitespace is normalized. They may contain
+Unicode letters and numbers, spaces, apostrophes, hyphens, and full stops, and must contain a letter or number.
+Phone numbers contain 3–15 digits, optionally preceded by `+`, with no spaces or hyphens.
+Email, when supplied, has one `@`, a non-empty local part, and a domain with at least one full stop and
+non-empty text between full stops; whitespace is not allowed.
+Each subject is 1–50 characters and may contain letters, numbers, spaces, `&`, `+`, `/`, apostrophes,
+hyphens, and full stops. Levels are 1–30 characters and may contain letters, numbers, spaces, and hyphens.
+Subjects and levels are trimmed at the ends; internal spaces and capitalization are preserved.
+
+The same subject cannot appear twice in one command, ignoring case and surrounding whitespace.
+A new student is rejected as a duplicate when another new-format student has the same normalized name
+and either the same phone number or the same email address. Email comparison ignores case, and an initial
+`+` is ignored when comparing phone numbers. Existing legacy records do not block new students.
+
+Missing required parameters show `Invalid command format. Usage: add n/NAME p/PHONE [e/EMAIL] s/SUBJECT [s/SUBJECT]... l/LEVEL`.
+An unknown prefix shows `Unknown parameter prefix: PREFIX`; repeating `n/`, `p/`, `e/`, or `l/` shows
+`Parameter PREFIX must not be specified more than once.` An empty `e/` is invalid.
+A duplicate student shows `This student already exists in TutorRoster.`
+If saving fails, TutorRoster shows `Unable to save student data. No changes were made.`
 
 ### Listing all persons: `list`
 
@@ -205,7 +228,7 @@ _Details coming soon ..._
 
 Action     | Format, Examples
 -----------|----------------------------------------------------------------------------------------------------------------------------------------------------------------------
-**Add**    | `add n/NAME p/PHONE_NUMBER e/EMAIL a/ADDRESS [t/TAG]... ` <br> e.g., `add n/James Ho p/22224444 e/jamesho@example.com a/123, Clementi Rd, 1234665 t/friend t/colleague`
+**Add**    | `add n/NAME p/PHONE [e/EMAIL] s/SUBJECT [s/SUBJECT]... l/LEVEL` <br> e.g., `add n/Ryan Tan p/81234567 s/Mathematics l/Secondary 4`
 **Clear**  | `clear`
 **Delete** | `delete INDEX`<br> e.g., `delete 3`
 **Edit**   | `edit INDEX [n/NAME] [p/PHONE_NUMBER] [e/EMAIL] [a/ADDRESS] [t/TAG]... `<br> e.g.,`edit 2 n/James Lee e/jameslee@example.com`

@@ -12,6 +12,10 @@ import static seedu.address.testutil.Assert.assertThrows;
 import static seedu.address.testutil.TypicalPersons.ALICE;
 import static seedu.address.testutil.TypicalPersons.BOB;
 
+import java.util.Collections;
+import java.util.List;
+
+import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 
 import seedu.address.testutil.PersonBuilder;
@@ -95,5 +99,36 @@ public class PersonTest {
         String expected = Person.class.getCanonicalName() + "{name=" + ALICE.getName() + ", phone=" + ALICE.getPhone()
                 + ", email=" + ALICE.getEmail() + ", address=" + ALICE.getAddress() + ", tags=" + ALICE.getTags() + "}";
         assertEquals(expected, ALICE.toString());
+    }
+
+    @Test
+    public void newStudentConstructor_invalidFields_rejected() {
+        assertInvalidStudent(StudentFields.INVALID_NAME, "---", "123", null, List.of("Math"), "JC 1");
+        assertInvalidStudent(StudentFields.INVALID_PHONE, "Amy", "12", null, List.of("Math"), "JC 1");
+        assertInvalidStudent(StudentFields.INVALID_EMAIL, "Amy", "123", "amy@", List.of("Math"), "JC 1");
+        assertInvalidStudent(StudentFields.INVALID_SUBJECT, "Amy", "123", null, List.of(), "JC 1");
+        assertInvalidStudent(StudentFields.INVALID_SUBJECT, "Amy", "123", null,
+                Collections.singletonList(null), "JC 1");
+        assertInvalidStudent(StudentFields.INVALID_SUBJECT, "Amy", "123", null, List.of("Math_1"), "JC 1");
+        assertInvalidStudent("Duplicate subject: math", "Amy", "123", null,
+                List.of("Math", " math "), "JC 1");
+        assertInvalidStudent(StudentFields.INVALID_LEVEL, "Amy", "123", null, List.of("Math"), "JC_1");
+    }
+
+    @Test
+    public void newStudentConstructor_unicodeWhitespace_normalized() {
+        Person student = new Person("\u00a0 Amy\t  Bee \u00a0", "123", null,
+                List.of(" Math  Plus \u00a0"), " Grade-8 \u00a0");
+
+        assertEquals("Amy Bee", student.getName().fullName);
+        assertEquals(List.of("Math  Plus"), student.getSubjects());
+        assertEquals("Grade-8", student.getLevel());
+    }
+
+    private static void assertInvalidStudent(String expectedMessage, String name, String phone, String email,
+            List<String> subjects, String level) {
+        IllegalArgumentException exception = Assertions.assertThrows(IllegalArgumentException.class, () ->
+                new Person(name, phone, email, subjects, level));
+        assertEquals(expectedMessage, exception.getMessage());
     }
 }
