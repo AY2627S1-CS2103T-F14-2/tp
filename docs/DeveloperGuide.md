@@ -159,6 +159,25 @@ Classes used by multiple components are in the `seedu.address.commons` package.
 
 This section describes some noteworthy details on how certain features are implemented.
 
+### Add student
+
+`AddCommandParser` recognizes `n/`, `p/`, `e/`, `s/`, and `l/` at parameter boundaries.
+It rejects unknown prefixes, repeated single-use prefixes, missing required prefixes, and invalid values before
+constructing a student. `StudentFields` defines normalization and field validation. Name whitespace is collapsed;
+subjects and levels are trimmed at the ends and retain their internal spaces and entered capitalization.
+Subjects remain in input order.
+
+New student records have subjects and a level. `Person.isSamePerson` compares two new-format records by normalized
+name and either normalized phone or case-insensitive email. Legacy records retain their original address and tags
+for storage compatibility, but do not participate in new-student duplicate checks. Existing stored records are
+restored without reapplying add-time duplicate checks.
+
+For `add`, `LogicManager` first executes the command against a proposed copy of the model.
+`JsonAddressBookStorage` writes that proposed roster to a sibling temporary file and atomically replaces the
+data file after a successful write. Only then does `LogicManager` add the student to the live model, which resets
+the displayed list to the full roster. A save failure leaves the live roster and data file unchanged.
+Other commands keep their existing save path.
+
 ### Delete student
 
 `DeleteCommandParser` accepts a single positive displayed index through `ParserUtil.parseIndex`.

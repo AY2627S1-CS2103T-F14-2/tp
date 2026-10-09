@@ -70,9 +70,8 @@ Wrap a list in `.roster-surface`. Each custom list-cell should render a `.person
 
 - `.person-avatar` with `.avatar-label` for initials;
 - `.card-name` for the student’s name;
-- `.card-meta` for phone and email;
-- `.card-address` for the address; and
-- `.tag-chip` for each tag.
+- `.card-meta` for phone and optional email; and
+- `.card-detail` for the ordered subjects and education level when present.
 
 The list view must remain transparent so the roster shell supplies the visual boundary. Do not reintroduce alternating dark row colours.
 
