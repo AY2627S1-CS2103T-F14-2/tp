@@ -58,23 +58,30 @@ public class Person {
             throw new IllegalArgumentException(StudentFields.INVALID_SUBJECT);
         }
         Set<String> subjectKeys = new HashSet<>();
+        List<String> normalizedSubjects = new ArrayList<>();
         for (String subject : subjects) {
-            if (subject == null || !StudentFields.isValidSubject(subject)) {
+            if (subject == null) {
                 throw new IllegalArgumentException(StudentFields.INVALID_SUBJECT);
             }
-            if (!subjectKeys.add(StudentFields.subjectKey(subject))) {
-                throw new IllegalArgumentException("Duplicate subject: " + StudentFields.trim(subject));
+            String normalizedSubject = StudentFields.normalizeWhitespace(subject);
+            if (!StudentFields.isValidSubject(normalizedSubject)) {
+                throw new IllegalArgumentException(StudentFields.INVALID_SUBJECT);
             }
+            if (!subjectKeys.add(StudentFields.subjectKey(normalizedSubject))) {
+                throw new IllegalArgumentException("Duplicate subject: " + normalizedSubject);
+            }
+            normalizedSubjects.add(normalizedSubject);
         }
-        if (!StudentFields.isValidLevel(level)) {
+        String normalizedLevel = StudentFields.normalizeWhitespace(level);
+        if (!StudentFields.isValidLevel(normalizedLevel)) {
             throw new IllegalArgumentException(StudentFields.INVALID_LEVEL);
         }
         this.name = Name.fromStoredValue(normalizedName);
         this.phone = Phone.fromStoredValue(phone);
         this.email = email == null ? null : Email.fromStoredValue(email);
-        this.subjects = subjects.stream().map(StudentFields::trim).toList();
+        this.subjects = List.copyOf(normalizedSubjects);
         this.subjectsPresent = true;
-        this.level = StudentFields.trim(level);
+        this.level = normalizedLevel;
         this.address = null;
         this.newFormat = true;
     }

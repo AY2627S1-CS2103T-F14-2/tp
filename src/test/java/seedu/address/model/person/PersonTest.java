@@ -112,17 +112,19 @@ public class PersonTest {
         assertInvalidStudent(StudentFields.INVALID_SUBJECT, "Amy", "123", null, List.of("Math_1"), "JC 1");
         assertInvalidStudent("Duplicate subject: math", "Amy", "123", null,
                 List.of("Math", " math "), "JC 1");
+        assertInvalidStudent("Duplicate subject: English Language", "Amy", "123", null,
+                List.of("English Language", "English  Language"), "JC 1");
         assertInvalidStudent(StudentFields.INVALID_LEVEL, "Amy", "123", null, List.of("Math"), "JC_1");
     }
 
     @Test
     public void newStudentConstructor_unicodeWhitespace_normalized() {
         Person student = new Person("\u00a0 Amy\t  Bee \u00a0", "123", null,
-                List.of(" Math  Plus \u00a0"), " Grade-8 \u00a0");
+                List.of(" Math  \t\u00a0 Plus \u00a0"), " Secondary  \u00a0 4 \u00a0");
 
         assertEquals("Amy Bee", student.getName().fullName);
-        assertEquals(List.of("Math  Plus"), student.getSubjects());
-        assertEquals("Grade-8", student.getLevel());
+        assertEquals(List.of("Math Plus"), student.getSubjects());
+        assertEquals("Secondary 4", student.getLevel());
     }
 
     private static void assertInvalidStudent(String expectedMessage, String name, String phone, String email,

@@ -81,13 +81,13 @@ public class LogicManagerTest {
         logic.execute("find Benson");
 
         CommandResult result = logic.execute("add n/Ryan Tan p/+6591234567 "
-                + "s/Mathematics s/Physics l/Secondary 4");
+                + "s/Mathematics  Plus s/Physics l/Secondary  4");
 
         assertEquals("New student added: Ryan Tan", result.getFeedbackToUser());
         assertEquals(model.getAddressBook().getPersonList(), model.getFilteredPersonList());
         String stored = Files.readString(temporaryFolder.resolve("addressBook.json"));
         assertTrue(stored.contains("\"subjects\""));
-        assertTrue(stored.contains("\"Mathematics\""));
+        assertTrue(stored.contains("\"Mathematics Plus\""));
         assertTrue(stored.contains("\"Physics\""));
         assertTrue(stored.contains("\"level\" : \"Secondary 4\""));
     }

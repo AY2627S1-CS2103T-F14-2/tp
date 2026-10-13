@@ -17,8 +17,8 @@ public final class StudentFields {
 
     private StudentFields() {}
 
-    /** Collapses every run of Unicode whitespace to one ordinary space. */
-    public static String normalizeName(String value) {
+    /** Removes surrounding Unicode whitespace and collapses every internal run to one ordinary space. */
+    public static String normalizeWhitespace(String value) {
         StringBuilder result = new StringBuilder();
         boolean pendingSpace = false;
         for (int offset = 0; offset < value.length();) {
@@ -35,6 +35,10 @@ public final class StudentFields {
             }
         }
         return result.toString();
+    }
+
+    public static String normalizeName(String value) {
+        return normalizeWhitespace(value);
     }
 
     /** Removes surrounding Unicode whitespace without changing internal whitespace. */
@@ -88,9 +92,9 @@ public final class StudentFields {
 
     /** Returns whether the subject follows the new-student rule. */
     public static boolean isValidSubject(String subject) {
-        String trimmed = trim(subject);
-        return hasLength(trimmed, 1, 50) && hasLetterOrNumber(trimmed)
-                && trimmed.codePoints().allMatch(codePoint -> isLetterOrNumber(codePoint)
+        String normalized = normalizeWhitespace(subject);
+        return hasLength(normalized, 1, 50) && hasLetterOrNumber(normalized)
+                && normalized.codePoints().allMatch(codePoint -> isLetterOrNumber(codePoint)
                         || codePoint == ' ' || codePoint == '&' || codePoint == '+'
                         || codePoint == '/' || codePoint == '\'' || codePoint == '-'
                         || codePoint == '.');
@@ -98,9 +102,9 @@ public final class StudentFields {
 
     /** Returns whether the education level follows the new-student rule. */
     public static boolean isValidLevel(String level) {
-        String trimmed = trim(level);
-        return hasLength(trimmed, 1, 30) && hasLetterOrNumber(trimmed)
-                && trimmed.codePoints().allMatch(codePoint -> isLetterOrNumber(codePoint)
+        String normalized = normalizeWhitespace(level);
+        return hasLength(normalized, 1, 30) && hasLetterOrNumber(normalized)
+                && normalized.codePoints().allMatch(codePoint -> isLetterOrNumber(codePoint)
                         || codePoint == ' ' || codePoint == '-');
     }
 
@@ -109,7 +113,7 @@ public final class StudentFields {
     }
 
     public static String subjectKey(String subject) {
-        return trim(subject).toLowerCase(Locale.ROOT);
+        return normalizeWhitespace(subject).toLowerCase(Locale.ROOT);
     }
 
     public static String emailKey(String email) {

@@ -42,10 +42,18 @@ public class AddCommandParserTest {
     }
 
     @Test
-    public void parse_subjectsTrimOnlyAndKeepOrder() {
-        Person expected = new Person("A", "123", null, List.of("Math  Plus", "Physics"), "JC 1");
-        assertParseSuccess(parser, " n/A p/123 s/  Math  Plus  s/Physics l/ JC 1 ",
+    public void parse_subjectsAndLevelNormalizeWhitespaceAndKeepOrder() {
+        Person expected = new Person("A", "123", null, List.of("Math Plus", "Physics"), "JC 1");
+        assertParseSuccess(parser, " n/A p/123 s/  Math  \t\u00a0 Plus  s/Physics l/ JC  \u00a0 1 ",
                 new AddCommand(expected));
+    }
+
+    @Test
+    public void parse_subjectAndLevelLengthCheckedAfterNormalization() {
+        String subject = "English" + " ".repeat(60) + "Language";
+        String level = "Secondary" + " ".repeat(40) + "4";
+        Person expected = new Person("A", "123", null, List.of("English Language"), "Secondary 4");
+        assertParseSuccess(parser, " n/A p/123 s/" + subject + " l/" + level, new AddCommand(expected));
     }
 
     @Test
@@ -143,6 +151,8 @@ public class AddCommandParserTest {
         assertParseFailure(parser, " n/A p/123 s/" + "A".repeat(51) + " l/JC 1",
                 StudentFields.INVALID_SUBJECT);
         assertParseFailure(parser, " n/A p/123 s/Math s/ math  l/JC 1", "Duplicate subject: math");
+        assertParseFailure(parser, " n/A p/123 s/English Language s/English  Language l/JC 1",
+                "Duplicate subject: English Language");
     }
 
     @Test

@@ -62,7 +62,7 @@ public class AddCommandParser implements Parser<AddCommand> {
         String phone = values.get("p/").getFirst();
         String email = values.containsKey("e/") ? values.get("e/").getFirst() : null;
         List<String> subjects = values.get("s/");
-        String level = values.get("l/").getFirst();
+        String level = StudentFields.normalizeWhitespace(values.get("l/").getFirst());
 
         if (!StudentFields.isValidName(name)) {
             throw new ParseException(StudentFields.INVALID_NAME);
@@ -76,10 +76,10 @@ public class AddCommandParser implements Parser<AddCommand> {
         List<String> normalizedSubjects = new ArrayList<>();
         List<String> subjectKeys = new ArrayList<>();
         for (String subject : subjects) {
-            if (!StudentFields.isValidSubject(subject)) {
+            String normalized = StudentFields.normalizeWhitespace(subject);
+            if (!StudentFields.isValidSubject(normalized)) {
                 throw new ParseException(StudentFields.INVALID_SUBJECT);
             }
-            String normalized = StudentFields.trim(subject);
             String key = StudentFields.subjectKey(normalized);
             if (subjectKeys.contains(key)) {
                 throw new ParseException("Duplicate subject: " + normalized);
