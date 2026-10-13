@@ -99,11 +99,13 @@ Unicode letters and numbers, spaces, apostrophes, hyphens, and full stops, and m
 Phone numbers contain 3–15 digits, optionally preceded by `+`, with no spaces or hyphens.
 Email, when supplied, has one `@`, a non-empty local part, and a domain with at least one full stop and
 non-empty text between full stops; whitespace is not allowed.
-Each subject is 1–50 characters and may contain letters, numbers, spaces, `&`, `+`, `/`, apostrophes,
-hyphens, and full stops. Levels are 1–30 characters and may contain letters, numbers, spaces, and hyphens.
-Subjects and levels are trimmed at the ends; internal spaces and capitalization are preserved.
+Each subject is 1–50 characters after whitespace normalization and may contain letters, numbers, spaces,
+`&`, `+`, `/`, apostrophes, hyphens, and full stops. Levels are 1–30 characters after normalization and may
+contain letters, numbers, spaces, and hyphens. For names, subjects, and levels, surrounding whitespace is removed
+and consecutive internal whitespace is stored as one space. Capitalization is preserved.
 
-The same subject cannot appear twice in one command, ignoring case and surrounding whitespace.
+The same subject cannot appear twice in one command, ignoring case and differences in whitespace. For example,
+`s/English Language s/English  Language` is rejected as a duplicate.
 A new student is rejected as a duplicate when another new-format student has the same normalized name
 and either the same phone number or the same email address. Email comparison ignores case, and an initial
 `+` is ignored when comparing phone numbers. Existing legacy records do not block new students.
