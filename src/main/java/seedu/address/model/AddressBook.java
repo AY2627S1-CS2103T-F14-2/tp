@@ -11,7 +11,7 @@ import seedu.address.model.person.UniquePersonList;
 
 /**
  * Wraps all data at the address-book level.
- * Duplicates are not allowed (by .isSamePerson comparison).
+ * New additions are checked for duplicates. Existing stored records are retained as they were.
  */
 public class AddressBook implements ReadOnlyAddressBook {
 
@@ -42,8 +42,12 @@ public class AddressBook implements ReadOnlyAddressBook {
      */
     public void resetData(ReadOnlyAddressBook newData) {
         requireNonNull(newData);
+        restorePersons(newData.getPersonList());
+    }
 
-        setPersons(newData.getPersonList());
+    /** Restores records that have already been accepted in an existing data file. */
+    public void restorePersons(List<Person> existingPersons) {
+        persons.setPersonsPreservingExisting(existingPersons);
     }
 
     //// person-level operations

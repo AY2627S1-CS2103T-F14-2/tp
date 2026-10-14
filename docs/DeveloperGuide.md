@@ -159,6 +159,26 @@ Classes used by multiple components are in the `seedu.address.commons` package.
 
 This section describes some noteworthy details on how certain features are implemented.
 
+### Add student
+
+`AddCommandParser` recognizes `n/`, `p/`, `e/`, `s/`, and `l/` at parameter boundaries.
+It rejects unknown prefixes, repeated single-use prefixes, missing required prefixes, and invalid values before
+constructing a student. `StudentFields` defines normalization and field validation. Names, subjects, and levels
+lose surrounding Unicode whitespace and collapse each internal whitespace run to one space before validation.
+Subject duplicate comparison uses that normalized value without case; storage retains the normalized value and
+entered capitalization. Subjects remain in input order.
+
+New student records have subjects and a level. `Person.isSamePerson` compares two new-format records by normalized
+name and either normalized phone or case-insensitive email. Legacy records retain their original address and tags
+for storage compatibility, but do not participate in new-student duplicate checks. Existing stored records are
+restored without reapplying add-time duplicate checks.
+
+For `add`, `LogicManager` first executes the command against a proposed copy of the model.
+`JsonAddressBookStorage` writes that proposed roster to a sibling temporary file and atomically replaces the
+data file after a successful write. Only then does `LogicManager` add the student to the live model, which resets
+the displayed list to the full roster. A save failure leaves the live roster and data file unchanged.
+Other commands keep their existing save path.
+
 ### Delete student
 
 `DeleteCommandParser` accepts a single positive displayed index through `ParserUtil.parseIndex`.
@@ -530,7 +550,7 @@ Priorities: High (must have) - `* * *`, Medium (nice to have) - `* *`, Low (unli
 | **Search keyword** | Text used to find matching records. In the strict MVP, keywords match parts of student names, and every supplied keyword must match. |
 | **Filtered list** | A displayed subset of the roster containing only students who match the current search or filter criteria. |
 | **Case-insensitive matching** | Comparing text without distinguishing uppercase from lowercase letters. For example, `Ryan` and `ryan` match. |
-| **Whitespace normalization** | Removing surrounding spaces and treating consecutive internal spaces as one space where specified. |
+| **Whitespace normalization** | Removing surrounding whitespace and treating consecutive internal whitespace as one space in names, subjects, and education levels. |
 | **Duplicate student record** | Under the MVP rules, a record with the same normalized name as an existing record and either the same phone number or the same email address. Sharing contact details alone does not make students duplicates. |
 | **Input validation** | Checking that command input meets the required format and field rules before accepting it. |
 | **Result area** | The part of the interface that displays command feedback, such as success messages or errors. |

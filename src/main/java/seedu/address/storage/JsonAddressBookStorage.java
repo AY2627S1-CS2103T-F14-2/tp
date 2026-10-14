@@ -3,7 +3,9 @@ package seedu.address.storage;
 import static java.util.Objects.requireNonNull;
 
 import java.io.IOException;
+import java.nio.file.Files;
 import java.nio.file.Path;
+import java.nio.file.StandardCopyOption;
 import java.util.Optional;
 import java.util.logging.Logger;
 
@@ -84,6 +86,25 @@ public class JsonAddressBookStorage {
 
         FileUtil.createIfMissing(filePath);
         JsonUtil.saveJsonFile(new JsonSerializableAddressBook(addressBook), filePath);
+    }
+
+    /** Writes to a sibling temporary file and replaces the data file only after the write succeeds. */
+    public void saveAddressBookAtomically(ReadOnlyAddressBook addressBook) throws IOException {
+        requireNonNull(addressBook);
+        Path target = filePath.toAbsolutePath();
+        Path parent = target.getParent();
+        Files.createDirectories(parent);
+        Path temporary = Files.createTempFile(parent, "tutorroster-", ".tmp");
+        boolean committed = false;
+        try {
+            JsonUtil.saveJsonFile(new JsonSerializableAddressBook(addressBook), temporary);
+            Files.move(temporary, target, StandardCopyOption.ATOMIC_MOVE, StandardCopyOption.REPLACE_EXISTING);
+            committed = true;
+        } finally {
+            if (!committed) {
+                Files.deleteIfExists(temporary);
+            }
+        }
     }
 
 }

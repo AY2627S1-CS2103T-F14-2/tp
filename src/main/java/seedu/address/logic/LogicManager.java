@@ -7,12 +7,14 @@ import java.util.logging.Logger;
 import javafx.collections.ObservableList;
 import seedu.address.commons.core.GuiSettings;
 import seedu.address.commons.core.LogsCenter;
+import seedu.address.logic.commands.AddCommand;
 import seedu.address.logic.commands.Command;
 import seedu.address.logic.commands.CommandResult;
 import seedu.address.logic.commands.exceptions.CommandException;
 import seedu.address.logic.parser.AddressBookParser;
 import seedu.address.logic.parser.exceptions.ParseException;
 import seedu.address.model.Model;
+import seedu.address.model.ModelManager;
 import seedu.address.model.person.Person;
 import seedu.address.storage.Storage;
 
@@ -20,6 +22,7 @@ import seedu.address.storage.Storage;
  * The main LogicManager of the app.
  */
 public class LogicManager implements Logic {
+    public static final String MESSAGE_ADD_SAVE_FAILURE = "Unable to save student data. No changes were made.";
     public static final String FILE_OPS_ERROR_FORMAT = "Could not save data due to the following error: %s";
 
     public static final String FILE_OPS_PERMISSION_ERROR_FORMAT =
@@ -46,6 +49,17 @@ public class LogicManager implements Logic {
 
         CommandResult commandResult;
         Command command = addressBookParser.parseCommand(commandText);
+        if (command instanceof AddCommand addCommand) {
+            Model proposedModel = new ModelManager(model.getAddressBook(), model.getUserPrefs());
+            commandResult = addCommand.execute(proposedModel);
+            try {
+                storage.saveAddressBookAtomically(proposedModel.getAddressBook());
+            } catch (IOException e) {
+                throw new CommandException(MESSAGE_ADD_SAVE_FAILURE, e);
+            }
+            model.addPerson(addCommand.getPersonToAdd());
+            return commandResult;
+        }
         commandResult = command.execute(model);
 
         try {

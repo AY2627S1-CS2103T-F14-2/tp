@@ -203,32 +203,13 @@
 }
 
 .card-meta,
-.card-address {
+.card-detail {
     -fx-font-size: 11px;
     -fx-text-fill: #647572;
 }
 
-.card-address {
+.card-detail {
     -fx-text-fill: #82908C;
-}
-
-.tag-chip {
-    -fx-background-color: #F1ECFB;
-    -fx-background-radius: 8;
-    -fx-padding: 4 8 4 8;
-    -fx-font-size: 10px;
-    -fx-font-weight: normal;
-    -fx-text-fill: #6D5AA5;
-}
-
-.tag-chip-secondary {
-    -fx-background-color: #FFF1D6;
-    -fx-text-fill: #93611C;
-}
-
-.tag-chip-tertiary {
-    -fx-background-color: #E5F1EC;
-    -fx-text-fill: #277562;
 }
 
 .result-surface {

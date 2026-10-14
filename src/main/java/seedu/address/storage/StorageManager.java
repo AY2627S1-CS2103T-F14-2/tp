@@ -65,4 +65,9 @@ public class StorageManager implements Storage {
         addressBookStorage.saveAddressBook(addressBook);
     }
 
+    @Override
+    public void saveAddressBookAtomically(ReadOnlyAddressBook addressBook) throws IOException {
+        addressBookStorage.saveAddressBookAtomically(addressBook);
+    }
+
 }

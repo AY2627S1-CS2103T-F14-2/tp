@@ -21,9 +21,19 @@ public class Phone {
      * @param phone A valid phone number.
      */
     public Phone(String phone) {
+        this(phone, true);
+    }
+
+    private Phone(String phone, boolean validate) {
         requireNonNull(phone);
-        checkArgument(isValidPhone(phone), MESSAGE_CONSTRAINTS);
+        if (validate) {
+            checkArgument(isValidPhone(phone), MESSAGE_CONSTRAINTS);
+        }
         value = phone;
+    }
+
+    static Phone fromStoredValue(String phone) {
+        return new Phone(phone, false);
     }
 
     /**
