@@ -107,4 +107,32 @@ public class CommandHistoryTest {
 
         assertEquals("", commandHistory.next("list"));
     }
+
+    @Test
+    public void previous_afterFirstCommand_returnsFirstCommand() {
+        CommandHistory commandHistory = new CommandHistory();
+        commandHistory.add("list");
+
+        assertEquals("list", commandHistory.previous("draft"));
+    }
+
+    @Test
+    public void next_beforeNewestCommand_returnsNewestCommand() {
+        CommandHistory commandHistory = new CommandHistory();
+        commandHistory.add("list");
+        commandHistory.add("find Ryan");
+        commandHistory.previous("draft");
+        commandHistory.previous("find Ryan");
+
+        assertEquals("find Ryan", commandHistory.next("list"));
+    }
+
+    @Test
+    public void add_afterDifferentCommand_storesNewCommand() {
+        CommandHistory commandHistory = new CommandHistory();
+        commandHistory.add("list");
+        commandHistory.add("find Ryan");
+
+        assertEquals("find Ryan", commandHistory.previous("draft"));
+    }
 }
