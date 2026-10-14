@@ -18,8 +18,7 @@ public class CommandBox extends UiPart<Region> {
     public static final String ERROR_STYLE_CLASS = "error";
     private static final String FXML = "CommandBox.fxml";
 
-    private final CommandExecutor commandExecutor;
-    private final CommandHistory commandHistory = new CommandHistory();
+    private final CommandBoxLogic commandBoxLogic;
     private boolean isUpdatingCommandField;
 
     @FXML
@@ -30,12 +29,12 @@ public class CommandBox extends UiPart<Region> {
      */
     public CommandBox(CommandExecutor commandExecutor) {
         super(FXML);
-        this.commandExecutor = commandExecutor;
+        this.commandBoxLogic = new CommandBoxLogic(commandExecutor::execute);
         // calls #setStyleToDefault() whenever there is a change to the text of the command box.
         commandTextField.textProperty().addListener((unused1, unused2, unused3) -> {
             setStyleToDefault();
             if (!isUpdatingCommandField) {
-                commandHistory.resetNavigation();
+                commandBoxLogic.resetHistoryNavigation();
             }
         });
         commandTextField.setOnKeyPressed(this::handleCommandHistoryNavigation);
@@ -62,14 +61,10 @@ public class CommandBox extends UiPart<Region> {
     @FXML
     private void handleCommandEntered() {
         String commandText = commandTextField.getText();
-        if (commandText.equals("")) {
-            return;
-        }
-
-        commandHistory.add(commandText);
         try {
-            commandExecutor.execute(commandText);
-            commandTextField.setText("");
+            if (commandBoxLogic.executeCommand(commandText)) {
+                commandTextField.setText("");
+            }
         } catch (CommandException | ParseException e) {
             setStyleToIndicateCommandFailure();
         }
@@ -79,15 +74,15 @@ public class CommandBox extends UiPart<Region> {
      * Handles navigating through previously entered commands with the arrow keys.
      */
     private void handleCommandHistoryNavigation(KeyEvent event) {
-        if (event.isControlDown() || event.isAltDown() || event.isMetaDown()) {
+        if (!commandBoxLogic.shouldNavigateHistory(event.isControlDown(), event.isAltDown(), event.isMetaDown())) {
             return;
         }
 
         if (event.getCode() == KeyCode.UP) {
-            setCommandFieldText(commandHistory.previous(commandTextField.getText()));
+            setCommandFieldText(commandBoxLogic.previousCommand(commandTextField.getText()));
             event.consume();
         } else if (event.getCode() == KeyCode.DOWN) {
-            setCommandFieldText(commandHistory.next(commandTextField.getText()));
+            setCommandFieldText(commandBoxLogic.nextCommand(commandTextField.getText()));
             event.consume();
         }
     }
