@@ -31,7 +31,7 @@ public class ResultDisplay extends UiPart<Region> {
     /**
      * Returns enough rows for short feedback while bounding the area reserved for long feedback.
      */
-    private int getVisibleRowCount(String feedbackToUser) {
+    static int getVisibleRowCount(String feedbackToUser) {
         int feedbackLineCount = feedbackToUser.split("\\R", -1).length;
         return Math.clamp(feedbackLineCount, MINIMUM_VISIBLE_ROWS, MAXIMUM_VISIBLE_ROWS);
     }
