@@ -87,7 +87,7 @@ public class CommandBox extends UiPart<Region> {
             setCommandFieldText(commandHistory.previous(commandTextField.getText()));
             event.consume();
         } else if (event.getCode() == KeyCode.DOWN) {
-            setCommandFieldText(commandHistory.next());
+            setCommandFieldText(commandHistory.next(commandTextField.getText()));
             event.consume();
         }
     }

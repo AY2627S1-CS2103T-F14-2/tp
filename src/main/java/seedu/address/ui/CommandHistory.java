@@ -48,11 +48,12 @@ final class CommandHistory {
     /**
      * Returns the next command, or the preserved draft after the newest command.
      *
+     * @param currentText text currently in the command field
      * @return next command text
      */
-    String next() {
+    String next(String currentText) {
         if (commands.isEmpty()) {
-            return draft;
+            return currentText;
         }
         if (currentIndex < commands.size() - 1) {
             currentIndex++;
