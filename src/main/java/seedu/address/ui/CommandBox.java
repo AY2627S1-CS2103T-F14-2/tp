@@ -32,6 +32,21 @@ public class CommandBox extends UiPart<Region> {
     }
 
     /**
+     * Focuses on the command text field and positions the caret at the end of the text.
+     */
+    public void focus() {
+        commandTextField.requestFocus();
+        commandTextField.positionCaret(commandTextField.getText().length());
+    }
+
+    /**
+     * Returns true if the command text field currently has focus.
+     */
+    public boolean isFocused() {
+        return commandTextField.isFocused();
+    }
+
+    /**
      * Handles the Enter button pressed event.
      */
     @FXML
