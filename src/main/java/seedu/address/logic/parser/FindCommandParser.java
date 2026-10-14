@@ -2,11 +2,13 @@ package seedu.address.logic.parser;
 
 import static seedu.address.logic.Messages.MESSAGE_INVALID_COMMAND_FORMAT;
 
+import java.util.Arrays;
 import java.util.List;
 
 import seedu.address.logic.commands.FindCommand;
 import seedu.address.logic.parser.exceptions.ParseException;
 import seedu.address.model.person.NameContainsKeywordsPredicate;
+import seedu.address.model.person.NameContainsKeywordsPredicate.MatchMode;
 
 /**
  * Parses input arguments and creates a new FindCommand object.
@@ -26,9 +28,20 @@ public class FindCommandParser implements Parser<FindCommand> {
                     String.format(MESSAGE_INVALID_COMMAND_FORMAT, FindCommand.MESSAGE_USAGE));
         }
 
-        String[] nameKeywords = trimmedArgs.split("\\s+");
+        String[] arguments = trimmedArgs.split("\\s+");
+        boolean isAnyKeywordSearch = arguments[0].equals(FindCommand.ANY_KEYWORD_OPTION);
+        int firstKeywordIndex = isAnyKeywordSearch ? 1 : 0;
+        if (arguments.length == firstKeywordIndex) {
+            throw new ParseException(
+                    String.format(MESSAGE_INVALID_COMMAND_FORMAT, FindCommand.MESSAGE_USAGE));
+        }
 
-        return new FindCommand(new NameContainsKeywordsPredicate(List.of(nameKeywords)));
+        List<String> nameKeywords = Arrays.stream(arguments)
+                .skip(firstKeywordIndex)
+                .toList();
+        MatchMode matchMode = isAnyKeywordSearch ? MatchMode.ANY : MatchMode.ALL;
+
+        return new FindCommand(new NameContainsKeywordsPredicate(nameKeywords, matchMode));
     }
 
 }
