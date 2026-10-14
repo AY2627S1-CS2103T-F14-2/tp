@@ -3,6 +3,8 @@ package seedu.address.ui;
 import javafx.collections.ObservableList;
 import javafx.fxml.FXML;
 import javafx.scene.control.TextField;
+import javafx.scene.input.KeyCode;
+import javafx.scene.input.KeyEvent;
 import javafx.scene.layout.Region;
 import seedu.address.logic.commands.CommandResult;
 import seedu.address.logic.commands.exceptions.CommandException;
@@ -17,6 +19,8 @@ public class CommandBox extends UiPart<Region> {
     private static final String FXML = "CommandBox.fxml";
 
     private final CommandExecutor commandExecutor;
+    private final CommandHistory commandHistory = new CommandHistory();
+    private boolean isUpdatingCommandField;
 
     @FXML
     private TextField commandTextField;
@@ -28,7 +32,13 @@ public class CommandBox extends UiPart<Region> {
         super(FXML);
         this.commandExecutor = commandExecutor;
         // calls #setStyleToDefault() whenever there is a change to the text of the command box.
-        commandTextField.textProperty().addListener((unused1, unused2, unused3) -> setStyleToDefault());
+        commandTextField.textProperty().addListener((unused1, unused2, unused3) -> {
+            setStyleToDefault();
+            if (!isUpdatingCommandField) {
+                commandHistory.resetNavigation();
+            }
+        });
+        commandTextField.setOnKeyPressed(this::handleCommandHistoryNavigation);
     }
 
     /**
@@ -56,12 +66,40 @@ public class CommandBox extends UiPart<Region> {
             return;
         }
 
+        commandHistory.add(commandText);
         try {
             commandExecutor.execute(commandText);
             commandTextField.setText("");
         } catch (CommandException | ParseException e) {
             setStyleToIndicateCommandFailure();
         }
+    }
+
+    /**
+     * Handles navigating through previously entered commands with the arrow keys.
+     */
+    private void handleCommandHistoryNavigation(KeyEvent event) {
+        if (event.isControlDown() || event.isAltDown() || event.isMetaDown()) {
+            return;
+        }
+
+        if (event.getCode() == KeyCode.UP) {
+            setCommandFieldText(commandHistory.previous(commandTextField.getText()));
+            event.consume();
+        } else if (event.getCode() == KeyCode.DOWN) {
+            setCommandFieldText(commandHistory.next());
+            event.consume();
+        }
+    }
+
+    /**
+     * Updates the command field without resetting the history navigation state.
+     */
+    private void setCommandFieldText(String commandText) {
+        isUpdatingCommandField = true;
+        commandTextField.setText(commandText);
+        commandTextField.positionCaret(commandText.length());
+        isUpdatingCommandField = false;
     }
 
     /**

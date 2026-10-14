@@ -232,6 +232,8 @@ Action | Shortcut | Description
 -------|----------|------------
 **Focus command input** | `/` | When focus is outside the command box, press `/` to quickly focus the command field with the cursor at the end, without typing `/`.
 **Unfocus command input** | `Esc` | When the command box is focused, press `Esc` to return focus to the student list.
+**Previous command** | `↑` | When the command box is focused, recalls the previous command entered during the current session.
+**Next command** | `↓` | When browsing command history, recalls the next command; pressing it at the newest command restores the unfinished draft.
 **Toggle Help window** | `F1` | Opens the help window if closed, or closes it if already opened.
 
 --------------------------------------------------------------------------------------------------------------------
