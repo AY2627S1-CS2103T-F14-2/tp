@@ -25,10 +25,10 @@ Student records are saved locally so you can return to them in later sessions.
 1. Place the JAR in a dedicated folder where you have permission to create and update files.
    This folder will contain your roster and preferences.
 1. Open a terminal in that folder and run the following command. The current build's filename is
-   `addressbook.jar`; replace it in the command if the downloaded file has a different name.
+   `TutorRoster.jar`; replace it in the command if the downloaded file has a different name.
 
    ```sh
-   java -jar addressbook.jar
+   java -jar TutorRoster.jar
    ```
 
 1. The TutorRoster window opens. On first use, when no saved roster exists, the current version
