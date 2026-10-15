@@ -133,9 +133,9 @@ under the new student duplicate rule; their original address and tags remain in 
 
 | Problem | Feedback |
 | --- | --- |
-| A required prefix is missing, or no parameters are supplied | `Invalid command format. Usage: add n/NAME p/PHONE [e/EMAIL] s/SUBJECT [s/SUBJECT]... l/LEVEL` |
+| A required prefix is missing | `Missing required parameter: MISSING` |
 | An unknown prefix, such as `x/` | `Unknown parameter prefix: x/` |
-| A repeated single-use prefix, such as `n/` | `Parameter n/ must not be specified more than once.` |
+| A repeated single-use prefix, such as `n/` | `Parameter n/ must not be specified more than once` |
 | A repeated subject | `Duplicate subject: SUBJECT` |
 | An existing student matches the duplicate rule | `This student already exists in TutorRoster.` |
 | Saving fails | `Unable to save student data. No changes were made.` |
@@ -354,7 +354,7 @@ may have changed since the command was first entered.
 
 | Action | Format | Example |
 | --- | --- | --- |
-| Add student | `add n/NAME p/PHONE [e/EMAIL] s/SUBJECT [s/SUBJECT]... l/LEVEL` | `add n/Ryan Tan p/81234567 s/Mathematics l/Secondary 4` |
+| Add student | `add n/NAME p/PHONE s/SUBJECT l/LEVEL [e/EMAIL] [MORE_SUBJECT]` | `add n/Ryan Tan p/81234567 s/Mathematics l/Secondary 4` |
 | List students | `list` | `list` |
 | Find by name | `find [--any] KEYWORD [MORE_KEYWORDS]` | `find Ryan Tan` or `find --any Ryan Sarah` |
 | Delete student | `delete INDEX` | `delete 2` |
