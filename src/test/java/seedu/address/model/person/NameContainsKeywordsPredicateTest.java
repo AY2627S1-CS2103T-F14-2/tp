@@ -2,15 +2,24 @@ package seedu.address.model.person;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.util.List;
 
 import org.junit.jupiter.api.Test;
 
+import seedu.address.model.person.NameContainsKeywordsPredicate.MatchMode;
 import seedu.address.testutil.PersonBuilder;
 
 public class NameContainsKeywordsPredicateTest {
+
+    @Test
+    public void constructor_nullArguments_throwsNullPointerException() {
+        assertThrows(NullPointerException.class, () -> new NameContainsKeywordsPredicate(null));
+        assertThrows(NullPointerException.class, () ->
+                new NameContainsKeywordsPredicate(List.of("Alice"), null));
+    }
 
     @Test
     public void equals() {
@@ -27,6 +36,10 @@ public class NameContainsKeywordsPredicateTest {
         NameContainsKeywordsPredicate firstPredicateCopy = new NameContainsKeywordsPredicate(firstPredicateKeywordList);
         assertTrue(firstPredicate.equals(firstPredicateCopy));
 
+        NameContainsKeywordsPredicate anyMatchPredicate =
+                new NameContainsKeywordsPredicate(firstPredicateKeywordList, MatchMode.ANY);
+        assertFalse(firstPredicate.equals(anyMatchPredicate));
+
         // different types -> returns false
         assertFalse(firstPredicate.equals(1));
 
@@ -38,7 +51,7 @@ public class NameContainsKeywordsPredicateTest {
     }
 
     @Test
-    public void test_nameContainsKeywords_returnsTrue() {
+    public void test_allKeywordsMatch_returnsTrue() {
         // One keyword
         NameContainsKeywordsPredicate predicate = new NameContainsKeywordsPredicate(List.of("Alice"));
         assertTrue(predicate.test(new PersonBuilder().withName("Alice Bob").build()));
@@ -46,10 +59,6 @@ public class NameContainsKeywordsPredicateTest {
         // Multiple keywords
         predicate = new NameContainsKeywordsPredicate(List.of("Alice", "Bob"));
         assertTrue(predicate.test(new PersonBuilder().withName("Alice Bob").build()));
-
-        // Only one matching keyword
-        predicate = new NameContainsKeywordsPredicate(List.of("Bob", "Carol"));
-        assertTrue(predicate.test(new PersonBuilder().withName("Alice Carol").build()));
 
         // Mixed-case keywords
         predicate = new NameContainsKeywordsPredicate(List.of("aLIce", "bOB"));
@@ -66,10 +75,19 @@ public class NameContainsKeywordsPredicateTest {
     }
 
     @Test
-    public void test_onlyOnePartialKeywordMatches_returnsTrue() {
+    public void test_notAllKeywordsMatch_returnsFalse() {
         Person person = new PersonBuilder().withName("Alice Bob").build();
 
-        assertTrue(new NameContainsKeywordsPredicate(List.of("Carol", "oB")).test(person));
+        assertFalse(new NameContainsKeywordsPredicate(List.of("Carol", "oB")).test(person));
+    }
+
+    @Test
+    public void test_anyKeywordMatches_returnsTrue() {
+        Person person = new PersonBuilder().withName("Alice Bob").build();
+        NameContainsKeywordsPredicate predicate =
+                new NameContainsKeywordsPredicate(List.of("Carol", "oB"), MatchMode.ANY);
+
+        assertTrue(predicate.test(person));
     }
 
     @Test
@@ -100,7 +118,8 @@ public class NameContainsKeywordsPredicateTest {
         List<String> keywords = List.of("keyword1", "keyword2");
         NameContainsKeywordsPredicate predicate = new NameContainsKeywordsPredicate(keywords);
 
-        String expected = NameContainsKeywordsPredicate.class.getCanonicalName() + "{keywords=" + keywords + "}";
+        String expected = NameContainsKeywordsPredicate.class.getCanonicalName()
+                + "{keywords=" + keywords + ", matchMode=ALL}";
         assertEquals(expected, predicate.toString());
     }
 }

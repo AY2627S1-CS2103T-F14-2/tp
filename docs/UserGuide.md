@@ -138,22 +138,26 @@ Examples:
 *  `edit 1 p/91234567 e/johndoe@example.com` Edits the phone number and email address of the 1st person to be `91234567` and `johndoe@example.com` respectively.
 *  `edit 2 n/Betsy Crower t/` Edits the name of the 2nd person to be `Betsy Crower` and clears all existing tags.
 
-### Locating persons by name: `find`
+### Locating students by name: `find`
 
-Finds persons numbers by name: `find`
+Finds students whose names contain all of the given keywords by default. Use `--any` to find students whose names
+contain at least one keyword.
 
-Format: `find KEYWORD [MORE_KEYWORDS]`
+Format: `find [--any] KEYWORD [MORE_KEYWORDS]`
 
 * The search is case-insensitive; for example, `hans` matches `Hans`.
 * Keyword order does not matter; for example, `Hans Bo` matches `Bo Hans`.
 * The search considers only names.
 * Partial names match too; for example, `Han` matches `Hans`, and `lex` matches `Alex`.
-* Persons matching at least one keyword are returned (an `OR` search); for example, `Hans Bo` returns `Hans Gruber` and `Bo Yang`.
+* By default, students must match every keyword (an `AND` search); for example, `find Hans Gru` returns `Hans Gruber`.
+* Add `--any` to return students matching at least one keyword (an `OR` search); for example, `find --any Hans Bo`
+  returns `Hans Gruber` and `Bo Yang`.
 
 Examples:
 * `find John` returns `john` and `John Doe`
 * `find aLe` matches `Alex Yeoh` regardless of case.
-* `find alex david` returns `Alex Yeoh`, `David Li`<br>
+* `find alex ye` returns `Alex Yeoh`.
+* `find --any alex david` returns `Alex Yeoh`, `David Li`.<br>
   ![result for 'find alex david'](images/findAlexDavidResult.png)
 
 ### Deleting a student: `delete`
@@ -246,6 +250,6 @@ Action     | Format, Examples
 **Clear**  | `clear`
 **Delete** | `delete INDEX`<br> e.g., `delete 3`
 **Edit**   | `edit INDEX [n/NAME] [p/PHONE_NUMBER] [e/EMAIL] [a/ADDRESS] [t/TAG]... `<br> e.g.,`edit 2 n/James Lee e/jameslee@example.com`
-**Find**   | `find KEYWORD [MORE_KEYWORDS]`<br> e.g., `find James Jake`
+**Find**   | `find [--any] KEYWORD [MORE_KEYWORDS]`<br> e.g., `find James Jake`
 **List**   | `list`
 **Help**   | `help`
