@@ -81,12 +81,13 @@ Format: `help`
 Adds a student to TutorRoster and shows the full roster with the new student. The result area shows
 `New student added: NAME`.
 
-Format: `add n/NAME p/PHONE [e/EMAIL] s/SUBJECT [s/SUBJECT]... l/LEVEL`
+Required: `add n/NAME p/PHONE s/SUBJECT l/LEVEL`
+
+Optional: `e/EMAIL`; repeat `s/SUBJECT` to add more subjects.
 
 <box type="tip" seamless>
 
-**Tip:** Email is optional. Supply at least one subject; repeat `s/` for additional subjects.
-Parameters may appear in any order. Only `s/` may be repeated.
+**Tip:** Parameters may appear in any order. Only `s/` may be repeated.
 </box>
 
 Examples:
@@ -110,7 +111,9 @@ A new student is rejected as a duplicate when another new-format student has the
 and either the same phone number or the same email address. Email comparison ignores case, and an initial
 `+` is ignored when comparing phone numbers. Existing legacy records do not block new students.
 
-Missing required parameters show `Invalid command format. Usage: add n/NAME p/PHONE [e/EMAIL] s/SUBJECT [s/SUBJECT]... l/LEVEL`.
+For missing required parameters, TutorRoster names the first missing field, for example
+`Missing required parameter: s/SUBJECT.` An empty required parameter shows
+`Missing value for required parameter: s/SUBJECT.` Both messages also list the required and optional parameters.
 An unknown prefix shows `Unknown parameter prefix: PREFIX`; repeating `n/`, `p/`, `e/`, or `l/` shows
 `Parameter PREFIX must not be specified more than once.` An empty `e/` is invalid.
 A duplicate student shows `This student already exists in TutorRoster.`
@@ -230,7 +233,7 @@ _Details coming soon ..._
 
 Action     | Format, Examples
 -----------|----------------------------------------------------------------------------------------------------------------------------------------------------------------------
-**Add**    | `add n/NAME p/PHONE [e/EMAIL] s/SUBJECT [s/SUBJECT]... l/LEVEL` <br> e.g., `add n/Ryan Tan p/81234567 s/Mathematics l/Secondary 4`
+**Add**    | Required: `add n/NAME p/PHONE s/SUBJECT l/LEVEL`<br>Optional: `e/EMAIL`, additional `s/SUBJECT`<br>e.g., `add n/Ryan Tan p/81234567 s/Mathematics l/Secondary 4`
 **Clear**  | `clear`
 **Delete** | `delete INDEX`<br> e.g., `delete 3`
 **Edit**   | `edit INDEX [n/NAME] [p/PHONE_NUMBER] [e/EMAIL] [a/ADDRESS] [t/TAG]... `<br> e.g.,`edit 2 n/James Lee e/jameslee@example.com`

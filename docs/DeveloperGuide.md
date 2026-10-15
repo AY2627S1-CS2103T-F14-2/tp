@@ -162,9 +162,11 @@ This section describes some noteworthy details on how certain features are imple
 ### Add student
 
 `AddCommandParser` recognizes `n/`, `p/`, `e/`, `s/`, and `l/` at parameter boundaries.
-It rejects unknown prefixes, repeated single-use prefixes, missing required prefixes, and invalid values before
-constructing a student. `StudentFields` defines normalization and field validation. Names, subjects, and levels
-lose surrounding Unicode whitespace and collapse each internal whitespace run to one space before validation.
+It rejects unknown prefixes and repeated single-use prefixes first. For a missing required prefix or an empty
+required value, it reports the affected field and shows separate required and optional parameter lists. Invalid
+field values are checked before constructing a student. `StudentFields` defines normalization and field validation.
+Names, subjects, and levels lose surrounding Unicode whitespace and collapse each internal whitespace run to one space
+before validation.
 Subject duplicate comparison uses that normalized value without case; storage retains the normalized value and
 entered capitalization. Subjects remain in input order.
 
