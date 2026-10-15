@@ -32,7 +32,7 @@ or reset the tutor's actual data directory or preferences.
 Launch from that temporary directory:
 
 ```sh
-java --enable-native-access=ALL-UNNAMED -jar "$REPO_ROOT/build/libs/addressbook.jar"
+java --enable-native-access=ALL-UNNAMED -jar "$REPO_ROOT/build/libs/TutorRoster.jar"
 ```
 
 On Apple Silicon, the inherited dependency configuration may package Intel
@@ -45,7 +45,7 @@ session. Use this alternate launch command:
 
 ```sh
 java --enable-native-access=ALL-UNNAMED -Djavafx.cachedir="$JAVA_FX_CACHE" \
-  -cp "$JAVA_FX_ARM_JAR:$REPO_ROOT/build/libs/addressbook.jar" seedu.address.Main
+  -cp "$JAVA_FX_ARM_JAR:$REPO_ROOT/build/libs/TutorRoster.jar" seedu.address.Main
 ```
 
 For the automated tests on that same machine, extract the JAR's `.dylib`
@@ -59,7 +59,7 @@ Allow 30 seconds for startup and 10 seconds per command. All six cases below
 explicitly share one application session, in the recorded order. The starting
 roster is `1. Alicia Lim`, `2. Ryan Tan`, `3. Sarah Lee`. The fixture currently
 uses inherited AB3 fields because the team's new student fields are separate
-work. Find and list feedback below is the established inherited behaviour.
+work. Find and list feedback below matches the current implementation.
 
 After the final case, enter `exit` and require a normal exit with status 0
 within 10 seconds. Terminate the test process if startup, a case, or exit times
@@ -126,7 +126,7 @@ the first student.
 
 | Exact GUI input | Exact expected result-area output | Expected numbered names |
 | --- | --- | --- |
-| `list` | `Listed all persons.` | `1. Alicia Lim`, `2. Sarah Lee` |
+| `list` | `Listed all students.` | `1. Alicia Lim`, `2. Sarah Lee` |
 | `delete 2` | `Student removed: Sarah Lee` | `1. Alicia Lim` |
 
 ## DEL-UI-06 Delete the final student and reject another deletion
