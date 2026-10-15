@@ -34,7 +34,7 @@ Student records are saved locally so you can return to them in later sessions.
 1. The TutorRoster window opens. On first use, when no saved roster exists, the current version
    shows sample students. Existing saved records are loaded on subsequent launches.
 1. Click the command box, type a command, and press **Enter**. You can then keep typing commands
-   without selecting buttons.
+   without selecting buttons. Press `/` to return focus to the command box from the roster.
 
    | Command | What it does |
    | --- | --- |
@@ -54,7 +54,8 @@ number before deleting a student, particularly after a search.
   subjects, education level, and email when supplied.
 * **Result area:** feedback for the last command, including validation errors.
 * **Command box:** where you enter commands and press Enter to execute them. A successful command
-  clears the box; an invalid command stays in the box so you can correct it.
+  clears the box; an invalid command stays in the box so you can correct it. Use the Up and Down
+  arrow keys to recall commands from the current session.
 * **Status bar:** the path of the roster data file.
 
 After a search, the roster shows matching students and numbers them from 1. A successful `add`,
@@ -76,8 +77,8 @@ After a search, the roster shows matching students and numbers them from 1. A su
   education levels, consecutive internal whitespace is stored as one space. Capitalization is
   preserved for display.
 * Only the subject prefix `s/` may be repeated within an add command. Unknown prefixes are rejected.
-* `list` accepts no arguments; `delete` accepts exactly one index. `find` treats its supplied words
-  as search keywords. Use `help` and `exit` as shown in their formats below.
+* `list` accepts no arguments; `delete` accepts exactly one index. `find` accepts the optional
+  `--any` flag before its search keywords. Use `help` and `exit` as shown in their formats below.
 
 If you copy a command from a PDF, check that it remains on one line with spaces between parameters.
 
@@ -167,28 +168,34 @@ The displayed list remains unchanged when the arguments are invalid.
 
 ### Finding students by name: `find`
 
-Shows students whose names contain **any** supplied keyword. The current version uses an OR search:
-with multiple keywords, a student only needs to match one of them.
+Shows students whose names contain **all** supplied keywords by default. Use `--any` to show
+students whose names contain **at least one** supplied keyword.
 
-**Format:** `find KEYWORD [MORE_KEYWORDS]`
+**Format:** `find [--any] KEYWORD [MORE_KEYWORDS]`
 
 * Matching is case-insensitive: `find RYAN` and `find ryan` return the same results.
 * A keyword may match part of a name: `find ann` can match `Anna Lee` and `Joanne Tan`.
 * Only names are searched. Phone numbers, emails, subjects, and levels are not searched.
-* Multiple spaces between keywords act as one separator.
+* Multiple spaces between keywords act as one separator. Keyword order does not matter.
+* By default, every keyword must match. `find Ryan Tan` can match `Ryan Wei Tan`, but does not
+  match `Ryan Lim` or `Sarah Tan`.
+* Place `--any` immediately after `find` for an OR search. `find --any Ryan Sarah` matches names
+  containing either `Ryan` or `Sarah`.
 * Matching students keep their original roster order and receive new displayed indices starting at 1.
 
 Examples:
 
 * `find Ryan` matches `Ryan Tan` and `Ryan Lim`.
 * `find ali` matches `Alicia Lim`.
-* `find Ryan Sarah` matches students whose names contain either `Ryan` or `Sarah`.
+* `find Ryan Tan` narrows the results to names containing both `Ryan` and `Tan`.
+* `find --any Ryan Sarah` matches students whose names contain either `Ryan` or `Sarah`.
 
 The result area currently uses the feedback `N person(s) listed!`. For example, one match shows
 `1 person(s) listed!`. No matches shows `0 person(s) listed!` and an empty displayed list; the records
 are still stored. Enter `list` to show them again.
 
-A bare `find` is invalid and shows usage instructions. The current displayed list is preserved.
+A bare `find` or `find --any` is invalid and shows usage instructions because at least one keyword
+is required. The current displayed list is preserved.
 
 ### Deleting a student: `delete`
 
@@ -235,9 +242,11 @@ not available in the current version.
 **Format:** `help`
 
 Opens a help window containing the User Guide link. Use its copy button to copy the link and open
-it in a browser. You can also open the window through the Help menu or the **F1** key.
+it in a browser. If the Help window is already open, `help` closes it. The Help menu and **F1** key
+also toggle the window; F1 can close it while the Help window has focus.
 
-**Success feedback:** `Opened help window.`
+**Feedback:** `Opened help window.` The current version uses this message for the command even
+when it closes an already open Help window.
 
 ### Exiting TutorRoster: `exit`
 
@@ -304,9 +313,10 @@ Delete the outdated record and add the corrected record. See
 The index belongs to the list currently on screen. Search results start from 1; use the displayed
 student's name and contact details to choose the correct number.
 
-**Why did `find Ryan Sarah` return students containing only one of those names?**
+**How do I search for several possible names?**
 
-The current search matches any keyword. Use a single, more distinctive name fragment to narrow the results.
+Use `find --any Ryan Sarah` to match either name. Without `--any`, every keyword must appear in
+the same student's name, which is useful for narrowing a search.
 
 **Why are sample students shown on first use?**
 
@@ -322,11 +332,23 @@ Copy the saved `data/addressbook.json` while the app is closed. See [Backups and
 1. If you move the app to a second screen and later disconnect that screen, it may reopen off-screen.
    Close TutorRoster and remove `preferences.json` from the launch folder, then reopen the app.
    This resets window preferences; it does not remove the roster data file.
-1. If the Help window is minimized, another `help` command may leave it minimized. Restore the existing
-   Help window using your operating system's window controls.
 1. Save-failure recovery for Delete and protection of unreadable data files are incomplete in the
    current version. Read [Save errors](#save-errors) and
    [Trouble loading an existing roster](#trouble-loading-an-existing-roster) before retrying those operations.
+
+## Keyboard shortcuts
+
+| Action | Shortcut | Description |
+| --- | --- | --- |
+| Focus command input | `/` | When focus is outside the command box, focuses it with the cursor at the end without entering `/`. |
+| Return to the roster | `Esc` | When the command box has focus, moves focus to the student list. |
+| Previous command | Up arrow | When the command box has focus, recalls an earlier command entered during this session. |
+| Next command | Down arrow | Recalls a later command. Moving past the newest command restores the unfinished draft. |
+| Toggle Help window | `F1` | Opens the Help window when closed, or closes it when open. |
+
+Command history is kept for the current session. Recalling a command does not execute it; press Enter
+when you are ready. Check any displayed index before repeating a delete command because the roster
+may have changed since the command was first entered.
 
 ## Command summary
 
@@ -334,7 +356,7 @@ Copy the saved `data/addressbook.json` while the app is closed. See [Backups and
 | --- | --- | --- |
 | Add student | `add n/NAME p/PHONE [e/EMAIL] s/SUBJECT [s/SUBJECT]... l/LEVEL` | `add n/Ryan Tan p/81234567 s/Mathematics l/Secondary 4` |
 | List students | `list` | `list` |
-| Find by name | `find KEYWORD [MORE_KEYWORDS]` | `find Ryan` |
+| Find by name | `find [--any] KEYWORD [MORE_KEYWORDS]` | `find Ryan Tan` or `find --any Ryan Sarah` |
 | Delete student | `delete INDEX` | `delete 2` |
 | Open help | `help` | `help` |
 | Exit | `exit` | `exit` |
