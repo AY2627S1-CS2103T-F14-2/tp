@@ -29,15 +29,28 @@ test {
     finalizedBy jacocoTestReport
 }
 
+def coverageExclusions = ['**/*.jar', '**/CommandBox*.class']
+
+jacocoTestReport {
+    // CommandBox only adapts pure command logic to JavaFX controls. Its event
+    // wiring requires a graphical environment, so the logic is covered through
+    // CommandBoxLogicTest instead.
+    afterEvaluate {
+        classDirectories.setFrom(files(classDirectories.files.collect {
+            fileTree(dir: it, exclude: coverageExclusions)
+        }))
+    }
+}
+
 task coverage(type: JacocoReport) {
     dependsOn test
     sourceDirectories.from files(sourceSets.main.allSource.srcDirs)
     classDirectories.from files(sourceSets.main.output)
     executionData.from files(jacocoTestReport.executionData)
     afterEvaluate {
-        classDirectories.from files(classDirectories.files.collect {
-            fileTree(dir: it, exclude: ['**/*.jar'])
-        })
+        classDirectories.setFrom(files(classDirectories.files.collect {
+            fileTree(dir: it, exclude: coverageExclusions)
+        }))
     }
     reports {
         html.required = true
@@ -72,7 +85,7 @@ dependencies {
 }
 
 shadowJar {
-    archiveFileName = 'addressbook.jar'
+    archiveFileName = 'TutorRoster.jar'
 }
 
 defaultTasks 'clean', 'test'

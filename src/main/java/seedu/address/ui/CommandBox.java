@@ -3,6 +3,8 @@ package seedu.address.ui;
 import javafx.collections.ObservableList;
 import javafx.fxml.FXML;
 import javafx.scene.control.TextField;
+import javafx.scene.input.KeyCode;
+import javafx.scene.input.KeyEvent;
 import javafx.scene.layout.Region;
 import seedu.address.logic.commands.CommandResult;
 import seedu.address.logic.commands.exceptions.CommandException;
@@ -16,7 +18,8 @@ public class CommandBox extends UiPart<Region> {
     public static final String ERROR_STYLE_CLASS = "error";
     private static final String FXML = "CommandBox.fxml";
 
-    private final CommandExecutor commandExecutor;
+    private final CommandBoxLogic commandBoxLogic;
+    private boolean isUpdatingCommandField;
 
     @FXML
     private TextField commandTextField;
@@ -26,9 +29,30 @@ public class CommandBox extends UiPart<Region> {
      */
     public CommandBox(CommandExecutor commandExecutor) {
         super(FXML);
-        this.commandExecutor = commandExecutor;
+        this.commandBoxLogic = new CommandBoxLogic(commandExecutor::execute);
         // calls #setStyleToDefault() whenever there is a change to the text of the command box.
-        commandTextField.textProperty().addListener((unused1, unused2, unused3) -> setStyleToDefault());
+        commandTextField.textProperty().addListener((unused1, unused2, unused3) -> {
+            setStyleToDefault();
+            if (!isUpdatingCommandField) {
+                commandBoxLogic.resetHistoryNavigation();
+            }
+        });
+        commandTextField.setOnKeyPressed(this::handleCommandHistoryNavigation);
+    }
+
+    /**
+     * Focuses on the command text field and positions the caret at the end of the text.
+     */
+    public void focus() {
+        commandTextField.requestFocus();
+        commandTextField.positionCaret(commandTextField.getText().length());
+    }
+
+    /**
+     * Returns true if the command text field currently has focus.
+     */
+    public boolean isFocused() {
+        return commandTextField.isFocused();
     }
 
     /**
@@ -37,16 +61,40 @@ public class CommandBox extends UiPart<Region> {
     @FXML
     private void handleCommandEntered() {
         String commandText = commandTextField.getText();
-        if (commandText.equals("")) {
-            return;
-        }
-
         try {
-            commandExecutor.execute(commandText);
-            commandTextField.setText("");
+            if (commandBoxLogic.executeCommand(commandText)) {
+                commandTextField.setText("");
+            }
         } catch (CommandException | ParseException e) {
             setStyleToIndicateCommandFailure();
         }
+    }
+
+    /**
+     * Handles navigating through previously entered commands with the arrow keys.
+     */
+    private void handleCommandHistoryNavigation(KeyEvent event) {
+        if (!commandBoxLogic.shouldNavigateHistory(event.isControlDown(), event.isAltDown(), event.isMetaDown())) {
+            return;
+        }
+
+        if (event.getCode() == KeyCode.UP) {
+            setCommandFieldText(commandBoxLogic.previousCommand(commandTextField.getText()));
+            event.consume();
+        } else if (event.getCode() == KeyCode.DOWN) {
+            setCommandFieldText(commandBoxLogic.nextCommand(commandTextField.getText()));
+            event.consume();
+        }
+    }
+
+    /**
+     * Updates the command field without resetting the history navigation state.
+     */
+    private void setCommandFieldText(String commandText) {
+        isUpdatingCommandField = true;
+        commandTextField.setText(commandText);
+        commandTextField.positionCaret(commandText.length());
+        isUpdatingCommandField = false;
     }
 
     /**

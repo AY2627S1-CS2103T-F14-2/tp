@@ -549,7 +549,7 @@ Priorities: High (must have) - `* * *`, Medium (nice to have) - `* *`, Low (unli
 | **Parameter** | A value supplied to a command, such as a student’s name or the index of a record to delete. |
 | **Prefix** | A marker identifying a parameter’s type, such as `n/` for name or `s/` for subject. |
 | **Student index (`INDEX`)** | A student’s position in the currently displayed numbered list, starting from 1. After a search, it refers to the search results. |
-| **Search keyword** | Text used to find matching records. In the strict MVP, keywords match parts of student names, and every supplied keyword must match. |
+| **Search keyword** | Text used to find matching records. Keywords match parts of student names. By default, every supplied keyword must match; `--any` returns records matching at least one keyword. |
 | **Filtered list** | A displayed subset of the roster containing only students who match the current search or filter criteria. |
 | **Case-insensitive matching** | Comparing text without distinguishing uppercase from lowercase letters. For example, `Ryan` and `ryan` match. |
 | **Whitespace normalization** | Removing surrounding whitespace and treating consecutive internal whitespace as one space in names, subjects, and education levels. |
