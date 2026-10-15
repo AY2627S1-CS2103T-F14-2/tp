@@ -15,6 +15,9 @@ import seedu.address.model.person.StudentFields;
 /** Parses the add-student syntax and checks its fields before creating a command. */
 public class AddCommandParser implements Parser<AddCommand> {
     private static final Pattern PREFIX_PATTERN = Pattern.compile("(?U)(?<!\\S)([a-z])/");
+    private static final List<Map.Entry<String, String>> REQUIRED_PARAMETERS = List.of(
+            Map.entry("n/", "n/NAME"), Map.entry("p/", "p/PHONE"),
+            Map.entry("s/", "s/SUBJECT"), Map.entry("l/", "l/LEVEL"));
 
     @Override
     public AddCommand parse(String args) throws ParseException {
@@ -44,7 +47,8 @@ public class AddCommandParser implements Parser<AddCommand> {
             values.computeIfAbsent(previousPrefix, ignored -> new ArrayList<>())
                     .add(StudentFields.trim(args.substring(previousValueStart)));
         }
-        if (firstPrefixStart < 0 || !StudentFields.trim(args.substring(0, firstPrefixStart)).isEmpty()) {
+        String preamble = firstPrefixStart < 0 ? args : args.substring(0, firstPrefixStart);
+        if (!StudentFields.trim(preamble).isEmpty()) {
             throw new ParseException(AddCommand.MESSAGE_USAGE);
         }
 
@@ -53,9 +57,13 @@ public class AddCommandParser implements Parser<AddCommand> {
                 throw new ParseException("Parameter " + prefix + " must not be specified more than once.");
             }
         }
-        if (!values.containsKey("n/") || !values.containsKey("p/")
-                || !values.containsKey("s/") || !values.containsKey("l/")) {
-            throw new ParseException(AddCommand.MESSAGE_USAGE);
+        for (Map.Entry<String, String> required : REQUIRED_PARAMETERS) {
+            if (!values.containsKey(required.getKey())) {
+                throw new ParseException(AddCommand.missingRequiredParameter(required.getValue()));
+            }
+            if (values.get(required.getKey()).getFirst().isEmpty()) {
+                throw new ParseException(AddCommand.missingRequiredValue(required.getValue()));
+            }
         }
 
         String name = StudentFields.normalizeName(values.get("n/").getFirst());
