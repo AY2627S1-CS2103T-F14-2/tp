@@ -20,9 +20,12 @@ public class AddCommand extends Command {
 
     public static final String COMMAND_WORD = "add";
 
-    public static final String MESSAGE_USAGE = "Invalid command format. Usage: " + COMMAND_WORD + " "
-            + PREFIX_NAME + "NAME " + PREFIX_PHONE + "PHONE [" + PREFIX_EMAIL + "EMAIL] "
-            + PREFIX_SUBJECT + "SUBJECT [" + PREFIX_SUBJECT + "SUBJECT]... " + PREFIX_LEVEL + "LEVEL";
+    public static final String MESSAGE_PARAMETER_GUIDE = "Required: " + COMMAND_WORD + " "
+            + PREFIX_NAME + "NAME " + PREFIX_PHONE + "PHONE "
+            + PREFIX_SUBJECT + "SUBJECT " + PREFIX_LEVEL + "LEVEL\n"
+            + "Optional: " + PREFIX_EMAIL + "EMAIL; repeat " + PREFIX_SUBJECT + "SUBJECT for additional subjects.\n"
+            + "Parameters may appear in any order.";
+    public static final String MESSAGE_USAGE = "Invalid command format for add.\n" + MESSAGE_PARAMETER_GUIDE;
 
     public static final String MESSAGE_SUCCESS = "New student added: %1$s";
     public static final String MESSAGE_DUPLICATE_PERSON = "This student already exists in TutorRoster.";
@@ -35,6 +38,14 @@ public class AddCommand extends Command {
     public AddCommand(Person person) {
         requireNonNull(person);
         toAdd = person;
+    }
+
+    public static String missingRequiredParameter(String parameter) {
+        return "Missing required parameter: " + parameter + ".\n" + MESSAGE_PARAMETER_GUIDE;
+    }
+
+    public static String missingRequiredValue(String parameter) {
+        return "Missing value for required parameter: " + parameter + ".\n" + MESSAGE_PARAMETER_GUIDE;
     }
 
     public Person getPersonToAdd() {

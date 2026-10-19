@@ -8,26 +8,30 @@ import seedu.address.model.Model;
 import seedu.address.model.person.NameContainsKeywordsPredicate;
 
 /**
- * Finds and lists all persons in the address book whose name contains any of the argument keywords.
+ * Finds and lists all students whose name matches the argument keywords.
  * Keyword matching is case insensitive and allows partial names.
  */
 public class FindCommand extends Command {
 
     public static final String COMMAND_WORD = "find";
+    public static final String ANY_KEYWORD_OPTION = "--any";
 
-    public static final String MESSAGE_INVALID_COMMAND_FORMAT = "Invalid command format!\n\n"
-            + "Usage: find [--any] KEYWORD [MORE_KEYWORDS]...\n\n"
+    public static final String MESSAGE_USAGE = COMMAND_WORD + " [" + ANY_KEYWORD_OPTION + "] "
+            + "KEYWORD [MORE_KEYWORDS]...\n\n"
             + "By default, find shows students whose names match all specified keywords "
-            + "(case-insensitive, partial matches allowed). Use `--any` to show students whose names match "
-            + "at least one specified keyword.\n\n"
-            + "Examples:\n\n"
+            + "(case-insensitive, partial matches allowed).\n"
+            + "Use `--any` to show students whose names match at least one specified keyword.\n\n"
+            + "Examples:\n"
             + "- \"find alice bob\" returns students whose names contain both “alice” and “bob”.\n"
             + "- \"find --any alice bob\" returns students whose names contain “alice”, “bob”, or both.";
+
+    public static final String MESSAGE_INVALID_COMMAND_FORMAT =
+            "Invalid command format!\n\nUsage: " + MESSAGE_USAGE;
 
     private final NameContainsKeywordsPredicate predicate;
 
     /**
-     * Creates a command that lists persons matching the given name predicate.
+     * Creates a command that lists students matching the given name predicate.
      */
     public FindCommand(NameContainsKeywordsPredicate predicate) {
         this.predicate = predicate;

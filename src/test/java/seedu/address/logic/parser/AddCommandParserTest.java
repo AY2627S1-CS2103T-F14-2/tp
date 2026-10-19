@@ -1,7 +1,6 @@
 package seedu.address.logic.parser;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertThrows;
 import static seedu.address.logic.parser.CommandParserTestUtil.assertParseFailure;
 import static seedu.address.logic.parser.CommandParserTestUtil.assertParseSuccess;
 
@@ -10,11 +9,14 @@ import java.util.List;
 import org.junit.jupiter.api.Test;
 
 import seedu.address.logic.commands.AddCommand;
-import seedu.address.logic.parser.exceptions.ParseException;
 import seedu.address.model.person.Person;
 import seedu.address.model.person.StudentFields;
 
 public class AddCommandParserTest {
+    private static final String PARAMETER_GUIDE = "Required: add n/NAME p/PHONE s/SUBJECT l/LEVEL\n"
+            + "Optional: e/EMAIL; repeat s/SUBJECT for additional subjects.\n"
+            + "Parameters may appear in any order.";
+
     private final AddCommandParser parser = new AddCommandParser();
 
     @Test
@@ -91,10 +93,33 @@ public class AddCommandParserTest {
     }
 
     @Test
-    public void parse_missingRequiredOrNoParameters_usage() {
-        assertParseFailure(parser, "", AddCommand.MESSAGE_USAGE);
-        assertParseFailure(parser, " n/A p/123 l/JC 1", AddCommand.MESSAGE_USAGE);
-        assertParseFailure(parser, " n/A p/123 s/Math", AddCommand.MESSAGE_USAGE);
+    public void usage_separatesRequiredAndOptionalParameters() {
+        assertEquals("Invalid command format for add.\n" + PARAMETER_GUIDE, AddCommand.MESSAGE_USAGE);
+    }
+
+    @Test
+    public void parse_missingRequiredParameter_namesMissingField() {
+        assertParseFailure(parser, "", "Missing required parameter: n/NAME.\n" + PARAMETER_GUIDE);
+        assertParseFailure(parser, " p/123 s/Math l/JC 1",
+                "Missing required parameter: n/NAME.\n" + PARAMETER_GUIDE);
+        assertParseFailure(parser, " n/A s/Math l/JC 1",
+                "Missing required parameter: p/PHONE.\n" + PARAMETER_GUIDE);
+        assertParseFailure(parser, " n/A p/123 l/JC 1",
+                "Missing required parameter: s/SUBJECT.\n" + PARAMETER_GUIDE);
+        assertParseFailure(parser, " n/A p/123 s/Math",
+                "Missing required parameter: l/LEVEL.\n" + PARAMETER_GUIDE);
+    }
+
+    @Test
+    public void parse_emptyRequiredValue_namesField() {
+        assertParseFailure(parser, " n/ p/123 s/Math l/JC 1",
+                "Missing value for required parameter: n/NAME.\n" + PARAMETER_GUIDE);
+        assertParseFailure(parser, " n/A p/ s/Math l/JC 1",
+                "Missing value for required parameter: p/PHONE.\n" + PARAMETER_GUIDE);
+        assertParseFailure(parser, " n/A p/123 s/ l/JC 1",
+                "Missing value for required parameter: s/SUBJECT.\n" + PARAMETER_GUIDE);
+        assertParseFailure(parser, " n/A p/123 s/Math l/",
+                "Missing value for required parameter: l/LEVEL.\n" + PARAMETER_GUIDE);
     }
 
     @Test
@@ -145,7 +170,6 @@ public class AddCommandParserTest {
 
     @Test
     public void parse_invalidOrRepeatedSubject_failure() {
-        assertParseFailure(parser, " n/A p/123 s/ l/JC 1", StudentFields.INVALID_SUBJECT);
         assertParseFailure(parser, " n/A p/123 s/--- l/JC 1", StudentFields.INVALID_SUBJECT);
         assertParseFailure(parser, " n/A p/123 s/Math_1 l/JC 1", StudentFields.INVALID_SUBJECT);
         assertParseFailure(parser, " n/A p/123 s/" + "A".repeat(51) + " l/JC 1",
@@ -157,7 +181,6 @@ public class AddCommandParserTest {
 
     @Test
     public void parse_invalidLevel_failure() {
-        assertParseFailure(parser, " n/A p/123 s/Math l/", StudentFields.INVALID_LEVEL);
         assertParseFailure(parser, " n/A p/123 s/Math l/-", StudentFields.INVALID_LEVEL);
         assertParseFailure(parser, " n/A p/123 s/Math l/JC_1", StudentFields.INVALID_LEVEL);
         assertParseFailure(parser, " n/A p/123 s/Math l/" + "A".repeat(31),
@@ -172,6 +195,7 @@ public class AddCommandParserTest {
 
     @Test
     public void parse_preamble_failure() {
-        assertThrows(ParseException.class, () -> parser.parse("garbage n/A p/123 s/Math l/JC 1"));
+        assertParseFailure(parser, "garbage n/A p/123 s/Math l/JC 1", AddCommand.MESSAGE_USAGE);
+        assertParseFailure(parser, "garbage", AddCommand.MESSAGE_USAGE);
     }
 }
