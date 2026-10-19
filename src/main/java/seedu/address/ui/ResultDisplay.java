@@ -2,6 +2,8 @@ package seedu.address.ui;
 
 import static java.util.Objects.requireNonNull;
 
+import javafx.application.Platform;
+import javafx.beans.value.ChangeListener;
 import javafx.fxml.FXML;
 import javafx.scene.control.TextArea;
 import javafx.scene.layout.Region;
@@ -17,8 +19,13 @@ public class ResultDisplay extends UiPart<Region> {
     private static final int MINIMUM_VISIBLE_ROWS = 3;
     private static final int MAXIMUM_VISIBLE_ROWS = 6;
 
+    // Recalculate after the current layout pass so the new preferred height triggers another layout.
+    private final ChangeListener<Number> viewportWidthListener = (observable, oldWidth, newWidth) ->
+            Platform.runLater(this::updateVisibleRowCount);
+
     @FXML
     private TextArea resultDisplay;
+    private Region observedViewport;
 
     /** Creates a result display that adapts to its available width. */
     public ResultDisplay() {
@@ -38,6 +45,13 @@ public class ResultDisplay extends UiPart<Region> {
      */
     private void updateVisibleRowCount() {
         Region viewport = (Region) resultDisplay.lookup(".viewport");
+        if (viewport != null && viewport != observedViewport) {
+            if (observedViewport != null) {
+                observedViewport.widthProperty().removeListener(viewportWidthListener);
+            }
+            observedViewport = viewport;
+            viewport.widthProperty().addListener(viewportWidthListener);
+        }
         Region content = (Region) resultDisplay.lookup(".content");
         double width = viewport == null ? resultDisplay.getWidth() : viewport.getWidth();
         if (content != null) {

@@ -5,6 +5,7 @@ import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
+import java.util.Arrays;
 import java.util.List;
 
 import org.junit.jupiter.api.Test;
@@ -19,6 +20,13 @@ public class NameContainsKeywordsPredicateTest {
         assertThrows(NullPointerException.class, () -> new NameContainsKeywordsPredicate(null));
         assertThrows(NullPointerException.class, () ->
                 new NameContainsKeywordsPredicate(List.of("Alice"), null));
+    }
+
+    @Test
+    public void constructor_nullKeyword_throwsNullPointerException() {
+        List<String> keywords = Arrays.asList("Alice", null);
+
+        assertThrows(NullPointerException.class, () -> new NameContainsKeywordsPredicate(keywords, MatchMode.ALL));
     }
 
     @Test
