@@ -53,7 +53,7 @@
 
           <StackPane fx:id="personListPanelPlaceholder" styleClass="roster-surface" VBox.vgrow="ALWAYS" />
 
-          <StackPane fx:id="resultDisplayPlaceholder" maxHeight="138" minHeight="78"
+          <StackPane fx:id="resultDisplayPlaceholder" maxHeight="138"
                      styleClass="result-surface" VBox.vgrow="NEVER" />
         </VBox>
 
