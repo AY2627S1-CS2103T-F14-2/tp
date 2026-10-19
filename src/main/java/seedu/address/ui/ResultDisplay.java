@@ -33,6 +33,9 @@ public class ResultDisplay extends UiPart<Region> {
         updateVisibleRowCount();
     }
 
+    /**
+     * Updates the preferred row count using the feedback text, font and available content width.
+     */
     private void updateVisibleRowCount() {
         Region viewport = (Region) resultDisplay.lookup(".viewport");
         Region content = (Region) resultDisplay.lookup(".content");
@@ -44,20 +47,22 @@ public class ResultDisplay extends UiPart<Region> {
     }
 
     /**
-     * Returns enough rows for short feedback while bounding the area reserved for long feedback.
+     * Returns the number of visible rows needed for the feedback, within the display's row limits.
+     * Wrapped lines are measured at the given width; a non-positive width falls back to counting
+     * explicit lines.
      */
     static int getVisibleRowCount(String feedbackToUser, Font font, double width) {
-        Text measure = new Text("Ag");
-        measure.setFont(font);
-        double lineHeight = measure.getLayoutBounds().getHeight();
+        Text textMeasure = new Text("Ag");
+        textMeasure.setFont(font);
+        double lineHeight = textMeasure.getLayoutBounds().getHeight();
         int feedbackLineCount = 0;
         for (String line : feedbackToUser.split("\\R", -1)) {
             if (line.isEmpty() || width <= 0) {
                 feedbackLineCount++;
             } else {
-                measure.setText(line);
-                measure.setWrappingWidth(width);
-                feedbackLineCount += (int) Math.round(measure.getLayoutBounds().getHeight() / lineHeight);
+                textMeasure.setText(line);
+                textMeasure.setWrappingWidth(width);
+                feedbackLineCount += (int) Math.round(textMeasure.getLayoutBounds().getHeight() / lineHeight);
             }
         }
         return Math.clamp(feedbackLineCount, MINIMUM_VISIBLE_ROWS, MAXIMUM_VISIBLE_ROWS);

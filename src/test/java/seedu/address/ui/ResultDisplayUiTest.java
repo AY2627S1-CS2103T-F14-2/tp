@@ -16,6 +16,8 @@ import javafx.scene.control.TextArea;
 @EnabledIfEnvironmentVariable(named = "RUN_JAVAFX_UI_TESTS", matches = "true")
 public class ResultDisplayUiTest {
 
+    private static final int JAVAFX_TIMEOUT_SECONDS = 10;
+
     @BeforeAll
     public static void startJavaFx() {
         Platform.startup(() -> { });
@@ -23,7 +25,7 @@ public class ResultDisplayUiTest {
 
     @Test
     public void setFeedbackToUser_updatesTextAndVisibleRows() throws Exception {
-        FutureTask<Void> test = new FutureTask<>(() -> {
+        runOnJavaFxThread(() -> {
             ResultDisplay display = new ResultDisplay();
             TextArea textArea = (TextArea) display.getRoot().lookup(".text-area");
 
@@ -35,11 +37,24 @@ public class ResultDisplayUiTest {
             display.setFeedbackToUser("Short feedback");
             assertEquals("Short feedback", textArea.getText());
             assertEquals(3, textArea.getPrefRowCount());
+        });
+    }
+
+    @Test
+    public void setFeedbackToUser_nullFeedback_preservesDisplayedText() throws Exception {
+        runOnJavaFxThread(() -> {
+            ResultDisplay display = new ResultDisplay();
+            TextArea textArea = (TextArea) display.getRoot().lookup(".text-area");
+            display.setFeedbackToUser("Short feedback");
+
             assertThrows(NullPointerException.class, () -> display.setFeedbackToUser(null));
             assertEquals("Short feedback", textArea.getText());
-            return null;
         });
+    }
+
+    private static void runOnJavaFxThread(Runnable action) throws Exception {
+        FutureTask<Void> test = new FutureTask<>(action, null);
         Platform.runLater(test);
-        test.get(10, TimeUnit.SECONDS);
+        test.get(JAVAFX_TIMEOUT_SECONDS, TimeUnit.SECONDS);
     }
 }

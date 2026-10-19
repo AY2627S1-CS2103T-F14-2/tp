@@ -31,7 +31,7 @@ public class NameContainsKeywordsPredicate implements Predicate<Person> {
     /**
      * Creates a predicate that matches names according to the given {@code matchMode}.
      *
-     * @throws NullPointerException if {@code keywords} or {@code matchMode} is null.
+     * @throws NullPointerException if {@code keywords}, any keyword, or {@code matchMode} is null.
      */
     public NameContainsKeywordsPredicate(List<String> keywords, MatchMode matchMode) {
         this.keywords = List.copyOf(requireNonNull(keywords));
