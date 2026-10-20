@@ -19,6 +19,7 @@ import seedu.address.logic.Logic;
 import seedu.address.logic.commands.CommandResult;
 import seedu.address.logic.commands.exceptions.CommandException;
 import seedu.address.logic.parser.exceptions.ParseException;
+import seedu.address.model.person.Person;
 
 /**
  * The Main Window. Provides the basic application layout containing
@@ -39,6 +40,7 @@ public class MainWindow extends UiPart<Stage> {
     private ResultDisplay resultDisplay;
     private HelpWindow helpWindow;
     private CommandBox commandBox;
+    private StudentDetailModal studentDetailModal;
 
     private boolean isFocusingCommandBoxFromSlash = false;
 
@@ -56,6 +58,9 @@ public class MainWindow extends UiPart<Stage> {
 
     @FXML
     private StackPane statusbarPlaceholder;
+
+    @FXML
+    private StackPane modalOverlay;
 
     /**
      * Creates a {@code MainWindow} with the given {@code Stage}, {@code Logic},
@@ -121,7 +126,10 @@ public class MainWindow extends UiPart<Stage> {
      */
     private void setupKeyboardShortcuts() {
         getRoot().addEventFilter(KeyEvent.KEY_PRESSED, event -> {
-            if (isSlashKey(event) && commandBox != null && !commandBox.isFocused()) {
+            if (event.getCode() == KeyCode.ESCAPE && modalOverlay != null && modalOverlay.isVisible()) {
+                hideStudentDetails();
+                event.consume();
+            } else if (isSlashKey(event) && commandBox != null && !commandBox.isFocused()) {
                 isFocusingCommandBoxFromSlash = true;
                 commandBox.focus();
                 event.consume();
@@ -261,11 +269,33 @@ public class MainWindow extends UiPart<Stage> {
                 handleExit();
             }
 
+            commandResult.getPersonToShow().ifPresent(this::showStudentDetails);
+
             return commandResult;
         } catch (CommandException | ParseException e) {
             logger.info("An error occurred while executing command: " + commandText);
             resultDisplay.setFeedbackToUser(e.getMessage());
             throw e;
+        }
+    }
+
+    /** Shows the complete record for a student in the modal overlay. */
+    private void showStudentDetails(Person person) {
+        studentDetailModal = new StudentDetailModal(person, this::hideStudentDetails);
+        modalOverlay.getChildren().setAll(studentDetailModal.getRoot());
+        modalOverlay.setManaged(true);
+        modalOverlay.setVisible(true);
+        modalOverlay.requestFocus();
+    }
+
+    /** Closes the student detail modal and returns focus to the displayed student list. */
+    private void hideStudentDetails() {
+        modalOverlay.setVisible(false);
+        modalOverlay.setManaged(false);
+        modalOverlay.getChildren().clear();
+        studentDetailModal = null;
+        if (personListPanel != null) {
+            personListPanel.focus();
         }
     }
 }

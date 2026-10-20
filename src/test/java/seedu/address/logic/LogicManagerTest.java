@@ -2,6 +2,7 @@ package seedu.address.logic;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
+import static seedu.address.logic.Messages.MESSAGE_INVALID_COMMAND_FORMAT;
 import static seedu.address.logic.Messages.MESSAGE_UNKNOWN_COMMAND;
 import static seedu.address.logic.commands.DeleteCommand.MESSAGE_INVALID_STUDENT_DISPLAYED_INDEX;
 import static seedu.address.testutil.Assert.assertThrows;
@@ -16,7 +17,9 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
 
 import seedu.address.logic.commands.CommandResult;
+import seedu.address.logic.commands.HelpCommand;
 import seedu.address.logic.commands.ListCommand;
+import seedu.address.logic.commands.ShowCommand;
 import seedu.address.logic.commands.exceptions.CommandException;
 import seedu.address.logic.parser.exceptions.ParseException;
 import seedu.address.model.Model;
@@ -57,6 +60,39 @@ public class LogicManagerTest {
     public void execute_commandExecutionError_throwsCommandException() {
         String deleteCommand = "delete 9";
         assertCommandException(deleteCommand, MESSAGE_INVALID_STUDENT_DISPLAYED_INDEX);
+    }
+
+    @Test
+    public void execute_showFilteredStudent_returnsStudentFromDisplayedOrder() throws Exception {
+        model.setAddressBook(TypicalPersons.getTypicalAddressBook());
+        logic.execute("find Meier");
+
+        CommandResult result = logic.execute("show 2");
+
+        assertEquals(TypicalPersons.DANIEL, result.getPersonToShow().orElseThrow());
+        assertEquals(2, logic.getFilteredPersonList().size());
+    }
+
+    @Test
+    public void execute_showInvalidDisplayedIndex_throwsCommandException() throws Exception {
+        model.setAddressBook(TypicalPersons.getTypicalAddressBook());
+        logic.execute("find Benson");
+
+        CommandException exception = org.junit.jupiter.api.Assertions.assertThrows(CommandException.class, ()
+                -> logic.execute("show 2"));
+        assertEquals(ShowCommand.MESSAGE_INVALID_STUDENT_DISPLAYED_INDEX, exception.getMessage());
+        assertEquals(1, logic.getFilteredPersonList().size());
+    }
+
+    @Test
+    public void execute_nullCommand_throwsParseException() {
+        assertParseException(null, String.format(MESSAGE_INVALID_COMMAND_FORMAT, HelpCommand.MESSAGE_USAGE));
+    }
+
+    @Test
+    public void constructor_nullRequiredDependency_throwsNullPointerException() {
+        assertThrows(NullPointerException.class, () -> new LogicManager(null, null));
+        assertThrows(NullPointerException.class, () -> new LogicManager(model, null));
     }
 
     @Test

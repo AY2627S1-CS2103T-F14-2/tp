@@ -371,6 +371,111 @@
     -fx-padding: 18;
 }
 
+.detail-modal-overlay {
+    -fx-background-color: rgba(23, 55, 52, 0.58);
+    -fx-padding: 28;
+}
+
+.student-detail-modal {
+    -fx-background-color: #FFFFFF;
+    -fx-background-radius: 20;
+    -fx-border-color: #DCE5E1;
+    -fx-border-radius: 20;
+    -fx-border-width: 1;
+    -fx-effect: dropshadow(gaussian, rgba(23, 55, 52, 0.26), 28, 0.22, 0, 10);
+    -fx-min-width: 480;
+}
+
+.detail-modal-header {
+    -fx-background-color: #EFF6F2;
+    -fx-background-radius: 20 20 0 0;
+    -fx-padding: 24 26 22 26;
+}
+
+.detail-avatar {
+    -fx-background-color: #177565;
+    -fx-background-radius: 28;
+    -fx-min-width: 56;
+    -fx-min-height: 56;
+    -fx-max-width: 56;
+    -fx-max-height: 56;
+    -fx-alignment: CENTER;
+}
+
+.detail-avatar-label {
+    -fx-font-size: 17px;
+    -fx-font-weight: bold;
+    -fx-text-fill: #FFFFFF;
+}
+
+.detail-eyebrow {
+    -fx-font-size: 10px;
+    -fx-font-weight: bold;
+    -fx-text-fill: #177565;
+}
+
+.detail-name {
+    -fx-font-size: 23px;
+    -fx-font-weight: bold;
+    -fx-text-fill: #173734;
+}
+
+.detail-subtitle,
+.modal-hint {
+    -fx-font-size: 11px;
+    -fx-text-fill: #647572;
+}
+
+.modal-close-button {
+    -fx-background-color: transparent;
+    -fx-background-radius: 18;
+    -fx-font-size: 24px;
+    -fx-text-fill: #647572;
+    -fx-padding: 0 8 3 8;
+}
+
+.modal-close-button:hover {
+    -fx-background-color: #DCEDE5;
+    -fx-text-fill: #173734;
+}
+
+.detail-scroll-pane {
+    -fx-background-color: #FFFFFF;
+    -fx-background-insets: 0;
+    -fx-border-color: transparent;
+}
+
+.detail-scroll-pane > .viewport {
+    -fx-background-color: #FFFFFF;
+}
+
+.detail-content {
+    -fx-padding: 24 28 28 28;
+}
+
+.detail-section-title {
+    -fx-font-size: 13px;
+    -fx-font-weight: bold;
+    -fx-text-fill: #173734;
+}
+
+.detail-label {
+    -fx-font-size: 11px;
+    -fx-font-weight: bold;
+    -fx-text-fill: #647572;
+}
+
+.detail-value {
+    -fx-font-size: 13px;
+    -fx-text-fill: #173734;
+}
+
+.detail-modal-footer {
+    -fx-background-color: #F5F7F5;
+    -fx-background-radius: 0 0 20 20;
+    -fx-padding: 15 26 17 26;
+}
+
 .help-container .label {
     -fx-font-size: 12px;
     -fx-text-fill: #173734;
