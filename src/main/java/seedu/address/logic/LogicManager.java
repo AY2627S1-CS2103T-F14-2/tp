@@ -10,6 +10,8 @@ import seedu.address.commons.core.LogsCenter;
 import seedu.address.logic.commands.AddCommand;
 import seedu.address.logic.commands.Command;
 import seedu.address.logic.commands.CommandResult;
+import seedu.address.logic.commands.RedoCommand;
+import seedu.address.logic.commands.UndoCommand;
 import seedu.address.logic.commands.exceptions.CommandException;
 import seedu.address.logic.parser.AddressBookParser;
 import seedu.address.logic.parser.exceptions.ParseException;
@@ -47,28 +49,31 @@ public class LogicManager implements Logic {
     public CommandResult execute(String commandText) throws CommandException, ParseException {
         logger.info("----------------[USER COMMAND][" + commandText + "]");
 
-        CommandResult commandResult;
         Command command = addressBookParser.parseCommand(commandText);
-        if (command instanceof AddCommand addCommand) {
-            Model proposedModel = new ModelManager(model.getAddressBook(), model.getUserPrefs());
-            commandResult = addCommand.execute(proposedModel);
+        Model proposedModel = new ModelManager(model.getAddressBook(), model.getUserPrefs());
+        proposedModel.restoreSnapshot(model.createSnapshot());
+        CommandResult commandResult = command.execute(proposedModel);
+        boolean isHistoryCommand = command instanceof UndoCommand || command instanceof RedoCommand;
+        boolean hasRosterChanged = !model.getAddressBook().equals(proposedModel.getAddressBook());
+
+        if (hasRosterChanged || isHistoryCommand) {
+            if (!isHistoryCommand) {
+                proposedModel.commitAddressBook();
+            }
             try {
                 storage.saveAddressBookAtomically(proposedModel.getAddressBook());
+            } catch (AccessDeniedException e) {
+                String message = command instanceof AddCommand ? MESSAGE_ADD_SAVE_FAILURE
+                        : String.format(FILE_OPS_PERMISSION_ERROR_FORMAT, e.getMessage());
+                throw new CommandException(message, e);
             } catch (IOException e) {
-                throw new CommandException(MESSAGE_ADD_SAVE_FAILURE, e);
+                String message = command instanceof AddCommand ? MESSAGE_ADD_SAVE_FAILURE
+                        : String.format(FILE_OPS_ERROR_FORMAT, e.getMessage());
+                throw new CommandException(message, e);
             }
-            model.addPerson(addCommand.getPersonToAdd());
-            return commandResult;
         }
-        commandResult = command.execute(model);
-
-        try {
-            storage.saveAddressBook(model.getAddressBook());
-        } catch (AccessDeniedException e) {
-            throw new CommandException(String.format(FILE_OPS_PERMISSION_ERROR_FORMAT, e.getMessage()), e);
-        } catch (IOException ioe) {
-            throw new CommandException(String.format(FILE_OPS_ERROR_FORMAT, ioe.getMessage()), ioe);
-        }
+        // Publish roster, filter, and history together only after a successful save.
+        model.restoreSnapshot(proposedModel.createSnapshot());
 
         return commandResult;
     }

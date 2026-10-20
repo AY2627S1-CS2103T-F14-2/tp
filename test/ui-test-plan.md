@@ -1,4 +1,4 @@
-# Delete student acceptance test plan
+# TutorRoster command acceptance test plan
 
 ## Interface and comparison rules
 
@@ -32,7 +32,7 @@ or reset the tutor's actual data directory or preferences.
 Launch from that temporary directory:
 
 ```sh
-java --enable-native-access=ALL-UNNAMED -jar "$REPO_ROOT/build/libs/TutorRoster.jar"
+java -ea --enable-native-access=ALL-UNNAMED -jar "$REPO_ROOT/build/libs/TutorRoster.jar"
 ```
 
 On Apple Silicon, the inherited dependency configuration may package Intel
@@ -44,7 +44,7 @@ absolute path and `JAVA_FX_CACHE` to a fresh directory within the isolated
 session. Use this alternate launch command:
 
 ```sh
-java --enable-native-access=ALL-UNNAMED -Djavafx.cachedir="$JAVA_FX_CACHE" \
+java -ea --enable-native-access=ALL-UNNAMED -Djavafx.cachedir="$JAVA_FX_CACHE" \
   -cp "$JAVA_FX_ARM_JAR:$REPO_ROOT/build/libs/TutorRoster.jar" seedu.address.Main
 ```
 
@@ -143,7 +143,79 @@ The first input below contains exactly two leading and two trailing spaces.
 
 ## Persistence scope
 
-The automated logic test verifies that a successful filtered deletion saves
-the complete remaining roster. Failed-save rollback is a pending shared
-persistence enhancement and is not claimed as implemented or verified by
-these cases.
+Automated logic tests verify successful add, delete, undo, and redo saves, and
+that failed saves preserve the roster, filter, history, and original data file.
+These checks do not substitute for the GUI feedback checks above and below.
+
+## Undo/redo session setup
+
+After completing the Delete session, close that process and create a fresh
+isolated session using the same fixture, launch instructions, and timeouts.
+The cases below explicitly share this second session, in order. The initial
+roster is `1. Alicia Lim`, `2. Ryan Tan`, `3. Sarah Lee`. Run with Java assertions
+enabled (`-ea`). History begins empty and lasts only until the app closes.
+
+## HIST-UI-01 Unavailable commands
+
+Aim: Reject undo and redo before any roster changes without changing the list.
+
+| Exact GUI input | Exact expected result-area output | Expected numbered names |
+| --- | --- | --- |
+| `undo` | `There are no changes to undo.` | `1. Alicia Lim`, `2. Ryan Tan`, `3. Sarah Lee` |
+| `redo` | `There are no changes to redo.` | `1. Alicia Lim`, `2. Ryan Tan`, `3. Sarah Lee` |
+
+## HIST-UI-02 Undo and redo a filtered deletion
+
+Aim: Restore the correct student, complete details, and order; both history
+commands return to the full roster. Search commands must not create undo steps.
+
+| Exact GUI input | Exact expected result-area output | Expected numbered names |
+| --- | --- | --- |
+| `find Ryan` | `1 person(s) listed!` | `1. Ryan Tan` |
+| `delete 1` | `Student removed: Ryan Tan` | `1. Alicia Lim`, `2. Sarah Lee` |
+| `undo` | `Undo successful.` | `1. Alicia Lim`, `2. Ryan Tan`, `3. Sarah Lee` |
+| `find Nobody` | `0 person(s) listed!` | None |
+| `redo` | `Redo successful.` | `1. Alicia Lim`, `2. Sarah Lee` |
+
+## HIST-UI-03 Invalid commands preserve redo
+
+Aim: Reject arguments and failed commands without consuming redo or changing
+an active search filter. `list` must also leave redo available.
+
+| Exact GUI input | Exact expected result-area output | Expected numbered names |
+| --- | --- | --- |
+| `undo` | `Undo successful.` | `1. Alicia Lim`, `2. Ryan Tan`, `3. Sarah Lee` |
+| `find Ryan` | `1 person(s) listed!` | `1. Ryan Tan` |
+| `undo 1` | `Invalid command format. Usage: undo` | `1. Ryan Tan` |
+| `redo all` | `Invalid command format. Usage: redo` | `1. Ryan Tan` |
+| `delete 2` | `The student index provided is invalid.` | `1. Ryan Tan` |
+| `list` | `Listed all students.` | `1. Alicia Lim`, `2. Ryan Tan`, `3. Sarah Lee` |
+| `redo` | `Redo successful.` | `1. Alicia Lim`, `2. Sarah Lee` |
+
+## HIST-UI-04 New branch, add, and repeated undo/redo
+
+Aim: A new successful add after undo clears the old redo branch; repeated
+undo/redo reaches the history boundary and restores the new addition.
+
+| Exact GUI input | Exact expected result-area output | Expected numbered names |
+| --- | --- | --- |
+| `undo` | `Undo successful.` | `1. Alicia Lim`, `2. Ryan Tan`, `3. Sarah Lee` |
+| `add n/Jamie Koh p/81234567 s/Physics l/JC 1` | `New student added: Jamie Koh` | `1. Alicia Lim`, `2. Ryan Tan`, `3. Sarah Lee`, `4. Jamie Koh` |
+| `redo` | `There are no changes to redo.` | `1. Alicia Lim`, `2. Ryan Tan`, `3. Sarah Lee`, `4. Jamie Koh` |
+| `undo` | `Undo successful.` | `1. Alicia Lim`, `2. Ryan Tan`, `3. Sarah Lee` |
+| `undo` | `There are no changes to undo.` | `1. Alicia Lim`, `2. Ryan Tan`, `3. Sarah Lee` |
+| `redo` | `Redo successful.` | `1. Alicia Lim`, `2. Ryan Tan`, `3. Sarah Lee`, `4. Jamie Koh` |
+
+Enter `exit` and require status 0 within 10 seconds. Relaunch using this same
+isolated session directory for HIST-UI-05.
+
+## HIST-UI-05 Restart keeps roster but clears history
+
+Aim: Saved records remain, while session history does not persist.
+
+| Exact GUI input | Exact expected result-area output | Expected numbered names |
+| --- | --- | --- |
+| `undo` | `There are no changes to undo.` | `1. Alicia Lim`, `2. Ryan Tan`, `3. Sarah Lee`, `4. Jamie Koh` |
+| `redo` | `There are no changes to redo.` | `1. Alicia Lim`, `2. Ryan Tan`, `3. Sarah Lee`, `4. Jamie Koh` |
+
+Enter `exit` and require status 0 within 10 seconds.

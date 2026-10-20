@@ -1,6 +1,7 @@
 package seedu.address.logic;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static seedu.address.logic.Messages.MESSAGE_UNKNOWN_COMMAND;
 import static seedu.address.logic.commands.DeleteCommand.MESSAGE_INVALID_STUDENT_DISPLAYED_INDEX;
@@ -10,6 +11,7 @@ import java.io.IOException;
 import java.nio.file.AccessDeniedException;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.util.List;
 
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -17,12 +19,16 @@ import org.junit.jupiter.api.io.TempDir;
 
 import seedu.address.logic.commands.CommandResult;
 import seedu.address.logic.commands.ListCommand;
+import seedu.address.logic.commands.RedoCommand;
+import seedu.address.logic.commands.UndoCommand;
 import seedu.address.logic.commands.exceptions.CommandException;
 import seedu.address.logic.parser.exceptions.ParseException;
+import seedu.address.model.AddressBook;
 import seedu.address.model.Model;
 import seedu.address.model.ModelManager;
 import seedu.address.model.ReadOnlyAddressBook;
 import seedu.address.model.UserPrefs;
+import seedu.address.model.person.Person;
 import seedu.address.storage.JsonAddressBookStorage;
 import seedu.address.storage.JsonUserPrefsStorage;
 import seedu.address.storage.StorageManager;
@@ -124,6 +130,124 @@ public class LogicManagerTest {
         assertThrows(UnsupportedOperationException.class, () -> logic.getFilteredPersonList().remove(0));
     }
 
+    @Test
+    public void execute_undoRedoAddAndFilteredDelete_persistsCompleteRoster() throws Exception {
+        String addRyan = "add n/Ryan Tan p/81234567 e/ryan@example.com s/Physics s/Mathematics l/JC 1";
+        logic.execute(addRyan);
+        Person ryan = model.getAddressBook().getPersonList().getFirst();
+        logic.execute("add n/Alicia Lim p/91234567 s/English l/Secondary 4");
+        Person alicia = model.getAddressBook().getPersonList().get(1);
+        logic.execute("find Ryan");
+        logic.execute("delete 1");
+        assertStoredRoster(List.of(alicia));
+
+        assertEquals(UndoCommand.MESSAGE_SUCCESS, logic.execute("undo").getFeedbackToUser());
+        assertStoredRoster(List.of(ryan, alicia));
+        logic.execute("find Nobody");
+        assertEquals(RedoCommand.MESSAGE_SUCCESS, logic.execute("redo").getFeedbackToUser());
+        assertStoredRoster(List.of(alicia));
+        logic.execute("undo");
+        logic.execute("undo");
+        assertStoredRoster(List.of(ryan));
+        logic.execute("undo");
+        assertStoredRoster(List.of());
+        assertCommandException("undo", UndoCommand.MESSAGE_FAILURE);
+        logic.execute("redo");
+        assertStoredRoster(List.of(ryan));
+    }
+
+    @Test
+    public void execute_readOnlyAndRejectedCommands_preserveRedoAndFilter() throws Exception {
+        logic.execute("add n/Ryan Tan p/81234567 s/Physics l/JC 1");
+        logic.execute("undo");
+        logic.execute("find Nobody");
+        assertCommandException("undo", UndoCommand.MESSAGE_FAILURE);
+        assertParseException("redo 1", RedoCommand.MESSAGE_USAGE);
+        assertCommandException("delete 1", MESSAGE_INVALID_STUDENT_DISPLAYED_INDEX);
+        assertEquals(List.of(), model.getFilteredPersonList());
+        logic.execute("list");
+        logic.execute("redo");
+        assertEquals("Ryan Tan", model.getFilteredPersonList().getFirst().getName().fullName);
+        logic.execute("undo");
+        logic.execute("add n/Sarah Lee p/91234567 s/English l/Secondary 4");
+        assertCommandException("redo", RedoCommand.MESSAGE_FAILURE);
+    }
+
+    @Test
+    public void execute_duplicateAdd_preservesRedo() throws Exception {
+        String addRyan = "add n/Ryan Tan p/81234567 s/Physics l/JC 1";
+        logic.execute(addRyan);
+        logic.execute("add n/Alicia Lim p/91234567 s/English l/Secondary 4");
+        logic.execute("undo");
+        assertCommandException(addRyan, "This student already exists in TutorRoster.");
+        logic.execute("redo");
+        assertEquals(2, model.getAddressBook().getPersonList().size());
+    }
+
+    @Test
+    public void execute_restart_keepsRecordsButStartsFreshHistory() throws Exception {
+        logic.execute("add n/Ryan Tan p/81234567 s/Physics l/JC 1");
+        ReadOnlyAddressBook stored = new JsonAddressBookStorage(temporaryFolder.resolve("addressBook.json"))
+                .readAddressBook().orElseThrow();
+        model = new ModelManager(stored, new UserPrefs());
+        setUp();
+        assertCommandException("undo", UndoCommand.MESSAGE_FAILURE);
+        assertCommandException("redo", RedoCommand.MESSAGE_FAILURE);
+        assertEquals(stored, model.getAddressBook());
+    }
+
+    @Test
+    public void execute_saveFailures_preserveRosterFilterHistoryAndFile() throws Exception {
+        Path dataPath = temporaryFolder.resolve("addressBook.json");
+        boolean[] shouldFail = {false};
+        JsonAddressBookStorage rosterStorage = new JsonAddressBookStorage(dataPath) {
+            @Override
+            public void saveAddressBookAtomically(ReadOnlyAddressBook addressBook) throws IOException {
+                if (shouldFail[0]) {
+                    throw DUMMY_IO_EXCEPTION;
+                }
+                super.saveAddressBookAtomically(addressBook);
+            }
+        };
+        logic = new LogicManager(model, new StorageManager(rosterStorage,
+                new JsonUserPrefsStorage(temporaryFolder.resolve("userPrefs.json"))));
+        logic.execute("add n/Ryan Tan p/81234567 s/Physics l/JC 1");
+        logic.execute("add n/Alicia Lim p/91234567 s/English l/Secondary 4");
+        logic.execute("find Ryan");
+        String storedBefore = Files.readString(dataPath);
+        AddressBook rosterBefore = new AddressBook(model.getAddressBook());
+        shouldFail[0] = true;
+        for (String input : List.of("delete 1", "undo")) {
+            assertCommandException(input,
+                    String.format(LogicManager.FILE_OPS_ERROR_FORMAT, DUMMY_IO_EXCEPTION.getMessage()));
+            assertEquals(rosterBefore, model.getAddressBook());
+            assertEquals(List.of(rosterBefore.getPersonList().getFirst()), model.getFilteredPersonList());
+            assertEquals(storedBefore, Files.readString(dataPath));
+        }
+        shouldFail[0] = false;
+        logic.execute("undo");
+        assertStoredRoster(List.of(rosterBefore.getPersonList().getFirst()));
+        storedBefore = Files.readString(dataPath);
+        shouldFail[0] = true;
+        assertCommandException("redo",
+                String.format(LogicManager.FILE_OPS_ERROR_FORMAT, DUMMY_IO_EXCEPTION.getMessage()));
+        assertCommandException("add n/Sarah Lee p/91234567 s/English l/Secondary 4",
+                LogicManager.MESSAGE_ADD_SAVE_FAILURE);
+        assertEquals(storedBefore, Files.readString(dataPath));
+        shouldFail[0] = false;
+        logic.execute("redo");
+        assertEquals(rosterBefore, model.getAddressBook());
+        assertFalse(model.canRedoAddressBook());
+    }
+
+    private void assertStoredRoster(List<Person> expected) throws Exception {
+        assertEquals(expected, model.getAddressBook().getPersonList());
+        assertEquals(expected, model.getFilteredPersonList());
+        assertEquals(model.getAddressBook(),
+                new JsonAddressBookStorage(temporaryFolder.resolve("addressBook.json"))
+                        .readAddressBook().orElseThrow());
+    }
+
     /**
      * Executes the command and confirms that
      * - no exceptions are thrown <br>
@@ -161,6 +285,7 @@ public class LogicManagerTest {
     private void assertCommandFailure(String inputCommand, Class<? extends Throwable> expectedException,
             String expectedMessage) {
         Model expectedModel = new ModelManager(model.getAddressBook(), new UserPrefs());
+        expectedModel.restoreSnapshot(model.createSnapshot());
         assertCommandFailure(inputCommand, expectedException, expectedMessage, expectedModel);
     }
 

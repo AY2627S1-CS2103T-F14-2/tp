@@ -8,7 +8,7 @@
 
 **TutorRoster** is a desktop student directory for private freelance tutors. It keeps student names,
 contact details, subjects, and education levels together in a roster. Type short commands to add,
-find, list, and delete students, and read the results in the graphical interface.
+find, list, and delete students, undo or redo changes, and read results in the graphical interface.
 
 The contact phone number can belong to the student or a parent or guardian. Email is optional.
 Student records are saved locally so you can return to them in later sessions.
@@ -42,6 +42,8 @@ Student records are saved locally so you can return to them in later sessions.
    | `add n/Ryan Tan p/+6591234567 s/Mathematics l/Secondary 4` | Adds Ryan's student record. |
    | `find Ryan` | Shows students whose names contain `Ryan`. |
    | `delete 1` | Removes the student numbered 1 in the currently displayed list. |
+   | `undo` | Reverses the last successful roster change in this session. |
+   | `redo` | Reapplies the last undone change. |
    | `help` | Opens a window containing the User Guide link. |
    | `exit` | Closes TutorRoster. |
 
@@ -59,7 +61,7 @@ number before deleting a student, particularly after a search.
 * **Status bar:** the path of the roster data file.
 
 After a search, the roster shows matching students and numbers them from 1. A successful `add`,
-`delete`, or `list` returns to the full roster.
+`delete`, `list`, `undo`, or `redo` returns to the full roster.
 
 ## Features
 
@@ -77,7 +79,7 @@ After a search, the roster shows matching students and numbers them from 1. A su
   education levels, consecutive internal whitespace is stored as one space. Capitalization is
   preserved for display.
 * Only the subject prefix `s/` may be repeated within an add command. Unknown prefixes are rejected.
-* `list` accepts no arguments; `delete` accepts exactly one index. `find` accepts the optional
+* `list`, `undo`, and `redo` accept no arguments; `delete` accepts exactly one index. `find` accepts the optional
   `--any` flag before its search keywords. Use `help` and `exit` as shown in their formats below.
 
 If you copy a command from a PDF, check that it remains on one line with spaces between parameters.
@@ -208,7 +210,7 @@ Removes a student from the active roster and shows the complete remaining roster
   different number in the full roster.
 * Successful deletion preserves the order of the remaining students and updates their indices.
 * Deleting the last student leaves an empty roster.
-* Deletion takes effect immediately. There is no confirmation dialog or undo command.
+* Deletion takes effect immediately without a confirmation dialog. Use `undo` to recover it in the same session.
 
 **Success feedback:** `Student removed: NAME`, for example `Student removed: Ryan Tan`.
 
@@ -224,7 +226,7 @@ Examples:
 | Positive index outside the displayed list, including an empty list | `The student index provided is invalid.` |
 
 For example, `delete 0`, `delete abc`, and `delete 1 n/Ryan` are invalid. Invalid input leaves the
-records and displayed list unchanged. See [Save errors](#save-errors) for the current save-failure limitation.
+records and displayed list unchanged. A save failure also leaves the roster unchanged; see [Save errors](#save-errors).
 
 #### Updating student information
 
@@ -236,6 +238,39 @@ Use delete and add to replace an outdated record:
 
 The replacement appears at the end of the full roster. Direct `edit` and bulk `clear` commands are
 not available in the current version.
+
+### Undoing and redoing roster changes: `undo` and `redo`
+
+**Formats:** `undo` and `redo` (no arguments)
+
+`undo` reverses the most recent successful roster change. Repeat it to step backward through earlier
+changes. `redo` reapplies the most recently undone change; repeat it to step forward again.
+
+* In this version, the available roster changes are `add` and `delete`. Replacing a student using
+  delete and add creates two separate undo steps.
+* Restoring a roster restores the students' complete saved details and their original order.
+  Both commands show the full roster afterward, even if you were viewing search results.
+* `find`, `list`, `help`, and rejected commands do not create undo steps or clear redo history.
+* After undoing, making a new successful roster change clears the remaining redo history.
+* History lasts only for the current application session. Restarting retains the saved roster,
+  but starts with no changes to undo or redo. Window settings and command recall are not undone.
+* Each successful undo or redo is saved automatically. If saving fails, the roster, displayed
+  filter, and undo/redo history remain unchanged, so you can retry after fixing the save problem.
+
+| Command outcome | Feedback |
+| --- | --- |
+| Successful undo | `Undo successful.` |
+| Successful redo | `Redo successful.` |
+| No earlier change | `There are no changes to undo.` |
+| No undone change | `There are no changes to redo.` |
+| Extra arguments to undo, such as `undo 1` | `Invalid command format. Usage: undo` |
+| Extra arguments to redo, such as `redo all` | `Invalid command format. Usage: redo` |
+
+An unavailable or invalid command preserves the currently displayed list and records.
+
+Example: after `find Ryan` and `delete 1`, enter `undo` to restore that student and show the full
+roster. Enter `redo` to remove the same student again. Check the updated indices before your next
+index-based command.
 
 ### Viewing help: `help`
 
@@ -257,8 +292,8 @@ available when you reopen the app from the same folder.
 
 ### Saving and restoring student records
 
-TutorRoster saves the roster automatically when a command succeeds. You do not need a save command.
-A successful add or delete is retained between sessions.
+TutorRoster saves the roster automatically after successful roster changes, including undo and redo.
+You do not need a save command. Commands that only change the displayed list do not write the roster file.
 
 The default data file is `data/addressbook.json`, relative to the folder from which you launch
 TutorRoster. Following the Quick start instructions keeps it in the `data` subfolder of the folder containing the JAR. Launch from
@@ -288,14 +323,13 @@ is not added, and the current displayed list is preserved.
 For other commands, a save error currently begins with `Could not save data` and includes details of
 the problem. Check that the launch folder and data file can be written to and that storage is available.
 
-**Current limitation:** a deletion is applied to the displayed roster before saving. If saving fails,
-TutorRoster does not restore the deleted record in memory. Do not assume the deletion was safely saved
-or rolled back; resolve the save problem and check your saved data or backup before continuing.
+If saving an add, delete, undo, or redo fails, no roster change is published. The displayed list,
+stored records, and undo/redo history remain unchanged. Resolve the save problem before retrying.
 
 #### Trouble loading an existing roster
 
 If the existing data file cannot be loaded, the current version opens with an empty roster. It does
-not yet show a dedicated load-error message in the result area. Subsequent valid commands may
+not yet show a dedicated load-error message in the result area. Subsequent successful roster changes may
 overwrite the existing data file with the current roster.
 
 If your saved roster unexpectedly appears empty, close the main window and make a copy of
@@ -332,9 +366,9 @@ Copy the saved `data/addressbook.json` while the app is closed. See [Backups and
 1. If you move the app to a second screen and later disconnect that screen, it may reopen off-screen.
    Close TutorRoster and remove `preferences.json` from the launch folder, then reopen the app.
    This resets window preferences; it does not remove the roster data file.
-1. Save-failure recovery for Delete and protection of unreadable data files are incomplete in the
-   current version. Read [Save errors](#save-errors) and
-   [Trouble loading an existing roster](#trouble-loading-an-existing-roster) before retrying those operations.
+1. Protection of unreadable data files is incomplete. Read
+   [Trouble loading an existing roster](#trouble-loading-an-existing-roster) before changing a roster
+   that unexpectedly opens empty.
 
 ## Keyboard shortcuts
 
@@ -358,5 +392,7 @@ may have changed since the command was first entered.
 | List students | `list` | `list` |
 | Find by name | `find [--any] KEYWORD [MORE_KEYWORDS]` | `find Ryan Tan` or `find --any Ryan Sarah` |
 | Delete student | `delete INDEX` | `delete 2` |
+| Undo last change | `undo` | `undo` |
+| Redo undone change | `redo` | `redo` |
 | Open help | `help` | `help` |
 | Exit | `exit` | `exit` |
