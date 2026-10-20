@@ -37,7 +37,7 @@ public class Name {
         fullName = name;
     }
 
-    static Name fromStoredValue(String name) {
+    public static Name fromStoredValue(String name) {
         return new Name(name, false);
     }
 

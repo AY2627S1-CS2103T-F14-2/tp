@@ -50,7 +50,7 @@ public class Email {
         value = email;
     }
 
-    static Email fromStoredValue(String email) {
+    public static Email fromStoredValue(String email) {
         return new Email(email, false);
     }
 

@@ -32,7 +32,7 @@ public class Phone {
         value = phone;
     }
 
-    static Phone fromStoredValue(String phone) {
+    public static Phone fromStoredValue(String phone) {
         return new Phone(phone, false);
     }
 
