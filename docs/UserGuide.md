@@ -7,13 +7,17 @@
 # TutorRoster User Guide
 
 **TutorRoster** is a desktop student directory for private freelance tutors. It keeps student names,
-contact details, subjects, and education levels together in a roster. Type short commands to add,
-find, list, and delete students, undo or redo changes, and read results in the graphical interface.
+contact details, subjects, education levels, and additional notes together in a roster. Type short commands to 
+add, find, list, and delete students, undo or redo changes, and view individual student details in the 
+graphical interface.
 
-The contact phone number can belong to the student or a parent or guardian. Email is optional.
+Email and notes are optional.
+The contact phone number can belong to the student or their guardian. 
 Student records are saved locally so you can return to them in later sessions.
 
 <page-nav-print />
+
+<br>
 
 ## Quick start
 
@@ -36,65 +40,67 @@ Student records are saved locally so you can return to them in later sessions.
 1. Click the command box, type a command, and press **Enter**. You can then keep typing commands
    without selecting buttons. Press `/` to return focus to the command box from the roster.
 
-   | Command | What it does |
-   | --- | --- |
-   | `list` | Shows the complete roster. |
-   | `add n/Ryan Tan p/+6591234567 s/Mathematics l/Secondary 4 r/Prefers worked examples` | Adds Ryan's student record. |
-   | `find Ryan` | Shows students whose names contain `Ryan`. |
-   | `show 1` | Opens the complete record for student 1 in the currently displayed list. |
-   | `delete 1` | Removes the student numbered 1 in the currently displayed list. |
-   | `undo` | Reverses the last successful roster change in this session. |
-   | `redo` | Reapplies the last undone change. |
-   | `help` | Opens a window containing the User Guide link. |
-   | `exit` | Closes TutorRoster. |
+   Try these example commands:
 
-Use the [Features](#features) section for command details. Always check the displayed name and
-number before deleting a student, particularly after a search.
+   * `list` shows the complete roster.
+   * `add n/Ryan Tan p/+6591234567 s/Mathematics l/Secondary 4` adds Ryan to the student roster.
+   * `find n/Ryan` shows students whose names contain `Ryan`.
+   * `show 1` opens the complete record for the first student in the currently displayed list.
+   * `delete 1` removes the first student in the currently displayed list.
 
-## Reading the interface
+Refer to the [Features](#features) section for details about each command.
 
-* **Your students:** the numbered roster. Each new student card shows the name, phone number,
-  subjects, education level, email, and notes when supplied.
-* **Result area:** feedback for the last command, including validation errors.
-* **Command box:** where you enter commands and press Enter to execute them. A successful command
-  clears the box; an invalid command stays in the box so you can correct it. Use the Up and Down
-  arrow keys to recall commands from the current session.
-* **Student detail modal:** the `show` command opens a complete, scrollable student record above a
-  dimmed roster. It includes contact details, subjects, education level, notes, address, and tags.
-  Press **Esc** or select **Close** to dismiss it.
-* **Status bar:** the path of the roster data file.
-
-After a search, the roster shows matching students and numbers them from 1. A successful `add`,
-`delete`, `list`, `undo`, or `redo` returns to the full roster.
+<br>
 
 ## Features
 
 ### Command format
 
-* Command words and prefixes are lowercase: use `add` and `n/`, for example.
-* Replace `UPPER_CASE` placeholders with your own values. `n/NAME` can become `n/Ryan Tan`.
-* Square brackets mark optional input. Omit `[e/EMAIL]` when you do not want to store an email.
-  Do not type the brackets.
-* `...` means the preceding item can be repeated. In `s/SUBJECT [s/SUBJECT]...`, the first subject
-  is required and additional subjects are optional. Do not type the ellipsis.
-* Add parameters may appear in any order. For example, `p/81234567 n/Ryan Tan` is acceptable as
-  part of a complete add command.
-* Spaces around the complete command and textual values are ignored. In names, subjects, and
-  education levels, consecutive internal whitespace is stored as one space. Capitalization is
-  preserved for display.
-* Only the subject prefix `s/` may be repeated within an add command. Unknown prefixes are rejected.
-* `list`, `undo`, and `redo` accept no arguments; `show` and `delete` accepts exactly one index. `find` accepts the optional
-  `--any` flag before its search keywords. Use `help` and `exit` as shown in their formats below.
+<box type="info" seamless>
 
-If you copy a command from a PDF, check that it remains on one line with spaces between parameters.
+**Notes about command format:**
+
+* Command words and prefixes are lowercase. For example, `add` and `n/`.
+* Words in `UPPER_CASE` are parameters to be replaced with your own values. For example, `n/NAME` becomes `n/Ryan Tan`.
+* Square brackets mark optional input. For example, `n/NAME [t/Tag]` becomes `n/Ryan Tan t/online` or `n/Ryan Tan`.
+* `...` means that the preceding item may be repeated. For example, `s/SUBJECT [s/SUBJECT]...`
+  requires one subject and allows additional subjects.
+* Fields may appear in any order. For example, `add p/81234567 n/Ryan Tan` is valid.
+
+</box>
+
+If you are using a PDF version of this user guide, be careful when copying commands and ensure that they remain on one line with spaces between parameters.
+
+### Command summary
+
+| Action | Format | Example |
+| --- | --- | --- |
+| Open help | `help` | `help` |
+| Add student | `add n/NAME p/PHONE s/SUBJECT l/LEVEL [e/EMAIL] [r/NOTES] [MORE_SUBJECT]` | `add n/Ryan Tan p/81234567 s/Mathematics l/Secondary 4 r/Prefers worked examples` |
+| List students | `list` | `list` |
+| Find students | `find [--any] n/NAME [p/PHONE] [s/SUBJECT]... [l/LEVEL] [e/EMAIL]` | `find n/Ryan s/Math` or `find --any n/Ryan s/Math` |
+| Show student details | `show INDEX` | `show 2` |
+| Delete student | `delete INDEX` | `delete 2` |
+| Undo last change | `undo` | `undo` |
+| Redo undone change | `redo` | `redo` |
+| Exit | `exit` | `exit` |
+---
+
+<br>
+
+### Viewing help: `help`
+
+**Format:** `help`
+
+Opens a help window containing a link to this User Guide.
+
+<br>
 
 ### Adding a student: `add`
 
 Adds a student and shows the complete roster, including the new student at the end.
 
-**Format:** `add n/NAME p/PHONE [e/EMAIL] [r/NOTES] s/SUBJECT [s/SUBJECT]... l/LEVEL`
-
-Required fields are name, phone number, at least one subject, and education level. Email and notes are optional.
+**Format:** `add n/NAME p/PHONE [e/EMAIL] s/SUBJECT [s/SUBJECT]... l/LEVEL [r/NOTES]`
 
 | Field | Accepted values | Examples |
 | --- | --- | --- |
@@ -157,6 +163,8 @@ Invalid phone number. Phone numbers must contain 3–15 digits and may optionall
 
 Rejected add commands leave the records and currently displayed list unchanged, including when saving fails.
 
+<br>
+
 ### Listing students: `list`
 
 Shows all stored students in their roster order. Use it to return to the full roster after a search.
@@ -175,36 +183,24 @@ Usage: list
 
 The displayed list remains unchanged when the arguments are invalid.
 
-### Finding students by name: `find`
+<br>
 
-Shows students whose names contain **all** supplied keywords by default. Use `--any` to show
-students whose names contain **at least one** supplied keyword.
+### Finding students: `find`
 
-**Format:** `find [--any] KEYWORD [MORE_KEYWORDS]`
+Shows students matching the given fields. By default, every given field must match. Use `--any` to find students matching at least one given field.
 
-* Matching is case-insensitive: `find RYAN` and `find ryan` return the same results.
-* A keyword may match part of a name: `find ann` can match `Anna Lee` and `Joanne Tan`.
-* Only names are searched. Phone numbers, emails, subjects, and levels are not searched.
-* Multiple spaces between keywords act as one separator. Keyword order does not matter.
-* By default, every keyword must match. `find Ryan Tan` can match `Ryan Wei Tan`, but does not
-  match `Ryan Lim` or `Sarah Tan`.
-* Place `--any` immediately after `find` for an OR search. `find --any Ryan Sarah` matches names
-  containing either `Ryan` or `Sarah`.
-* Matching students keep their original roster order and receive new displayed indices starting at 1.
+**Format:** `find [--any] [n/NAME] [p/PHONE] [s/SUBJECT]... [l/LEVEL] [e/EMAIL]`
+
+* All field searches are case-insensitive and support partial matching. For example, `find n/Ryan T` matches `Ryan Tan` but not `Ryan Lim`.
+* Every field may be repeated. For example, `find s/Math s/English` matches students who take both Math and English.
 
 Examples:
 
-* `find Ryan` matches `Ryan Tan` and `Ryan Lim`.
-* `find ali` matches `Alicia Lim`.
-* `find Ryan Tan` narrows the results to names containing both `Ryan` and `Tan`.
-* `find --any Ryan Sarah` matches students whose names contain either `Ryan` or `Sarah`.
+* `find n/Ryan T s/Mathematics` matches students whose name contains `Ryan T` and who study Mathematics.
+* `find --any n/Ryan T s/Mathematics` matches students whose name contains `Ryan T` or who study Mathematics.
+* `find s/Mathematics s/English` matches students who take both Mathematics and English.
 
-The result area currently uses the feedback `N person(s) listed!`. For example, one match shows
-`1 person(s) listed!`. No matches shows `0 person(s) listed!` and an empty displayed list; the records
-are still stored. Enter `list` to show them again.
-
-A bare `find` or `find --any` is invalid and shows usage instructions because at least one keyword
-is required. The current displayed list is preserved.
+<br>
 
 ### Viewing a student: `show`
 
@@ -222,6 +218,8 @@ Opens a detailed modal for one student without changing the roster or its curren
 | --- | --- |
 | Missing, zero, negative, decimal, or nonnumeric index; extra arguments | `Invalid command format. Usage: show INDEX` |
 | Positive index outside the displayed list, including an empty list | `The student index provided is invalid. Choose an index from the currently displayed list.` |
+
+<br>
 
 ### Deleting a student: `delete`
 
@@ -241,7 +239,7 @@ Removes a student from the active roster and shows the complete remaining roster
 Examples:
 
 * `list` followed by `delete 2` removes the second student in the complete roster.
-* `find Ryan` followed by `delete 1` removes the first displayed match, then shows the complete
+* `find n/Ryan` followed by `delete 1` removes the first displayed match, then shows the complete
   remaining roster. If several matches appear, check their names and contact details before choosing an index.
 
 | Problem | Feedback |
@@ -263,12 +261,23 @@ Use delete and add to replace an outdated record:
 The replacement appears at the end of the full roster. Direct `edit` and bulk `clear` commands are
 not available in the current version.
 
-### Undoing and redoing roster changes: `undo` and `redo`
+<br>
 
-**Formats:** `undo` and `redo` (no arguments)
+### Undoing roster changes: `undo`
 
-`undo` reverses the most recent successful roster change. Repeat it to step backward through earlier
-changes. `redo` reapplies the most recently undone change; repeat it to step forward again.
+**Format:** `undo` (no arguments)
+
+`undo` reverses the most recent successful roster change. Repeat it to step backward through earlier changes.
+
+<br>
+
+### Redoing roster changes: `redo`
+
+**Format:** `redo` (no arguments)
+
+`redo` reapplies the most recently undone change. Repeat it to step forward again.
+
+The following behaviour applies to both `undo` and `redo`:
 
 * In this version, the available roster changes are `add` and `delete`. Replacing a student using
   delete and add creates two separate undo steps.
@@ -292,20 +301,11 @@ changes. `redo` reapplies the most recently undone change; repeat it to step for
 
 An unavailable or invalid command preserves the currently displayed list and records.
 
-Example: after `find Ryan` and `delete 1`, enter `undo` to restore that student and show the full
+Example: after `find n/Ryan` and `delete 1`, enter `undo` to restore that student and show the full
 roster. Enter `redo` to remove the same student again. Check the updated indices before your next
 index-based command.
 
-### Viewing help: `help`
-
-**Format:** `help`
-
-Opens a help window containing the User Guide link. Use its copy button to copy the link and open
-it in a browser. If the Help window is already open, `help` closes it. The Help menu and **F1** key
-also toggle the window; F1 can close it while the Help window has focus.
-
-**Feedback:** `Opened help window.` The current version uses this message for the command even
-when it closes an already open Help window.
+<br>
 
 ### Exiting TutorRoster: `exit`
 
@@ -314,7 +314,9 @@ when it closes an already open Help window.
 Closes TutorRoster. You can also close the main window. Successfully saved student records will be
 available when you reopen the app from the same folder.
 
-### Saving and restoring student records
+<br>
+
+## Saving and restoring student records
 
 TutorRoster saves the roster automatically after successful roster changes, including undo and redo.
 You do not need a save command. Commands that only change the displayed list do not write the roster file.
@@ -323,7 +325,7 @@ The default data file is `data/addressbook.json`, relative to the folder from wh
 TutorRoster. Following the Quick start instructions keeps it in the `data` subfolder of the folder containing the JAR. Launch from
 that same folder each time to load the same roster. The status bar shows the data file path.
 
-#### Backups and transfer
+### Backups and transfer
 
 To make a backup, close TutorRoster and copy `data/addressbook.json` to a separate location.
 Keep the original filename when restoring it.
@@ -339,7 +341,7 @@ To move your roster to another computer:
 
 Use commands to maintain student records. Editing the JSON file directly can make the roster unreadable.
 
-#### Save errors
+### Save errors
 
 If an add cannot be saved, it shows `Unable to save student data. No changes were made.` The student
 is not added, and the current displayed list is preserved.
@@ -350,7 +352,7 @@ the problem. Check that the launch folder and data file can be written to and th
 If saving an add, delete, undo, or redo fails, no roster change is published. The displayed list,
 stored records, and undo/redo history remain unchanged. Resolve the save problem before retrying.
 
-#### Trouble loading an existing roster
+### Trouble loading an existing roster
 
 If the existing data file cannot be loaded, the current version opens with an empty roster. It does
 not yet show a dedicated load-error message in the result area. Subsequent successful roster changes may
@@ -358,6 +360,8 @@ overwrite the existing data file with the current roster.
 
 If your saved roster unexpectedly appears empty, close the main window and make a copy of
 `data/addressbook.json` before entering more commands. Restore a readable backup before reopening.
+
+<br>
 
 ## Undo and redo examples
 
@@ -373,10 +377,10 @@ it does not reinterpret the old displayed index against the full roster.
 
 | Command | Result-area feedback | Displayed roster |
 | --- | --- | --- |
-| `find Ryan` | `1 person(s) listed!` | `1. Ryan Tan` |
+| `find n/Ryan` | `1 person(s) listed!` | `1. Ryan Tan` |
 | `delete 1` | `Student removed: Ryan Tan` | `1. Alicia Lim`, `2. Sarah Lee` |
 | `undo` | `Undo successful.` | `1. Alicia Lim`, `2. Ryan Tan`, `3. Sarah Lee` |
-| `find Nobody` | `0 person(s) listed!` | Empty search results |
+| `find n/Nobody` | `0 person(s) listed!` | Empty search results |
 | `redo` | `Redo successful.` | `1. Alicia Lim`, `2. Sarah Lee` |
 | `undo` | `Undo successful.` | `1. Alicia Lim`, `2. Ryan Tan`, `3. Sarah Lee` |
 
@@ -405,6 +409,8 @@ separate changes. The first `undo` removes the replacement. A second `undo` rest
 record, including its old details and roster position. Two `redo` commands reapply the deletion and
 then the replacement. If you only want to remove the replacement temporarily, use one `undo`.
 
+<br>
+
 ## FAQ
 
 **How do I update a student?**
@@ -419,8 +425,9 @@ student's name and contact details to choose the correct number.
 
 **How do I search for several possible names?**
 
-Use `find --any Ryan Sarah` to match either name. Without `--any`, every keyword must appear in
-the same student's name, which is useful for narrowing a search.
+This version accepts one name filter per command. To search another name, run a separate
+`find n/NAME` command. `--any` is useful for searching across fields, such as
+`find --any n/Ryan s/Mathematics`.
 
 **Why are sample students shown on first use?**
 
@@ -431,6 +438,8 @@ sample students using their displayed indices.
 
 Copy the saved `data/addressbook.json` while the app is closed. See [Backups and transfer](#backups-and-transfer).
 
+<br>
+
 ## Known issues
 
 1. If you move the app to a second screen and later disconnect that screen, it may reopen off-screen.
@@ -439,6 +448,8 @@ Copy the saved `data/addressbook.json` while the app is closed. See [Backups and
 1. Protection of unreadable data files is incomplete. Read
    [Trouble loading an existing roster](#trouble-loading-an-existing-roster) before changing a roster
    that unexpectedly opens empty.
+
+<br>
 
 ## Keyboard shortcuts
 
@@ -453,17 +464,3 @@ Copy the saved `data/addressbook.json` while the app is closed. See [Backups and
 Command history is kept for the current session. Recalling a command does not execute it; press Enter
 when you are ready. Check any displayed index before repeating a delete command because the roster
 may have changed since the command was first entered.
-
-## Command summary
-
-| Action | Format | Example |
-| --- | --- | --- |
-| Add student | `add n/NAME p/PHONE s/SUBJECT l/LEVEL [e/EMAIL] [r/NOTES] [MORE_SUBJECT]` | `add n/Ryan Tan p/81234567 s/Mathematics l/Secondary 4 r/Prefers worked examples` |
-| List students | `list` | `list` |
-| Find by name | `find [--any] KEYWORD [MORE_KEYWORDS]` | `find Ryan Tan` or `find --any Ryan Sarah` |
-| Show student details | `show INDEX` | `show 2` |
-| Delete student | `delete INDEX` | `delete 2` |
-| Undo last change | `undo` | `undo` |
-| Redo undone change | `redo` | `redo` |
-| Open help | `help` | `help` |
-| Exit | `exit` | `exit` |
