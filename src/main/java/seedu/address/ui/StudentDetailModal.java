@@ -1,5 +1,7 @@
 package seedu.address.ui;
 
+import static java.util.Objects.requireNonNull;
+
 import java.util.Comparator;
 import java.util.stream.Collectors;
 
@@ -51,7 +53,8 @@ public class StudentDetailModal extends UiPart<Region> {
      */
     public StudentDetailModal(Person person, Runnable closeAction) {
         super(FXML);
-        this.closeAction = closeAction;
+        requireNonNull(person);
+        this.closeAction = requireNonNull(closeAction);
         setStudentDetails(person);
     }
 
@@ -70,7 +73,9 @@ public class StudentDetailModal extends UiPart<Region> {
         email.setText(person.getEmail() == null ? NOT_PROVIDED : person.getEmail().value);
         subjects.setText(person.getSubjects().isEmpty() ? NOT_PROVIDED : String.join(", ", person.getSubjects()));
         level.setText(person.getLevel() == null ? NOT_PROVIDED : person.getLevel());
-        notes.setText(person.getNotes().isEmpty() ? NOT_PROVIDED : person.getNotes());
+        notes.setText(person.getNotes() == null || person.getNotes().isEmpty()
+                ? NOT_PROVIDED
+                : person.getNotes());
         address.setText(person.getAddress() == null ? NOT_PROVIDED : person.getAddress().value);
         tags.setText(person.getTags().isEmpty()
                 ? NOT_PROVIDED
