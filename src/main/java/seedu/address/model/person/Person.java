@@ -50,7 +50,7 @@ public class Person {
 
     /** Creates a new student after validating all fields. Email and notes may be absent. */
     public Person(String name, String phone, String email, List<String> subjects, String level, String notes) {
-        requireAllNonNull(name, phone, subjects, level, notes);
+        requireAllNonNull(name, phone, subjects, level);
         String normalizedName = StudentFields.normalizeName(name);
         if (!StudentFields.isValidName(normalizedName)) {
             throw new IllegalArgumentException(StudentFields.INVALID_NAME);
@@ -83,8 +83,8 @@ public class Person {
         if (!StudentFields.isValidLevel(normalizedLevel)) {
             throw new IllegalArgumentException(StudentFields.INVALID_LEVEL);
         }
-        String normalizedNotes = StudentFields.trim(notes);
-        if (!notes.isEmpty() && !StudentFields.isValidNotes(normalizedNotes)) {
+        String normalizedNotes = notes == null ? "" : StudentFields.trim(notes);
+        if (!normalizedNotes.isEmpty() && !StudentFields.isValidNotes(normalizedNotes)) {
             throw new IllegalArgumentException(StudentFields.INVALID_NOTES);
         }
         this.name = Name.fromStoredValue(normalizedName);
@@ -107,7 +107,7 @@ public class Person {
         this.subjects = subjects == null ? List.of() : Collections.unmodifiableList(new ArrayList<>(subjects));
         this.subjectsPresent = subjects != null;
         this.level = level;
-        String normalizedNotes = StudentFields.trim(notes);
+        String normalizedNotes = notes == null ? "" : StudentFields.trim(notes);
         if (!normalizedNotes.isEmpty() && !StudentFields.isValidNotes(normalizedNotes)) {
             throw new IllegalArgumentException(StudentFields.INVALID_NOTES);
         }

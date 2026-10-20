@@ -127,6 +127,21 @@ public class PersonTest {
         assertEquals("Secondary 4", student.getLevel());
     }
 
+    @Test
+    public void newStudentConstructor_nullNotes_defaultsToEmpty() {
+        Person student = new Person("Amy", "123", null, List.of("Math"), "JC 1", null);
+
+        assertEquals("", student.getNotes());
+    }
+
+    @Test
+    public void fromStoredRecord_nullNotes_defaultsToEmpty() {
+        Person student = Person.fromStoredRecord("Amy", "123", null, List.of("Math"), "JC 1",
+                (String) null, null, Collections.emptySet());
+
+        assertEquals("", student.getNotes());
+    }
+
     private static void assertInvalidStudent(String expectedMessage, String name, String phone, String email,
             List<String> subjects, String level) {
         IllegalArgumentException exception = Assertions.assertThrows(IllegalArgumentException.class, () ->
