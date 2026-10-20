@@ -1,23 +1,41 @@
 @startuml
 !include style.puml
 skinparam ArrowFontStyle plain
+skinparam sequenceMessageAlign left
+hide footbox
+
+title Undo inside the working model
 
 box Model MODEL_COLOR_T1
-participant ":Model" as Model MODEL_COLOR
-participant ":VersionedAddressBook" as VersionedAddressBook MODEL_COLOR
+participant "proposed:ModelManager" as Model MODEL_COLOR
+participant ":VersionedAddressBook" as History MODEL_COLOR
 end box
 
 [-> Model : undoAddressBook()
 activate Model
-
-Model -> VersionedAddressBook : undo()
-activate VersionedAddressBook
-
-VersionedAddressBook -> VersionedAddressBook :resetData(ReadOnlyAddressBook)
-VersionedAddressBook --> Model :
-deactivate VersionedAddressBook
-
+Model -> History : undo()
+activate History
+History -> History : canUndo()
+note right of History
+Checks availability at runtime.
+Asserts the working roster equals
+the current committed state.
+end note
+History -> History : resetData(states.get(--currentStatePointer))
+activate History
+History --> History
+deactivate History
+History --> Model
+deactivate History
+Model -> Model : updateFilteredPersonList(\nPREDICATE_SHOW_ALL_PERSONS)
+activate Model
+Model --> Model
+deactivate Model
+note right of Model
+The live model is unchanged until
+LogicManager saves and publishes
+the working checkpoint.
+end note
 [<-- Model
 deactivate Model
-
 @enduml
