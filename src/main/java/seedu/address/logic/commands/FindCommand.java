@@ -16,12 +16,17 @@ public class FindCommand extends Command {
     public static final String COMMAND_WORD = "find";
     public static final String ANY_KEYWORD_OPTION = "--any";
 
-    public static final String MESSAGE_USAGE = COMMAND_WORD + ": Finds all students whose names contain all of "
-            + "the specified keywords by default (case-insensitive, partial matches allowed). "
-            + "Use " + ANY_KEYWORD_OPTION + " to return students matching at least one keyword.\n"
-            + "Displays matching students as a list with index numbers.\n"
-            + "Parameters: [" + ANY_KEYWORD_OPTION + "] KEYWORD [MORE_KEYWORDS]...\n"
-            + "Example: " + COMMAND_WORD + " alice bob charlie";
+    public static final String MESSAGE_USAGE = COMMAND_WORD + " [" + ANY_KEYWORD_OPTION + "] "
+            + "KEYWORD [MORE_KEYWORDS]...\n\n"
+            + "By default, find shows students whose names match all specified keywords "
+            + "(case-insensitive, partial matches allowed).\n"
+            + "Use `--any` to show students whose names match at least one specified keyword.\n\n"
+            + "Examples:\n"
+            + "- \"find alice bob\" returns students whose names contain both “alice” and “bob”.\n"
+            + "- \"find --any alice bob\" returns students whose names contain “alice”, “bob”, or both.";
+
+    public static final String MESSAGE_INVALID_COMMAND_FORMAT =
+            "Invalid command format!\n\nUsage: " + MESSAGE_USAGE;
 
     private final NameContainsKeywordsPredicate predicate;
 
