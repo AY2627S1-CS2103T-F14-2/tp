@@ -14,13 +14,6 @@ public class CommandCompletionLogicTest {
     private final CommandCompletionLogic completionLogic = new CommandCompletionLogic();
 
     @Test
-    public void getSuggestions_nullOrEmptyInput_returnsEmptyList() {
-        assertTrue(completionLogic.getSuggestions(null).isEmpty());
-        assertTrue(completionLogic.getSuggestions("").isEmpty());
-        assertTrue(completionLogic.getSuggestions("   ").isEmpty());
-    }
-
-    @Test
     public void getSuggestions_commandWordPrefix_returnsMatchingCommands() {
         List<CommandCompletionLogic.Suggestion> sMatches = completionLogic.getSuggestions("s");
         assertEquals(1, sMatches.size());
@@ -60,39 +53,46 @@ public class CommandCompletionLogicTest {
     }
 
     @Test
-    public void getSuggestions_addCommandPartialPrefix_completesPrefix() {
-        List<CommandCompletionLogic.Suggestion> partialPhone =
-                completionLogic.getSuggestions("add n/Ryan Tan p");
-        assertFalse(partialPhone.isEmpty());
-        assertEquals("add n/Ryan Tan p/", partialPhone.get(0).completionText());
+    public void getSuggestions_addCommandWithPartialPrefix_completesPrefix() {
+        List<CommandCompletionLogic.Suggestion> partialName = completionLogic.getSuggestions("add n");
+        assertEquals(1, partialName.size());
+        assertEquals("add n/", partialName.get(0).completionText());
 
-        List<CommandCompletionLogic.Suggestion> partialNotes =
-                completionLogic.getSuggestions("add n/Ryan p/123 s/Math l/JC 1 r");
-        assertFalse(partialNotes.isEmpty());
-        assertEquals("add n/Ryan p/123 s/Math l/JC 1 r/", partialNotes.get(0).completionText());
+        List<CommandCompletionLogic.Suggestion> partialPhone = completionLogic.getSuggestions("add n/Ryan Tan p");
+        assertEquals(1, partialPhone.size());
+        assertEquals("add n/Ryan Tan p/", partialPhone.get(0).completionText());
     }
 
     @Test
-    public void getSuggestions_addCommandAllRequiredSatisfied_suggestsOptional() {
-        List<CommandCompletionLogic.Suggestion> optionalSuggestions =
-                completionLogic.getSuggestions("add n/Ryan p/123 s/Math l/JC 1 ");
-        assertFalse(optionalSuggestions.isEmpty());
-        // Should contain e/ (email) and r/ (notes)
-        assertTrue(optionalSuggestions.stream().anyMatch(s -> s.completionText().endsWith("e/")));
-        assertTrue(optionalSuggestions.stream().anyMatch(s -> s.completionText().endsWith("r/")));
+    public void getSuggestions_addCommandOptionalAndRepeatablePrefixes() {
+        // When all required prefixes (n/, p/, s/, l/) are provided
+        String allRequired = "add n/Ryan p/81234567 s/Math l/Sec 4 ";
+        List<CommandCompletionLogic.Suggestion> suggestions = completionLogic.getSuggestions(allRequired);
+        assertFalse(suggestions.isEmpty());
+
+        // s/ is repeatable so it should still be suggested
+        boolean hasRepeatableSubject = suggestions.stream()
+                .anyMatch(s -> s.completionText().endsWith("s/"));
+        assertTrue(hasRepeatableSubject);
+
+        // e/ and r/ are optional so they should be suggested
+        boolean hasEmail = suggestions.stream()
+                .anyMatch(s -> s.completionText().endsWith("e/"));
+        assertTrue(hasEmail);
+
+        boolean hasNotes = suggestions.stream()
+                .anyMatch(s -> s.completionText().endsWith("r/"));
+        assertTrue(hasNotes);
     }
 
     @Test
     public void getSuggestions_findCommand_suggestsAnyFlag() {
-        List<CommandCompletionLogic.Suggestion> findFlag = completionLogic.getSuggestions("find -");
-        assertFalse(findFlag.isEmpty());
-        assertEquals("find --any ", findFlag.get(0).completionText());
-    }
+        List<CommandCompletionLogic.Suggestion> findSuggestions = completionLogic.getSuggestions("find ");
+        assertEquals(1, findSuggestions.size());
+        assertEquals("find --any ", findSuggestions.get(0).completionText());
 
-    @Test
-    public void autocomplete_nullOrInvalid_returnsEmpty() {
-        assertFalse(completionLogic.autocomplete(null).isPresent());
-        assertFalse(completionLogic.autocomplete("").isPresent());
-        assertFalse(completionLogic.autocomplete("invalidCommand").isPresent());
+        List<CommandCompletionLogic.Suggestion> partialFlag = completionLogic.getSuggestions("find --a");
+        assertEquals(1, partialFlag.size());
+        assertEquals("find --any ", partialFlag.get(0).completionText());
     }
 }

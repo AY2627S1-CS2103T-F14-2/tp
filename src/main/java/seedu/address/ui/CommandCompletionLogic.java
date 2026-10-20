@@ -64,20 +64,31 @@ public class CommandCompletionLogic {
         }
     }
 
+    private record CommandSpec(String commandWord, String formatGuide, String description) {}
+
+    private record PrefixSpec(
+            String prefix,
+            String valuePlaceholder,
+            String description,
+            boolean isRequired,
+            boolean isRepeatable
+    ) {}
+
     /**
-     * Returns matching suggestions for the given input.
+     * Computes suggestions based on the user's current input.
+     * When the input is empty or blank, all available commands are returned sorted alphabetically.
      *
      * @param currentText input currently in the command field.
-     * @return unmodifiable list of suggestions, empty if no suggestion is appropriate.
+     * @return an unmodifiable list of suggestions matching the input.
      */
     public List<Suggestion> getSuggestions(String currentText) {
         if (currentText == null) {
-            return Collections.emptyList();
+            return getAllCommandSuggestions();
         }
 
         String trimmed = currentText.stripLeading();
         if (trimmed.isEmpty()) {
-            return Collections.emptyList();
+            return getAllCommandSuggestions();
         }
 
         // If user is typing the first word (the command name)
@@ -119,6 +130,14 @@ public class CommandCompletionLogic {
         return Optional.of(suggestions.get(0).completionText());
     }
 
+    private List<Suggestion> getAllCommandSuggestions() {
+        List<Suggestion> suggestions = new ArrayList<>();
+        for (CommandSpec spec : COMMANDS) {
+            suggestions.add(new Suggestion(spec.commandWord + " ", spec.formatGuide, spec.description));
+        }
+        return Collections.unmodifiableList(suggestions);
+    }
+
     private List<Suggestion> getCommandWordSuggestions(String prefix) {
         String lowerPrefix = prefix.toLowerCase(Locale.ROOT);
         List<Suggestion> matches = new ArrayList<>();
@@ -138,18 +157,21 @@ public class CommandCompletionLogic {
         List<Suggestion> suggestions = new ArrayList<>();
 
         int lastSpace = fullInput.lastIndexOf(' ');
-        String trailingToken = lastSpace >= 0 ? fullInput.substring(lastSpace + 1) : "";
-        String baseInput = lastSpace >= 0 ? fullInput.substring(0, lastSpace + 1) : fullInput;
+        String trailingToken = (lastSpace >= 0 && lastSpace < fullInput.length() - 1)
+                ? fullInput.substring(lastSpace + 1)
+                : "";
 
-        if (!trailingToken.isEmpty()) {
-            String lowerToken = trailingToken.toLowerCase(Locale.ROOT);
+        // Check if trailing token is a partially typed prefix (e.g. "n" or "s")
+        if (!trailingToken.isEmpty() && !trailingToken.contains("/")) {
             for (PrefixSpec spec : ADD_PREFIXES) {
-                boolean matchesPrefix = spec.prefix.startsWith(lowerToken)
-                        || spec.prefix.substring(0, 1).equalsIgnoreCase(lowerToken);
-                boolean canUse = spec.isRepeatable || !usedPrefixes.contains(spec.prefix);
-                if (matchesPrefix && canUse) {
-                    String completion = baseInput + spec.prefix;
-                    suggestions.add(new Suggestion(completion, spec.prefix + spec.placeholder, spec.description));
+                if (spec.prefix.startsWith(trailingToken.toLowerCase(Locale.ROOT))) {
+                    if (spec.isRepeatable || !usedPrefixes.contains(spec.prefix)) {
+                        String completed = fullInput.substring(0, lastSpace + 1) + spec.prefix;
+                        suggestions.add(new Suggestion(
+                                completed,
+                                spec.prefix + spec.valuePlaceholder,
+                                spec.description));
+                    }
                 }
             }
             if (!suggestions.isEmpty()) {
@@ -157,71 +179,65 @@ public class CommandCompletionLogic {
             }
         }
 
-        // When trailing token is empty (user typed a space), suggest next missing required prefix
+        String base = fullInput.endsWith(" ") ? fullInput : fullInput + " ";
+
+        // Suggest remaining required prefixes first
         for (PrefixSpec spec : ADD_PREFIXES) {
             if (spec.isRequired && !usedPrefixes.contains(spec.prefix)) {
-                String completion = fullInput + (fullInput.endsWith(" ") ? "" : " ") + spec.prefix;
-                suggestions.add(new Suggestion(completion, spec.prefix + spec.placeholder, spec.description));
+                suggestions.add(new Suggestion(
+                        base + spec.prefix,
+                        spec.prefix + spec.valuePlaceholder,
+                        spec.description));
             }
         }
 
-        // If all required prefixes are satisfied, suggest optional prefixes or repeatable subject
-        if (suggestions.isEmpty()) {
-            for (PrefixSpec spec : ADD_PREFIXES) {
-                if (!spec.isRequired && !usedPrefixes.contains(spec.prefix)) {
-                    String completion = fullInput + (fullInput.endsWith(" ") ? "" : " ") + spec.prefix;
-                    suggestions.add(new Suggestion(completion, spec.prefix + spec.placeholder, spec.description));
-                }
+        // Then suggest optional prefixes or repeatable prefixes
+        for (PrefixSpec spec : ADD_PREFIXES) {
+            if (!spec.isRequired && !usedPrefixes.contains(spec.prefix)) {
+                suggestions.add(new Suggestion(
+                        base + spec.prefix,
+                        spec.prefix + spec.valuePlaceholder,
+                        spec.description));
+            } else if (spec.isRepeatable && usedPrefixes.contains(spec.prefix)) {
+                suggestions.add(new Suggestion(
+                        base + spec.prefix,
+                        spec.prefix + spec.valuePlaceholder,
+                        spec.description + " (additional)"));
             }
-            // Repeatable subject
-            String repeatSubjectCompletion = fullInput + (fullInput.endsWith(" ") ? "" : " ") + "s/";
-            suggestions.add(new Suggestion(repeatSubjectCompletion, "s/SUBJECT",
-                    "Additional subject (repeatable)"));
         }
 
         return Collections.unmodifiableList(suggestions);
     }
 
     private List<Suggestion> getFindCommandSuggestions(String fullInput, String arguments) {
-        String trimmedArgs = arguments.trim();
-        List<Suggestion> suggestions = new ArrayList<>();
-
-        if (!trimmedArgs.contains("--any")) {
-            int lastSpace = fullInput.lastIndexOf(' ');
-            String trailingToken = lastSpace >= 0 ? fullInput.substring(lastSpace + 1) : "";
-            String baseInput = lastSpace >= 0 ? fullInput.substring(0, lastSpace + 1) : fullInput;
-
-            if (trailingToken.startsWith("-")) {
-                suggestions.add(new Suggestion(baseInput + "--any ", "--any",
-                        "Match students with at least one keyword (OR search)"));
-            } else if (trimmedArgs.isEmpty()) {
-                suggestions.add(new Suggestion(fullInput + (fullInput.endsWith(" ") ? "" : " ") + "--any ",
-                        "--any KEYWORD...", "Search by matching any keyword"));
-            }
-        }
-
-        return Collections.unmodifiableList(suggestions);
-    }
-
-    private List<Suggestion> getIndexCommandSuggestions(String fullInput, String commandWord, String arguments) {
-        if (arguments.trim().isEmpty()) {
-            return List.of(new Suggestion(commandWord + " ", commandWord + " INDEX",
-                    "Specify student index from the currently displayed roster"));
+        String trimmedArgs = arguments.stripLeading();
+        if (trimmedArgs.isEmpty() || "--any".startsWith(trimmedArgs.toLowerCase(Locale.ROOT))) {
+            String base = fullInput.substring(0, fullInput.indexOf(' ') + 1);
+            return List.of(new Suggestion(
+                    base + "--any ",
+                    "--any",
+                    "Match students containing at least one keyword (OR search)"));
         }
         return Collections.emptyList();
     }
 
-    private Set<String> extractPrefixes(String args) {
+    private List<Suggestion> getIndexCommandSuggestions(String fullInput, String commandWord, String arguments) {
+        String trimmedArgs = arguments.strip();
+        if (trimmedArgs.isEmpty()) {
+            return List.of(new Suggestion(
+                    commandWord + " 1",
+                    commandWord + " INDEX",
+                    "Positive integer index from displayed list (e.g. 1)"));
+        }
+        return Collections.emptyList();
+    }
+
+    private Set<String> extractPrefixes(String arguments) {
         Set<String> prefixes = new HashSet<>();
-        Matcher matcher = PREFIX_PATTERN.matcher(args);
+        Matcher matcher = PREFIX_PATTERN.matcher(arguments);
         while (matcher.find()) {
-            prefixes.add(matcher.group(1) + "/");
+            prefixes.add(matcher.group(1).toLowerCase(Locale.ROOT) + "/");
         }
         return prefixes;
     }
-
-    private record CommandSpec(String commandWord, String formatGuide, String description) {}
-
-    private record PrefixSpec(String prefix, String placeholder, String description,
-                              boolean isRequired, boolean isRepeatable) {}
 }
