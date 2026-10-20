@@ -161,7 +161,7 @@ This section describes some noteworthy details on how certain features are imple
 
 ### Add student
 
-`AddCommandParser` recognizes `n/`, `p/`, `e/`, `s/`, and `l/` at parameter boundaries.
+`AddCommandParser` recognizes `n/`, `p/`, `e/`, `s/`, `l/`, and optional `r/` notes at parameter boundaries.
 It rejects unknown prefixes and repeated single-use prefixes first. For a missing required prefix or an empty
 required value, it reports the affected field and shows separate required and optional parameter lists. Invalid
 field values are checked before constructing a student. `StudentFields` defines normalization and field validation.
@@ -170,7 +170,8 @@ before validation.
 Subject duplicate comparison uses that normalized value without case; storage retains the normalized value and
 entered capitalization. Subjects remain in input order.
 
-New student records have subjects and a level. `Person.isSamePerson` compares two new-format records by normalized
+New student records have subjects, a level, and optional notes. Notes are trimmed, limited to 500 Unicode characters,
+and cannot contain control characters. `Person.isSamePerson` compares two new-format records by normalized
 name and either normalized phone or case-insensitive email. Legacy records retain their original address and tags
 for storage compatibility, but do not participate in new-student duplicate checks. Existing stored records are
 restored without reapplying add-time duplicate checks.
@@ -542,7 +543,7 @@ Priorities: High (must have) - `* * *`, Medium (nice to have) - `* *`, Low (unli
 | **Education level** | The academic stage at which a student is taught, such as Primary 6, Secondary 4, or JC 1. |
 | **School** | The educational institution a student attends. A planned field beyond the strict MVP. |
 | **Tag** | A tutor-defined label used to categorize students, such as `exam-prep`. A planned feature beyond the strict MVP. |
-| **Student notes** | Free-text information about a student that does not fit into the standard fields. A planned feature beyond the strict MVP. |
+| **Student notes** | Optional free-text information about a student, such as learning difficulties, goals, preferred explanations, or parent requests. |
 | **Preferred contact person** | The student or guardian whom the tutor should contact first. A planned feature beyond the strict MVP. |
 | **Command** | A typed instruction that performs an operation, such as `list` or `delete 1`. |
 | **CLI-first interface** | An interface where typing commands is the primary way to interact with the application, while a graphical interface displays records and feedback. |

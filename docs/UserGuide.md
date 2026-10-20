@@ -7,7 +7,7 @@
 # TutorRoster User Guide
 
 **TutorRoster** is a desktop student directory for private freelance tutors. It keeps student names,
-contact details, subjects, and education levels together in a roster. Type short commands to add,
+contact details, subjects, education levels, and tutoring notes together in a roster. Type short commands to add,
 find, list, and delete students, and read the results in the graphical interface.
 
 The contact phone number can belong to the student or a parent or guardian. Email is optional.
@@ -39,7 +39,7 @@ Student records are saved locally so you can return to them in later sessions.
    | Command | What it does |
    | --- | --- |
    | `list` | Shows the complete roster. |
-   | `add n/Ryan Tan p/+6591234567 s/Mathematics l/Secondary 4` | Adds Ryan's student record. |
+   | `add n/Ryan Tan p/+6591234567 s/Mathematics l/Secondary 4 r/Prefers worked examples` | Adds Ryan's student record. |
    | `find Ryan` | Shows students whose names contain `Ryan`. |
    | `delete 1` | Removes the student numbered 1 in the currently displayed list. |
    | `help` | Opens a window containing the User Guide link. |
@@ -51,7 +51,7 @@ number before deleting a student, particularly after a search.
 ## Reading the interface
 
 * **Your students:** the numbered roster. Each new student card shows the name, phone number,
-  subjects, education level, and email when supplied.
+  subjects, education level, email, and notes when supplied.
 * **Result area:** feedback for the last command, including validation errors.
 * **Command box:** where you enter commands and press Enter to execute them. A successful command
   clears the box; an invalid command stays in the box so you can correct it. Use the Up and Down
@@ -86,9 +86,9 @@ If you copy a command from a PDF, check that it remains on one line with spaces 
 
 Adds a student and shows the complete roster, including the new student at the end.
 
-**Format:** `add n/NAME p/PHONE [e/EMAIL] s/SUBJECT [s/SUBJECT]... l/LEVEL`
+**Format:** `add n/NAME p/PHONE [e/EMAIL] [r/NOTES] s/SUBJECT [s/SUBJECT]... l/LEVEL`
 
-Required fields are name, phone number, at least one subject, and education level. Email is optional.
+Required fields are name, phone number, at least one subject, and education level. Email and notes are optional.
 
 | Field | Accepted values | Examples |
 | --- | --- | --- |
@@ -97,14 +97,16 @@ Required fields are name, phone number, at least one subject, and education leve
 | `EMAIL` | Exactly one `@`, a non-empty local part, and a domain containing a full stop with non-empty text between full stops. No whitespace. | `ryan@example.com`, `parent.tan@example.sg` |
 | `SUBJECT` | 1–50 characters after whitespace normalization. Letters, numbers, spaces, `&`, `+`, `/`, apostrophes, hyphens, and full stops; at least one letter or number. | `Mathematics`, `C++`, `Physics/Chemistry` |
 | `LEVEL` | 1–30 characters after whitespace normalization. Letters, numbers, spaces, and hyphens; at least one letter or number. | `Secondary 4`, `JC 1`, `Grade 8`, `Year-10` |
+| `NOTES` | Optional free text of 1–500 characters after trimming. Control characters are not allowed. | `Prefers worked examples; parent requests weekly updates` |
 
 For example, `s/English  Language` is stored as `English Language`, and `l/Secondary  4` is stored
-as `Secondary 4`. An empty `e/` is invalid; omit the prefix entirely when you have no email to supply.
+as `Secondary 4`. An empty `e/` or `r/` is invalid; omit the prefix entirely when you have no email or notes to supply.
 
 Examples:
 
 * `add n/Ryan Tan p/+6591234567 e/ryan@example.com s/Mathematics l/Secondary 4`
 * `add n/Alicia Lim p/81234567 s/Mathematics s/Physics l/JC 1`
+* `add n/Sarah Lee p/+821012345678 s/English l/Grade 8 r/Needs visual explanations; goal is to improve essay writing`
 * `add l/Grade 8 s/English n/Sarah Lee p/+821012345678`
 
 **Success feedback:** `New student added: NAME`, for example `New student added: Ryan Tan`.
@@ -138,6 +140,7 @@ under the new student duplicate rule; their original address and tags remain in 
 | A repeated single-use prefix, such as `n/` | `Parameter n/ must not be specified more than once` |
 | A repeated subject | `Duplicate subject: SUBJECT` |
 | An existing student matches the duplicate rule | `This student already exists in TutorRoster.` |
+| Notes are empty, too long, or contain control characters | `Invalid notes. Notes must be 1–500 characters and must not contain control characters.` |
 | Saving fails | `Unable to save student data. No changes were made.` |
 
 Invalid fields produce a message explaining the applicable rule. For example, `p/9123-4567` produces:
@@ -354,7 +357,7 @@ may have changed since the command was first entered.
 
 | Action | Format | Example |
 | --- | --- | --- |
-| Add student | `add n/NAME p/PHONE s/SUBJECT l/LEVEL [e/EMAIL] [MORE_SUBJECT]` | `add n/Ryan Tan p/81234567 s/Mathematics l/Secondary 4` |
+| Add student | `add n/NAME p/PHONE s/SUBJECT l/LEVEL [e/EMAIL] [r/NOTES] [MORE_SUBJECT]` | `add n/Ryan Tan p/81234567 s/Mathematics l/Secondary 4 r/Prefers worked examples` |
 | List students | `list` | `list` |
 | Find by name | `find [--any] KEYWORD [MORE_KEYWORDS]` | `find Ryan Tan` or `find --any Ryan Sarah` |
 | Delete student | `delete INDEX` | `delete 2` |
