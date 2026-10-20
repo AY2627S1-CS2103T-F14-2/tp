@@ -181,4 +181,68 @@ public class EditCommandTest {
         assertEquals(expected, editCommand.toString());
     }
 
+    @Test
+    public void execute_studentFieldsSpecifiedUnfilteredList_success() {
+        Person student = new Person("Ryan Tan", "+6591234567", "ryan@example.com",
+                java.util.List.of("Mathematics", "Physics"), "Secondary 4", "Initial notes");
+        model.addPerson(student);
+        Index studentIndex = Index.fromOneBased(model.getFilteredPersonList().size());
+
+        EditPersonDescriptor descriptor = new EditPersonDescriptorBuilder()
+                .withPhone("+6598765432")
+                .withLevel("Secondary 5")
+                .build();
+        EditCommand editCommand = new EditCommand(studentIndex, descriptor);
+
+        Person expectedStudent = new Person("Ryan Tan", "+6598765432", "ryan@example.com",
+                java.util.List.of("Mathematics", "Physics"), "Secondary 5", "Initial notes");
+        String expectedMessage = String.format(EditCommand.MESSAGE_EDIT_PERSON_SUCCESS,
+                expectedStudent.getName().fullName);
+
+        Model expectedModel = new ModelManager(new AddressBook(model.getAddressBook()), new UserPrefs());
+        expectedModel.setPerson(student, expectedStudent);
+
+        assertCommandSuccess(editCommand, model, expectedMessage, expectedModel);
+    }
+
+    @Test
+    public void execute_editStudentSubjectsAndNotes_success() {
+        Person student = new Person("Alice Wong", "+6581234567", null,
+                java.util.List.of("English"), "Secondary 1", "");
+        model.addPerson(student);
+        Index studentIndex = Index.fromOneBased(model.getFilteredPersonList().size());
+
+        EditPersonDescriptor descriptor = new EditPersonDescriptorBuilder()
+                .withSubjects("English Literature", "History")
+                .withNotes("Prefers visual aids")
+                .build();
+        EditCommand editCommand = new EditCommand(studentIndex, descriptor);
+
+        Person expectedStudent = new Person("Alice Wong", "+6581234567", null,
+                java.util.List.of("English Literature", "History"), "Secondary 1", "Prefers visual aids");
+        String expectedMessage = String.format(EditCommand.MESSAGE_EDIT_PERSON_SUCCESS,
+                expectedStudent.getName().fullName);
+
+        Model expectedModel = new ModelManager(new AddressBook(model.getAddressBook()), new UserPrefs());
+        expectedModel.setPerson(student, expectedStudent);
+
+        assertCommandSuccess(editCommand, model, expectedMessage, expectedModel);
+    }
+
+    @Test
+    public void execute_duplicateStudentPhone_failure() {
+        Person student1 = new Person("Ryan Tan", "+6591234567", null,
+                java.util.List.of("Mathematics"), "Secondary 4");
+        Person student2 = new Person("Ryan Tan", "+6581234567", null,
+                java.util.List.of("Mathematics"), "Secondary 4");
+        model.addPerson(student1);
+        model.addPerson(student2);
+
+        Index student2Index = Index.fromOneBased(model.getFilteredPersonList().size());
+
+        EditPersonDescriptor descriptor = new EditPersonDescriptorBuilder().withPhone("+6591234567").build();
+        EditCommand editCommand = new EditCommand(student2Index, descriptor);
+
+        assertCommandFailure(editCommand, model, EditCommand.MESSAGE_DUPLICATE_PERSON);
+    }
 }

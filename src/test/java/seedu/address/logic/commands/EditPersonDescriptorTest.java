@@ -48,6 +48,18 @@ public class EditPersonDescriptorTest {
         editedAmy = new EditPersonDescriptorBuilder(DESC_AMY).withEmail(VALID_EMAIL_BOB).build();
         assertFalse(DESC_AMY.equals(editedAmy));
 
+        // different subjects -> returns false
+        editedAmy = new EditPersonDescriptorBuilder(DESC_AMY).withSubjects("Physics").build();
+        assertFalse(DESC_AMY.equals(editedAmy));
+
+        // different level -> returns false
+        editedAmy = new EditPersonDescriptorBuilder(DESC_AMY).withLevel("Secondary 5").build();
+        assertFalse(DESC_AMY.equals(editedAmy));
+
+        // different notes -> returns false
+        editedAmy = new EditPersonDescriptorBuilder(DESC_AMY).withNotes("Needs help").build();
+        assertFalse(DESC_AMY.equals(editedAmy));
+
         // different address -> returns false
         editedAmy = new EditPersonDescriptorBuilder(DESC_AMY).withAddress(VALID_ADDRESS_BOB).build();
         assertFalse(DESC_AMY.equals(editedAmy));
@@ -63,7 +75,10 @@ public class EditPersonDescriptorTest {
         String expected = EditPersonDescriptor.class.getCanonicalName() + "{name="
                 + editPersonDescriptor.getName().orElse(null) + ", phone="
                 + editPersonDescriptor.getPhone().orElse(null) + ", email="
-                + editPersonDescriptor.getEmail().orElse(null) + ", address="
+                + editPersonDescriptor.getEmail().orElse(null) + ", subjects="
+                + editPersonDescriptor.getSubjects().orElse(null) + ", level="
+                + editPersonDescriptor.getLevel().orElse(null) + ", notes="
+                + editPersonDescriptor.getNotes().orElse(null) + ", address="
                 + editPersonDescriptor.getAddress().orElse(null) + ", tags="
                 + editPersonDescriptor.getTags().orElse(null) + "}";
         assertEquals(expected, editPersonDescriptor.toString());
