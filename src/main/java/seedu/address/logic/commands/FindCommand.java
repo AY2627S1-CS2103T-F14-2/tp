@@ -18,7 +18,8 @@ public class FindCommand extends Command {
     public static final String ANY_KEYWORD_OPTION = "--any";
 
     public static final String MESSAGE_USAGE = COMMAND_WORD + " [" + ANY_KEYWORD_OPTION + "] "
-            + "n/NAME [p/PHONE] [s/SUBJECT]... [l/LEVEL] [e/EMAIL]\n\n"
+            + "[n/NAME] [p/PHONE] [e/EMAIL] [s/SUBJECT]... [l/LEVEL]\n\n"
+            + "Supply at least one field.\n\n"
             + "By default, find shows students matching every supplied value. Use `--any` to show students "
             + "matching at least one value. All field searches are case-insensitive and support partial matching.\n\n"
             + "Examples:\n"
