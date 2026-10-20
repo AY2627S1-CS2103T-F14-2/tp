@@ -42,6 +42,7 @@ Student records are saved locally so you can return to them in later sessions.
    | `add n/Ryan Tan p/+6591234567 s/Mathematics l/Secondary 4 r/Prefers worked examples` | Adds Ryan's student record. |
    | `find Ryan` | Shows students whose names contain `Ryan`. |
    | `show 1` | Opens the complete record for student 1 in the currently displayed list. |
+   | `edit 1 p/+6591234567 l/Secondary 5` | Updates student 1's phone and level in the currently displayed list. |
    | `delete 1` | Removes the student numbered 1 in the currently displayed list. |
    | `undo` | Reverses the last successful roster change in this session. |
    | `redo` | Reapplies the last undone change. |
@@ -252,16 +253,37 @@ Examples:
 For example, `delete 0`, `delete abc`, and `delete 1 n/Ryan` are invalid. Invalid input leaves the
 records and displayed list unchanged. A save failure also leaves the roster unchanged; see [Save errors](#save-errors).
 
-#### Updating student information
+### Editing a student: `edit`
 
-Use delete and add to replace an outdated record:
+Edits the details of an existing student identified by their index in the currently displayed roster.
+Existing values are overwritten by the input values, while omitted fields remain unchanged.
 
-1. Find the student and check the displayed index.
-1. Delete that record and check for successful deletion feedback.
-1. Add the student again with the corrected details, supplying every required field.
+**Format:** `edit INDEX [n/NAME] [p/PHONE] [e/EMAIL] [s/SUBJECT]... [l/LEVEL] [r/NOTES]`
 
-The replacement appears at the end of the full roster. Direct `edit` and bulk `clear` commands are
-not available in the current version.
+* `INDEX` is a positive integer starting from 1 and refers to the **currently displayed list**.
+* At least one field to edit must be provided.
+* When editing subjects using `s/`, the existing subjects of the student are replaced by the newly supplied subjects. At least one subject must be provided, and duplicate subjects are not allowed.
+* Single-use prefixes (`n/`, `p/`, `e/`, `l/`, `r/`) cannot be repeated within the same command.
+* If the edited student matches another existing student according to TutorRoster duplicate rules, the command is rejected with `This student already exists in TutorRoster.`.
+* After a successful edit, the roster resets to show the complete student list.
+
+Examples:
+
+* `edit 3 p/+6591234567 l/Secondary 5`
+* `edit 1 n/Ryan Tan s/Mathematics s/Physics`
+* `edit 2 r/Prefers worked examples`
+
+**Success feedback:** `Edited student: NAME`, for example `Edited student: Ryan Tan`.
+
+| Problem | Feedback |
+| --- | --- |
+| Missing, zero, negative, decimal, or nonnumeric index; extra preamble | `Invalid command format!` followed by usage guide |
+| No fields specified | `At least one field to edit must be provided.` |
+| Positive index outside the displayed list, including an empty list | `The person index provided is invalid.` |
+| An existing student matches the duplicate rule | `This student already exists in TutorRoster.` |
+| Repeated single-use prefix | `Multiple values specified for the following single-valued field(s): ...` |
+| Repeated subject | `Duplicate subject: SUBJECT` |
+| Invalid field value | Message explaining the applicable rule (e.g. `Invalid phone number. ...`) |
 
 ### Undoing and redoing roster changes: `undo` and `redo`
 
@@ -409,8 +431,8 @@ then the replacement. If you only want to remove the replacement temporarily, us
 
 **How do I update a student?**
 
-Delete the outdated record and add the corrected record. See
-[Updating student information](#updating-student-information).
+Use the `edit` command to update the student's details, e.g. `edit 3 p/+6591234567 l/Secondary 5`. See
+[Editing a student: edit](#editing-a-student-edit).
 
 **Why does `delete 1` remove a different student after a search?**
 
@@ -462,6 +484,7 @@ may have changed since the command was first entered.
 | List students | `list` | `list` |
 | Find by name | `find [--any] KEYWORD [MORE_KEYWORDS]` | `find Ryan Tan` or `find --any Ryan Sarah` |
 | Show student details | `show INDEX` | `show 2` |
+| Edit student | `edit INDEX [n/NAME] [p/PHONE] [e/EMAIL] [s/SUBJECT]... [l/LEVEL] [r/NOTES]` | `edit 3 p/+6591234567 l/Secondary 5` |
 | Delete student | `delete INDEX` | `delete 2` |
 | Undo last change | `undo` | `undo` |
 | Redo undone change | `redo` | `redo` |

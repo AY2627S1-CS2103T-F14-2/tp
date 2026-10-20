@@ -209,7 +209,7 @@ save error. See the shared [recording and publishing flow](#recording-and-publis
 
 TutorRoster restores complete roster states so tutors can recover from accidental changes. The enabled
 roster-changing commands are currently `add` and `delete`; a delete-and-add replacement creates two steps.
-`edit` and `clear` remain disabled in the command parser. The history mechanism also supports record replacements
+`edit` is enabled in the command parser to update student detail fields, while `clear` remains disabled. The history mechanism also supports record replacements
 at the model level.
 
 #### State and responsibilities
