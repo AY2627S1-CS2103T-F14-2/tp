@@ -16,6 +16,7 @@ import seedu.address.model.person.Email;
 import seedu.address.model.person.Name;
 import seedu.address.model.person.Person;
 import seedu.address.model.person.Phone;
+import seedu.address.model.person.StudentFields;
 import seedu.address.model.tag.Tag;
 
 /**
@@ -33,6 +34,7 @@ class JsonAdaptedPerson {
     private final List<JsonAdaptedTag> tags;
     private final List<String> subjects;
     private final String level;
+    private final String notes;
 
     /**
      * Constructs a {@code JsonAdaptedPerson} with the given person details.
@@ -41,7 +43,8 @@ class JsonAdaptedPerson {
     public JsonAdaptedPerson(@JsonProperty("name") String name, @JsonProperty("phone") String phone,
             @JsonProperty("email") String email, @JsonProperty("address") String address,
             @JsonProperty("tags") List<JsonAdaptedTag> tags,
-            @JsonProperty("subjects") List<String> subjects, @JsonProperty("level") String level) {
+            @JsonProperty("subjects") List<String> subjects, @JsonProperty("level") String level,
+            @JsonProperty("notes") String notes) {
         this.name = name;
         this.phone = phone;
         this.email = email;
@@ -49,11 +52,18 @@ class JsonAdaptedPerson {
         this.tags = tags == null ? null : new ArrayList<>(tags);
         this.subjects = subjects == null ? null : new ArrayList<>(subjects);
         this.level = level;
+        this.notes = notes == null ? "" : notes;
+    }
+
+    /** Existing callers can still construct an adapted student without notes. */
+    public JsonAdaptedPerson(String name, String phone, String email, String address, List<JsonAdaptedTag> tags,
+            List<String> subjects, String level) {
+        this(name, phone, email, address, tags, subjects, level, null);
     }
 
     /** Existing tests and callers can still build a legacy adapted record. */
     public JsonAdaptedPerson(String name, String phone, String email, String address, List<JsonAdaptedTag> tags) {
-        this(name, phone, email, address, tags, null, null);
+        this(name, phone, email, address, tags, null, null, null);
     }
 
     /**
@@ -65,6 +75,7 @@ class JsonAdaptedPerson {
         email = source.getEmail() == null ? null : source.getEmail().value;
         subjects = source.hasSubjectsField() ? new ArrayList<>(source.getSubjects()) : null;
         level = source.getLevel();
+        notes = source.getNotes().isEmpty() ? null : source.getNotes();
         address = source.getAddress() == null ? null : source.getAddress().value;
         tags = source.getAddress() == null && source.getTags().isEmpty() ? null : source.getTags().stream()
                 .map(JsonAdaptedTag::new).collect(Collectors.toList());
@@ -77,19 +88,23 @@ class JsonAdaptedPerson {
      */
     public Person toModelType() throws IllegalValueException {
         final List<Tag> personTags = new ArrayList<>();
+        String storedNotes = notes == null ? "" : notes;
         if (tags != null) {
             for (JsonAdaptedTag tag : tags) {
                 personTags.add(tag.toModelType());
             }
         }
 
-        if (subjects != null || level != null) {
+        if (subjects != null || level != null || !storedNotes.isEmpty()) {
             if (name == null || phone == null) {
                 throw new IllegalValueException("Stored student is missing a name or phone number.");
             }
             Address storedAddress = address == null ? null : new Address(address);
+            if (!storedNotes.isEmpty() && !StudentFields.isValidNotes(storedNotes)) {
+                throw new IllegalValueException(StudentFields.INVALID_NOTES);
+            }
             return Person.fromStoredRecord(name, phone, email, subjects, level,
-                    storedAddress, new HashSet<>(personTags));
+                    storedNotes, storedAddress, new HashSet<>(personTags));
         }
 
         if (name == null) {

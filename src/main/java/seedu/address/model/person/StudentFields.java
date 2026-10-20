@@ -14,6 +14,8 @@ public final class StudentFields {
             + "least one letter or number.";
     public static final String INVALID_LEVEL = "Invalid education level. Levels must be 1–30 characters and contain "
             + "only letters, numbers, spaces and hyphens.";
+    public static final String INVALID_NOTES = "Invalid notes. Notes must be 1–500 characters and must not contain "
+            + "control characters.";
 
     private StudentFields() {}
 
@@ -106,6 +108,13 @@ public final class StudentFields {
         return hasLength(normalized, 1, 30) && hasLetterOrNumber(normalized)
                 && normalized.codePoints().allMatch(codePoint -> isLetterOrNumber(codePoint)
                         || codePoint == ' ' || codePoint == '-');
+    }
+
+    /** Returns whether notes are suitable for storage after trimming surrounding whitespace. */
+    public static boolean isValidNotes(String notes) {
+        String trimmed = trim(notes);
+        return hasLength(trimmed, 1, 500)
+                && trimmed.codePoints().noneMatch(Character::isISOControl);
     }
 
     public static String nameKey(String name) {

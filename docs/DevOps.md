@@ -35,6 +35,9 @@ The following commands perform common Gradle tasks.
   * `./gradlew test`: Runs all tests.
   * `./gradlew clean test`: Cleans the project before running all tests
 
+The automated test suite is headless and excludes JavaFX UI tests. JaCoCo likewise excludes JavaFX UI and
+application-entry classes from coverage, so coverage reflects the tested application logic.
+
 --------------------------------------------------------------------------------------------------------------------
 
 ## Continuous integration (CI)

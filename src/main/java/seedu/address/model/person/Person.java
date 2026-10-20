@@ -23,6 +23,7 @@ public class Person {
     private final List<String> subjects;
     private final boolean subjectsPresent;
     private final String level;
+    private final String notes;
     private final Address address;
     private final Set<Tag> tags = new HashSet<>();
     private final boolean newFormat;
@@ -36,6 +37,7 @@ public class Person {
         this.subjects = List.of();
         this.subjectsPresent = false;
         this.level = null;
+        this.notes = "";
         this.address = address;
         this.tags.addAll(tags);
         this.newFormat = false;
@@ -43,7 +45,12 @@ public class Person {
 
     /** Creates a new student after validating all fields. Email may be absent. */
     public Person(String name, String phone, String email, List<String> subjects, String level) {
-        requireAllNonNull(name, phone, subjects, level);
+        this(name, phone, email, subjects, level, "");
+    }
+
+    /** Creates a new student after validating all fields. Email and notes may be absent. */
+    public Person(String name, String phone, String email, List<String> subjects, String level, String notes) {
+        requireAllNonNull(name, phone, subjects, level, notes);
         String normalizedName = StudentFields.normalizeName(name);
         if (!StudentFields.isValidName(normalizedName)) {
             throw new IllegalArgumentException(StudentFields.INVALID_NAME);
@@ -76,25 +83,35 @@ public class Person {
         if (!StudentFields.isValidLevel(normalizedLevel)) {
             throw new IllegalArgumentException(StudentFields.INVALID_LEVEL);
         }
+        String normalizedNotes = StudentFields.trim(notes);
+        if (!notes.isEmpty() && !StudentFields.isValidNotes(normalizedNotes)) {
+            throw new IllegalArgumentException(StudentFields.INVALID_NOTES);
+        }
         this.name = Name.fromStoredValue(normalizedName);
         this.phone = Phone.fromStoredValue(phone);
         this.email = email == null ? null : Email.fromStoredValue(email);
         this.subjects = List.copyOf(normalizedSubjects);
         this.subjectsPresent = true;
         this.level = normalizedLevel;
+        this.notes = normalizedNotes;
         this.address = null;
         this.newFormat = true;
     }
 
-    private Person(String name, String phone, String email, List<String> subjects, String level,
+    private Person(String name, String phone, String email, List<String> subjects, String level, String notes,
             Address address, Set<Tag> tags, boolean newFormat) {
-        requireAllNonNull(name, phone, tags);
+        requireAllNonNull(name, phone, tags, notes);
         this.name = Name.fromStoredValue(name);
         this.phone = Phone.fromStoredValue(phone);
         this.email = email == null ? null : Email.fromStoredValue(email);
         this.subjects = subjects == null ? List.of() : Collections.unmodifiableList(new ArrayList<>(subjects));
         this.subjectsPresent = subjects != null;
         this.level = level;
+        String normalizedNotes = StudentFields.trim(notes);
+        if (!normalizedNotes.isEmpty() && !StudentFields.isValidNotes(normalizedNotes)) {
+            throw new IllegalArgumentException(StudentFields.INVALID_NOTES);
+        }
+        this.notes = normalizedNotes;
         this.address = address;
         this.tags.addAll(tags);
         this.newFormat = newFormat;
@@ -103,8 +120,20 @@ public class Person {
     /** Restores an already stored record without applying new-add validation to existing data. */
     public static Person fromStoredRecord(String name, String phone, String email, List<String> subjects,
             String level, Address address, Set<Tag> tags) {
-        return new Person(name, phone, email, subjects, level, address, tags,
+        return fromStoredRecord(name, phone, email, subjects, level, "", address, tags);
+    }
+
+    /** Restores a stored record with notes, retaining the compatibility behaviour of the older overload. */
+    public static Person fromStoredRecord(String name, String phone, String email, List<String> subjects,
+            String level, String notes, Address address, Set<Tag> tags) {
+        return new Person(name, phone, email, subjects, level, notes, address, tags,
                 subjects != null && level != null);
+    }
+
+    /** Restores a stored record with notes after the legacy parameters for source compatibility. */
+    public static Person fromStoredRecord(String name, String phone, String email, List<String> subjects,
+            String level, Address address, Set<Tag> tags, String notes) {
+        return fromStoredRecord(name, phone, email, subjects, level, notes, address, tags);
     }
 
     public Name getName() {
@@ -129,6 +158,11 @@ public class Person {
 
     public String getLevel() {
         return level;
+    }
+
+    /** Returns tutoring-specific notes, or an empty string when no notes were supplied. */
+    public String getNotes() {
+        return notes;
     }
 
     public boolean isNewFormat() {
@@ -192,6 +226,7 @@ public class Person {
                 && subjects.equals(otherPerson.subjects)
                 && subjectsPresent == otherPerson.subjectsPresent
                 && Objects.equals(level, otherPerson.level)
+                && notes.equals(otherPerson.notes)
                 && Objects.equals(address, otherPerson.address)
                 && tags.equals(otherPerson.tags)
                 && newFormat == otherPerson.newFormat;
@@ -200,7 +235,7 @@ public class Person {
     @Override
     public int hashCode() {
         // use this method for custom fields hashing instead of implementing your own
-        return Objects.hash(name, phone, email, subjects, subjectsPresent, level, address, tags, newFormat);
+        return Objects.hash(name, phone, email, subjects, subjectsPresent, level, notes, address, tags, newFormat);
     }
 
     @Override
@@ -210,7 +245,11 @@ public class Person {
                 .add("phone", phone)
                 .add("email", email);
         if (newFormat) {
-            return builder.add("subjects", subjects).add("level", level).toString();
+            builder.add("subjects", subjects).add("level", level);
+            if (!notes.isEmpty()) {
+                builder.add("notes", notes);
+            }
+            return builder.toString();
         }
         return builder.add("address", address).add("tags", tags).toString();
     }

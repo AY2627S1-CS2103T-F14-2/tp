@@ -14,7 +14,7 @@ import seedu.address.model.person.StudentFields;
 
 public class AddCommandParserTest {
     private static final String PARAMETER_GUIDE = "Required: add n/NAME p/PHONE s/SUBJECT l/LEVEL\n"
-            + "Optional: e/EMAIL; repeat s/SUBJECT for additional subjects.\n"
+            + "Optional: e/EMAIL r/NOTES; repeat s/SUBJECT for additional subjects.\n"
             + "Parameters may appear in any order.";
 
     private final AddCommandParser parser = new AddCommandParser();
@@ -34,6 +34,16 @@ public class AddCommandParserTest {
                 List.of("C++", "Physics/Chemistry"), "JC 1");
         assertParseSuccess(parser,
                 " n/Anne-Marie Lee p/81234567 s/C++ s/Physics/Chemistry l/JC 1",
+                new AddCommand(expected));
+    }
+
+    @Test
+    public void parse_notes_success() {
+        Person expected = new Person("Ryan Tan", "+6591234567", null,
+                List.of("Mathematics"), "Secondary 4", "Prefers worked examples; parent requests weekly updates");
+        assertParseSuccess(parser,
+                " n/Ryan Tan p/+6591234567 s/Mathematics l/Secondary 4"
+                        + " r/Prefers worked examples; parent requests weekly updates",
                 new AddCommand(expected));
     }
 
@@ -185,6 +195,13 @@ public class AddCommandParserTest {
         assertParseFailure(parser, " n/A p/123 s/Math l/JC_1", StudentFields.INVALID_LEVEL);
         assertParseFailure(parser, " n/A p/123 s/Math l/" + "A".repeat(31),
                 StudentFields.INVALID_LEVEL);
+    }
+
+    @Test
+    public void parse_invalidNotes_failure() {
+        assertParseFailure(parser, " n/A p/123 s/Math l/JC 1 r/", StudentFields.INVALID_NOTES);
+        assertParseFailure(parser, " n/A p/123 s/Math l/JC 1 r/" + "N".repeat(501),
+                StudentFields.INVALID_NOTES);
     }
 
     @Test

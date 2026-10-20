@@ -40,6 +40,8 @@ public class PersonCard extends UiPart<Region> {
     private Label email;
     @FXML
     private Label level;
+    @FXML
+    private Label notes;
 
     /**
      * Creates a {@code PersonCard} with the given {@code Person} and index to display.
@@ -55,18 +57,21 @@ public class PersonCard extends UiPart<Region> {
         setOptionalText(email, content.email());
         setOptionalText(subjects, content.subjects());
         setOptionalText(level, content.level());
+        setOptionalText(notes, content.notes());
     }
 
     /** Text shown on a student card; absent optional values are hidden when applied to labels. */
-    record CardContent(String name, String initials, String phone, String email, String subjects, String level) {
+    record CardContent(String name, String initials, String phone, String email, String subjects, String level,
+                       String notes) {
         static CardContent from(Person person) {
             String fullName = person.getName().fullName;
             String emailText = person.getEmail() == null ? null : "Email: " + person.getEmail().value;
             String subjectsText = person.getSubjects().isEmpty()
                     ? null : "Subjects: " + String.join(", ", person.getSubjects());
             String levelText = person.getLevel() == null ? null : "Level: " + person.getLevel();
+            String notesText = person.getNotes().isEmpty() ? null : "Notes: " + person.getNotes();
             return new CardContent(fullName, getInitials(fullName), "Phone: " + person.getPhone().value,
-                    emailText, subjectsText, levelText);
+                    emailText, subjectsText, levelText, notesText);
         }
     }
 
@@ -90,6 +95,11 @@ public class PersonCard extends UiPart<Region> {
         }
         return (firstInitial(nameParts[0]) + firstInitial(nameParts[nameParts.length - 1]))
                 .toUpperCase(java.util.Locale.ROOT);
+    }
+
+    /** Returns the initials used by both compact cards and the full detail view. */
+    public static String getInitialsForDisplay(String fullName) {
+        return getInitials(fullName);
     }
 
     private static String firstInitial(String part) {

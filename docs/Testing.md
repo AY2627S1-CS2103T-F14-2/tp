@@ -22,6 +22,10 @@ You can run tests in two ways.
 * **Method 2: Using Gradle**
   * Open a console and run the command `gradlew clean test` (Mac/Linux: `./gradlew clean test`)
 
+The Gradle test task is headless: JavaFX UI tests are not part of the automated test suite. UI behaviour
+should be checked through manual testing, while command, model, storage, and UI-independent logic tests
+remain automated.
+
 <box type="info" seamless>
 
 **Link**: Read [this Gradle Tutorial from the se-edu/guides](https://se-education.org/guides/tutorials/gradle.html) to learn more about using Gradle.

@@ -3,9 +3,14 @@ package seedu.address.logic.commands;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotEquals;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
+import static seedu.address.testutil.TypicalPersons.ALICE;
+import static seedu.address.testutil.TypicalPersons.BENSON;
 
 import org.junit.jupiter.api.Test;
+
+import seedu.address.model.person.Person;
 
 public class CommandResultTest {
     @Test
@@ -59,5 +64,24 @@ public class CommandResultTest {
                 + commandResult.getFeedbackToUser() + ", showHelp=" + commandResult.isShowHelp()
                 + ", exit=" + commandResult.isExit() + "}";
         assertEquals(expected, commandResult.toString());
+    }
+
+    @Test
+    public void studentDetailsPayload_isPresentAndIncludedInEqualityAndString() {
+        CommandResult result = new CommandResult("Showing student details.", ALICE);
+        CommandResult equalResult = new CommandResult("Showing student details.", ALICE);
+        CommandResult differentStudentResult = new CommandResult("Showing student details.", BENSON);
+
+        assertEquals(ALICE, result.getPersonToShow().orElseThrow());
+        assertTrue(result.equals(equalResult));
+        assertFalse(result.equals(differentStudentResult));
+        assertEquals(result.hashCode(), equalResult.hashCode());
+        assertTrue(result.toString().contains("personToShow="));
+    }
+
+    @Test
+    public void requiredValues_null_throwsNullPointerException() {
+        assertThrows(NullPointerException.class, () -> new CommandResult(null));
+        assertThrows(NullPointerException.class, () -> new CommandResult("feedback", (Person) null));
     }
 }

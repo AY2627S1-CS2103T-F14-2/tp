@@ -13,14 +13,7 @@ import seedu.address.model.person.NameContainsKeywordsPredicate.MatchMode;
 
 public class FindCommandParserTest {
 
-    private static final String EXPECTED_INVALID_COMMAND_FORMAT = "Invalid command format!\n\n"
-            + "Usage: find [--any] KEYWORD [MORE_KEYWORDS]...\n\n"
-            + "By default, find shows students whose names match all specified keywords "
-            + "(case-insensitive, partial matches allowed). Use `--any` to show students whose names match "
-            + "at least one specified keyword.\n\n"
-            + "Examples:\n\n"
-            + "- \"find alice bob\" returns students whose names contain both “alice” and “bob”.\n"
-            + "- \"find --any alice bob\" returns students whose names contain “alice”, “bob”, or both.";
+    private static final String EXPECTED_INVALID_COMMAND_FORMAT = FindCommand.MESSAGE_INVALID_COMMAND_FORMAT;
 
     private FindCommandParser parser = new FindCommandParser();
 
@@ -52,7 +45,7 @@ public class FindCommandParserTest {
 
     @Test
     public void parse_anyKeywordOptionWithoutKeywords_throwsParseException() {
-        String expectedMessage = String.format(MESSAGE_INVALID_COMMAND_FORMAT, FindCommand.MESSAGE_USAGE);
+        String expectedMessage = EXPECTED_INVALID_COMMAND_FORMAT;
 
         assertParseFailure(parser, "--any", expectedMessage);
         assertParseFailure(parser, "--any   ", expectedMessage);
