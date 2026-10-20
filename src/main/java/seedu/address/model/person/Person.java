@@ -100,7 +100,7 @@ public class Person {
 
     private Person(String name, String phone, String email, List<String> subjects, String level, String notes,
             Address address, Set<Tag> tags, boolean newFormat) {
-        requireAllNonNull(name, phone, tags);
+        requireAllNonNull(name, phone, tags, notes);
         this.name = Name.fromStoredValue(name);
         this.phone = Phone.fromStoredValue(phone);
         this.email = email == null ? null : Email.fromStoredValue(email);

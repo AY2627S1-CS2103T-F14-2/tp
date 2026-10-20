@@ -24,42 +24,45 @@
         <URL value="@Extensions.css" />
       </stylesheets>
 
-      <VBox styleClass="app-shell">
-        <HBox alignment="CENTER_LEFT" styleClass="top-bar">
-          <HBox alignment="CENTER_LEFT" spacing="12" styleClass="brand-lockup">
-            <Label styleClass="brand-mark" text="TR" />
-            <VBox spacing="2">
-              <Label styleClass="brand-name" text="TutorRoster" />
-              <Label styleClass="brand-caption" text="Student directory" />
-            </VBox>
-          </HBox>
-          <Region HBox.hgrow="ALWAYS" />
-          <MenuBar fx:id="menuBar" styleClass="app-menu-bar">
-            <Menu mnemonicParsing="false" text="Help">
-              <MenuItem fx:id="helpMenuItem" mnemonicParsing="false" onAction="#handleHelp" text="Help" />
-            </Menu>
-          </MenuBar>
-        </HBox>
-
-        <VBox styleClass="content-area" VBox.vgrow="ALWAYS">
-          <HBox alignment="BASELINE_LEFT" styleClass="section-heading">
-            <VBox spacing="3">
-              <Label styleClass="eyebrow" text="ROSTER" />
-              <Label styleClass="section-title" text="Your students" />
-            </VBox>
+      <StackPane>
+        <VBox styleClass="app-shell">
+          <HBox alignment="CENTER_LEFT" styleClass="top-bar">
+            <HBox alignment="CENTER_LEFT" spacing="12" styleClass="brand-lockup">
+              <Label styleClass="brand-mark" text="TR" />
+              <VBox spacing="2">
+                <Label styleClass="brand-name" text="TutorRoster" />
+                <Label styleClass="brand-caption" text="Student directory" />
+              </VBox>
+            </HBox>
             <Region HBox.hgrow="ALWAYS" />
-            <Label styleClass="section-hint" text="Manage contacts with quick commands" />
+            <MenuBar fx:id="menuBar" styleClass="app-menu-bar">
+              <Menu mnemonicParsing="false" text="Help">
+                <MenuItem fx:id="helpMenuItem" mnemonicParsing="false" onAction="#handleHelp" text="Help" />
+              </Menu>
+            </MenuBar>
           </HBox>
 
-          <StackPane fx:id="personListPanelPlaceholder" styleClass="roster-surface" VBox.vgrow="ALWAYS" />
+          <VBox styleClass="content-area" VBox.vgrow="ALWAYS">
+            <HBox alignment="BASELINE_LEFT" styleClass="section-heading">
+              <VBox spacing="3">
+                <Label styleClass="eyebrow" text="ROSTER" />
+                <Label styleClass="section-title" text="Your students" />
+              </VBox>
+              <Region HBox.hgrow="ALWAYS" />
+              <Label styleClass="section-hint" text="Manage contacts with quick commands" />
+            </HBox>
 
-          <StackPane fx:id="resultDisplayPlaceholder" maxHeight="138"
-                     styleClass="result-surface" VBox.vgrow="NEVER" />
+            <StackPane fx:id="personListPanelPlaceholder" styleClass="roster-surface" VBox.vgrow="ALWAYS" />
+
+            <StackPane fx:id="resultDisplayPlaceholder" maxHeight="138"
+                       styleClass="result-surface" VBox.vgrow="NEVER" />
+          </VBox>
+
+          <StackPane fx:id="commandBoxPlaceholder" styleClass="command-region" VBox.vgrow="NEVER" />
+          <StackPane fx:id="statusbarPlaceholder" styleClass="status-region" VBox.vgrow="NEVER" />
         </VBox>
-
-        <StackPane fx:id="commandBoxPlaceholder" styleClass="command-region" VBox.vgrow="NEVER" />
-        <StackPane fx:id="statusbarPlaceholder" styleClass="status-region" VBox.vgrow="NEVER" />
-      </VBox>
+        <StackPane fx:id="modalOverlay" managed="false" visible="false" styleClass="detail-modal-overlay" />
+      </StackPane>
     </Scene>
   </scene>
 </fx:root>

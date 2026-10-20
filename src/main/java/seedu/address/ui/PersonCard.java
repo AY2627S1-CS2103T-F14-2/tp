@@ -97,6 +97,11 @@ public class PersonCard extends UiPart<Region> {
                 .toUpperCase(java.util.Locale.ROOT);
     }
 
+    /** Returns the initials used by both compact cards and the full detail view. */
+    public static String getInitialsForDisplay(String fullName) {
+        return getInitials(fullName);
+    }
+
     private static String firstInitial(String part) {
         int codePoint = part.codePoints().filter(Character::isLetterOrDigit)
                 .findFirst().orElse(part.codePointAt(0));
