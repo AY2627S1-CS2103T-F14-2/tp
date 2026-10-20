@@ -58,7 +58,9 @@ number before deleting a student, particularly after a search.
 * **Result area:** feedback for the last command, including validation errors.
 * **Command box:** where you enter commands and press Enter to execute them. A successful command
   clears the box; an invalid command stays in the box so you can correct it. Use the Up and Down
-  arrow keys to recall commands from the current session.
+  arrow keys to recall commands from the current session. As you type, live completion suggestions
+  appear below the box showing matching commands and missing parameter fields (such as `n/`,
+  `p/`, `s/`, `l/` for `add`). Press **Tab** to autocomplete the top suggestion, or click a suggestion directly.
 * **Student detail modal:** the `show` command opens a complete, scrollable student record above a
   dimmed roster. It includes contact details, subjects, education level, notes, address, and tags.
   Press **Esc** or select **Close** to dismiss it.
@@ -72,6 +74,7 @@ After a search, the roster shows matching students and numbers them from 1. A su
 ### Command format
 
 * Command words and prefixes are lowercase: use `add` and `n/`, for example.
+* As you type in the command box, live suggestions show available command words and remaining parameter prefixes. Press **Tab** to autocomplete.
 * Replace `UPPER_CASE` placeholders with your own values. `n/NAME` can become `n/Ryan Tan`.
 * Square brackets mark optional input. Omit `[e/EMAIL]` when you do not want to store an email.
   Do not type the brackets.
@@ -445,7 +448,8 @@ Copy the saved `data/addressbook.json` while the app is closed. See [Backups and
 | Action | Shortcut | Description |
 | --- | --- | --- |
 | Focus command input | `/` | When focus is outside the command box, focuses it with the cursor at the end without entering `/`. |
-| Return to the roster | `Esc` | Closes the student detail modal, or moves focus to the student list when the command box has focus. |
+| Autocomplete suggestion | `Tab` | Autocompletes the top matching command word or parameter prefix into the command box. |
+| Return to the roster | `Esc` | Dismisses completion suggestions if open, closes the student detail modal if open, or moves focus to the student list when the command box has focus. |
 | Previous command | Up arrow | When the command box has focus, recalls an earlier command entered during this session. |
 | Next command | Down arrow | Recalls a later command. Moving past the newest command restores the unfinished draft. |
 | Toggle Help window | `F1` | Opens the Help window when closed, or closes it when open. |
