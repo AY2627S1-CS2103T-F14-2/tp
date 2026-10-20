@@ -17,8 +17,11 @@ import seedu.address.logic.commands.exceptions.CommandException;
 import seedu.address.model.Model;
 import seedu.address.model.ModelManager;
 import seedu.address.model.UserPrefs;
-import seedu.address.model.person.NameContainsKeywordsPredicate;
 import seedu.address.model.person.Person;
+import seedu.address.model.person.PersonMatchesFieldsPredicate;
+import seedu.address.model.person.PersonMatchesFieldsPredicate.MatchMode;
+import seedu.address.model.person.PersonMatchesFieldsPredicate.SearchField;
+import seedu.address.model.person.PersonMatchesFieldsPredicate.SearchTerm;
 
 /** Contains tests for {@code ShowCommand}. */
 public class ShowCommandTest {
@@ -36,7 +39,8 @@ public class ShowCommandTest {
 
     @Test
     public void execute_validIndexFilteredList_usesDisplayedOrder() throws CommandException {
-        model.updateFilteredPersonList(new NameContainsKeywordsPredicate(List.of("Meier")));
+        model.updateFilteredPersonList(new PersonMatchesFieldsPredicate(
+                List.of(new SearchTerm(SearchField.NAME, "Meier")), MatchMode.ALL));
         Person expectedPerson = model.getFilteredPersonList().get(INDEX_SECOND_PERSON.getZeroBased());
 
         CommandResult result = new ShowCommand(INDEX_SECOND_PERSON).execute(model);

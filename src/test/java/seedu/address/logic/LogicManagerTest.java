@@ -65,7 +65,7 @@ public class LogicManagerTest {
     @Test
     public void execute_showFilteredStudent_returnsStudentFromDisplayedOrder() throws Exception {
         model.setAddressBook(TypicalPersons.getTypicalAddressBook());
-        logic.execute("find Meier");
+        logic.execute("find --any n/Daniel p/987");
 
         CommandResult result = logic.execute("show 2");
 
@@ -76,7 +76,7 @@ public class LogicManagerTest {
     @Test
     public void execute_showInvalidDisplayedIndex_throwsCommandException() throws Exception {
         model.setAddressBook(TypicalPersons.getTypicalAddressBook());
-        logic.execute("find Benson");
+        logic.execute("find n/Benson");
 
         CommandException exception = org.junit.jupiter.api.Assertions.assertThrows(CommandException.class, ()
                 -> logic.execute("show 2"));
@@ -98,7 +98,7 @@ public class LogicManagerTest {
     @Test
     public void execute_deleteFilteredStudent_savesRemainingRoster() throws Exception {
         model.setAddressBook(TypicalPersons.getTypicalAddressBook());
-        logic.execute("find Benson");
+        logic.execute("find n/Benson");
 
         CommandResult result = logic.execute("delete 1");
 
@@ -114,7 +114,7 @@ public class LogicManagerTest {
     @Test
     public void execute_addStudent_savesAndShowsFullRoster() throws Exception {
         model.setAddressBook(TypicalPersons.getTypicalAddressBook());
-        logic.execute("find Benson");
+        logic.execute("find n/Benson");
 
         CommandResult result = logic.execute("add n/Ryan Tan p/+6591234567 "
                 + "s/Mathematics  Plus s/Physics l/Secondary  4");
@@ -131,7 +131,7 @@ public class LogicManagerTest {
     @Test
     public void execute_malformedDelete_preservesDisplayedList() throws Exception {
         model.setAddressBook(TypicalPersons.getTypicalAddressBook());
-        logic.execute("find Benson");
+        logic.execute("find n/Benson");
         Model expectedModel = new ModelManager(model.getAddressBook(), new UserPrefs());
         expectedModel.updateFilteredPersonList(person -> person.equals(TypicalPersons.BENSON));
 
