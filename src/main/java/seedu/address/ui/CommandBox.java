@@ -1,11 +1,17 @@
 package seedu.address.ui;
 
+import java.util.List;
+import java.util.Optional;
+
 import javafx.collections.ObservableList;
 import javafx.fxml.FXML;
+import javafx.scene.control.Label;
 import javafx.scene.control.TextField;
 import javafx.scene.input.KeyCode;
 import javafx.scene.input.KeyEvent;
+import javafx.scene.layout.HBox;
 import javafx.scene.layout.Region;
+import javafx.scene.layout.VBox;
 import seedu.address.logic.commands.CommandResult;
 import seedu.address.logic.commands.exceptions.CommandException;
 import seedu.address.logic.parser.exceptions.ParseException;
@@ -24,6 +30,10 @@ public class CommandBox extends UiPart<Region> {
     @FXML
     private TextField commandTextField;
 
+    @FXML
+    private VBox suggestionContainer;
+
+
     /**
      * Creates a {@code CommandBox} with the given {@code CommandExecutor}.
      */
@@ -36,8 +46,14 @@ public class CommandBox extends UiPart<Region> {
             if (!isUpdatingCommandField) {
                 commandBoxLogic.resetHistoryNavigation();
             }
+            updateSuggestions();
         });
-        commandTextField.setOnKeyPressed(this::handleCommandHistoryNavigation);
+        commandTextField.focusedProperty().addListener((observable, oldValue, isFocused) -> {
+            if (!isFocused) {
+                hideSuggestions();
+            }
+        });
+        commandTextField.addEventFilter(KeyEvent.KEY_PRESSED, this::handleKeyPressed);
     }
 
     /**
@@ -61,12 +77,33 @@ public class CommandBox extends UiPart<Region> {
     @FXML
     private void handleCommandEntered() {
         String commandText = commandTextField.getText();
+        hideSuggestions();
         try {
             if (commandBoxLogic.executeCommand(commandText)) {
                 commandTextField.setText("");
             }
         } catch (CommandException | ParseException e) {
             setStyleToIndicateCommandFailure();
+        }
+    }
+
+    /**
+     * Handles keyboard events including autocomplete on Tab and history navigation.
+     */
+    private void handleKeyPressed(KeyEvent event) {
+        if (event.getCode() == KeyCode.TAB) {
+            Optional<String> completed = commandBoxLogic.autocomplete(commandTextField.getText());
+            if (completed.isPresent()) {
+                setCommandFieldText(completed.get());
+                updateSuggestions();
+            }
+            event.consume();
+        } else if (event.getCode() == KeyCode.ESCAPE && suggestionContainer != null
+                && suggestionContainer.isVisible()) {
+            hideSuggestions();
+            event.consume();
+        } else {
+            handleCommandHistoryNavigation(event);
         }
     }
 
@@ -84,6 +121,68 @@ public class CommandBox extends UiPart<Region> {
         } else if (event.getCode() == KeyCode.DOWN) {
             setCommandFieldText(commandBoxLogic.nextCommand(commandTextField.getText()));
             event.consume();
+        }
+    }
+
+    /**
+     * Updates and displays matching completion suggestions based on current input.
+     */
+    private void updateSuggestions() {
+        if (suggestionContainer == null) {
+            return;
+        }
+
+        String currentText = commandTextField.getText();
+        List<CommandCompletionLogic.Suggestion> suggestions = commandBoxLogic.getSuggestions(currentText);
+
+        if (suggestions.isEmpty() || !commandTextField.isFocused()) {
+            hideSuggestions();
+            return;
+        }
+
+        suggestionContainer.getChildren().clear();
+
+        Label hintHeader = new Label("Suggestions (Press Tab to autocomplete):");
+        hintHeader.getStyleClass().add("suggestion-header");
+        suggestionContainer.getChildren().add(hintHeader);
+
+        int count = 0;
+        for (CommandCompletionLogic.Suggestion suggestion : suggestions) {
+            if (count++ >= 5) {
+                break;
+            }
+
+            HBox itemRow = new HBox(8);
+            itemRow.getStyleClass().add("suggestion-item");
+
+            Label formatLabel = new Label(suggestion.formatText());
+            formatLabel.getStyleClass().add("suggestion-format");
+
+            Label descLabel = new Label("— " + suggestion.description());
+            descLabel.getStyleClass().add("suggestion-description");
+
+            itemRow.getChildren().addAll(formatLabel, descLabel);
+            itemRow.setOnMouseClicked(event -> {
+                setCommandFieldText(suggestion.completionText());
+                focus();
+                updateSuggestions();
+            });
+
+            suggestionContainer.getChildren().add(itemRow);
+        }
+
+        suggestionContainer.setManaged(true);
+        suggestionContainer.setVisible(true);
+    }
+
+    /**
+     * Hides the suggestion container.
+     */
+    private void hideSuggestions() {
+        if (suggestionContainer != null) {
+            suggestionContainer.setVisible(false);
+            suggestionContainer.setManaged(false);
+            suggestionContainer.getChildren().clear();
         }
     }
 
