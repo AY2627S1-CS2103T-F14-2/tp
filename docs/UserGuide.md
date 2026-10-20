@@ -189,7 +189,9 @@ The displayed list remains unchanged when the arguments are invalid.
 
 Shows students matching the given fields. By default, every given field must match. Use `--any` to find students matching at least one given field.
 
-**Format:** `find [--any] [n/NAME] [p/PHONE] [s/SUBJECT]... [l/LEVEL] [e/EMAIL]`
+**Format:** `find [--any] [n/NAME] [p/PHONE] [e/EMAIL] [s/SUBJECT]... [l/LEVEL]`
+
+All fields are optional, but you must specify at least one field.
 
 * All field searches are case-insensitive and support partial matching. For example, `find n/Ryan T` matches `Ryan Tan` but not `Ryan Lim`.
 * Every field may be repeated. For example, `find s/Math s/English` matches students who take both Math and English.
