@@ -46,6 +46,7 @@ public class CommandBox extends UiPart<Region> {
 
         suggestionPopup = new Popup();
         suggestionPopup.setAutoHide(true);
+        suggestionPopup.setAutoFix(false);
 
         suggestionContainer = new VBox();
         suggestionContainer.getStyleClass().add("suggestion-box");
