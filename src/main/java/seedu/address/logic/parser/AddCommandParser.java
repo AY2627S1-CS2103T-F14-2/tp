@@ -1,9 +1,13 @@
 package seedu.address.logic.parser;
 
+import static java.util.Objects.requireNonNull;
+
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -11,16 +15,18 @@ import seedu.address.logic.commands.AddCommand;
 import seedu.address.logic.parser.exceptions.ParseException;
 import seedu.address.model.person.Person;
 import seedu.address.model.person.StudentFields;
+import seedu.address.model.tag.Tag;
 
 /** Parses the add-student syntax and checks its fields before creating a command. */
 public class AddCommandParser implements Parser<AddCommand> {
-    private static final Pattern PREFIX_PATTERN = Pattern.compile("(?U)(?<!\\S)([a-z])/");
+    private static final Pattern PREFIX_PATTERN = Pattern.compile("(?U)(?<!\\S)([a-z]/|/[a-z](?=\\s|$))");
     private static final List<Map.Entry<String, String>> REQUIRED_PARAMETERS = List.of(
             Map.entry("n/", "n/NAME"), Map.entry("p/", "p/PHONE"),
             Map.entry("s/", "s/SUBJECT"), Map.entry("l/", "l/LEVEL"));
 
     @Override
     public AddCommand parse(String args) throws ParseException {
+        requireNonNull(args);
         Map<String, List<String>> values = new LinkedHashMap<>();
         Matcher matcher = PREFIX_PATTERN.matcher(args);
         String previousPrefix = null;
@@ -28,7 +34,7 @@ public class AddCommandParser implements Parser<AddCommand> {
         int firstPrefixStart = -1;
 
         while (matcher.find()) {
-            String prefix = matcher.group(1) + "/";
+            String prefix = matcher.group(1);
             if (!isKnownPrefix(prefix)) {
                 throw new ParseException("Unknown parameter prefix: " + prefix);
             }
@@ -102,12 +108,29 @@ public class AddCommandParser implements Parser<AddCommand> {
         if (values.containsKey("r/") && !StudentFields.isValidNotes(notes)) {
             throw new ParseException(StudentFields.INVALID_NOTES);
         }
-        Person student = new Person(name, phone, email, normalizedSubjects, level, notes);
-        return new AddCommand(student);
+        List<String> tagValues = values.getOrDefault("/t", List.of());
+        Set<Tag> tags = parseTags(tagValues);
+        if (tags.size() > Tag.MAX_TAGS_PER_STUDENT) {
+            throw new ParseException(Tag.MESSAGE_TAG_LIMIT);
+        }
+        Person student = new Person(name, phone, email, normalizedSubjects, level, notes).withTags(tags);
+        return new AddCommand(student, tags.size() < tagValues.size());
+    }
+
+    private static Set<Tag> parseTags(List<String> tagValues) throws ParseException {
+        Set<Tag> tags = new HashSet<>();
+        for (String tagValue : tagValues) {
+            if (!Tag.isValidTagName(tagValue)) {
+                throw new ParseException(Tag.MESSAGE_CONSTRAINTS);
+            }
+            tags.add(new Tag(tagValue));
+        }
+        return tags;
     }
 
     private static boolean isKnownPrefix(String prefix) {
         return prefix.equals("n/") || prefix.equals("p/") || prefix.equals("e/")
-                || prefix.equals("s/") || prefix.equals("l/") || prefix.equals("r/");
+                || prefix.equals("s/") || prefix.equals("l/") || prefix.equals("r/")
+                || prefix.equals("/t");
     }
 }

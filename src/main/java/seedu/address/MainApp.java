@@ -7,9 +7,12 @@ import java.util.Optional;
 import java.util.logging.Logger;
 
 import javafx.application.Application;
+import javafx.application.Platform;
+import javafx.scene.control.Alert;
 import javafx.stage.Stage;
 import seedu.address.commons.core.LogsCenter;
 import seedu.address.commons.exceptions.DataLoadingException;
+import seedu.address.commons.exceptions.TagMigrationException;
 import seedu.address.commons.util.StringUtil;
 import seedu.address.logic.Logic;
 import seedu.address.logic.LogicManager;
@@ -37,35 +40,58 @@ public class MainApp extends Application {
     private static final Logger logger = LogsCenter.getLogger(MainApp.class);
     private static final Path USER_PREFS_FILE_PATH = Paths.get("preferences.json");
     private static final Path ADDRESS_BOOK_FILE_PATH = Paths.get("data", "addressbook.json");
+    private static final String TAG_MIGRATION_NOTICE =
+            "Existing tags were updated to lowercase and duplicate tags were merged.";
 
     protected Ui ui;
     protected Logic logic;
     protected Storage storage;
     protected Model model;
+    private String startupError;
+    private final JsonAddressBookStorage addressBookStorage;
+    private final JsonUserPrefsStorage userPrefsStorage;
+
+    /** Creates the application with its usual data and preference files. */
+    public MainApp() {
+        this(new JsonAddressBookStorage(ADDRESS_BOOK_FILE_PATH), new JsonUserPrefsStorage(USER_PREFS_FILE_PATH));
+    }
+
+    /** Creates the application with explicit storage, allowing isolated startup checks. */
+    MainApp(JsonAddressBookStorage addressBookStorage, JsonUserPrefsStorage userPrefsStorage) {
+        this.addressBookStorage = java.util.Objects.requireNonNull(addressBookStorage);
+        this.userPrefsStorage = java.util.Objects.requireNonNull(userPrefsStorage);
+    }
 
     @Override
     public void init() throws Exception {
         logger.info("=============================[ Initializing TutorRoster ]===========================");
         super.init();
 
-        JsonUserPrefsStorage userPrefsStorage = new JsonUserPrefsStorage(USER_PREFS_FILE_PATH);
         UserPrefs userPrefs = initPrefs(userPrefsStorage);
-        JsonAddressBookStorage addressBookStorage = new JsonAddressBookStorage(ADDRESS_BOOK_FILE_PATH);
         storage = new StorageManager(addressBookStorage, userPrefsStorage);
 
-        model = initModelManager(storage, userPrefs);
+        try {
+            model = initModelManager(storage, userPrefs);
+        } catch (TagMigrationException e) {
+            startupError = "Unable to save updated tags. Your roster file was not changed.\n"
+                    + "Check that the data folder is writable, then restart TutorRoster.";
+            logger.severe("Stopping startup because the tag migration could not be saved: " + e.getMessage());
+            return;
+        }
 
         logic = new LogicManager(model, storage);
 
-        ui = new UiManager(logic, storage.getAddressBookFilePath());
+        ui = new UiManager(logic, storage.getAddressBookFilePath(),
+                addressBookStorage.wereTagsMigrated() ? TAG_MIGRATION_NOTICE : "");
     }
 
     /**
      * Returns a {@code ModelManager} with the data from {@code storage}'s address book and {@code userPrefs}. <br>
      * The data from the sample address book will be used instead if {@code storage}'s address book is not found,
      * or an empty address book will be used instead if errors occur when reading {@code storage}'s address book.
+     * A failed tag migration save is propagated so startup can stop without exposing an empty editable roster.
      */
-    private Model initModelManager(Storage storage, ReadOnlyUserPrefs userPrefs) {
+    private Model initModelManager(Storage storage, ReadOnlyUserPrefs userPrefs) throws TagMigrationException {
         logger.info("Using data file : " + storage.getAddressBookFilePath());
 
         Optional<ReadOnlyAddressBook> addressBookOptional;
@@ -77,6 +103,8 @@ public class MainApp extends Application {
                     + " populated with sample TutorRoster data.");
             }
             initialData = addressBookOptional.orElseGet(SampleDataUtil::getSampleAddressBook);
+        } catch (TagMigrationException e) {
+            throw e;
         } catch (DataLoadingException e) {
             logger.warning("Data file at " + storage.getAddressBookFilePath() + " could not be loaded."
                     + " Will be starting with an empty AddressBook.");
@@ -121,12 +149,24 @@ public class MainApp extends Application {
     @Override
     public void start(Stage primaryStage) {
         logger.info("Starting TutorRoster " + MainApp.VERSION);
+        if (startupError != null) {
+            Alert alert = new Alert(Alert.AlertType.ERROR, startupError);
+            alert.setTitle("Unable to load student roster");
+            alert.setHeaderText("Tag migration could not be saved");
+            alert.showAndWait();
+            Platform.exit();
+            return;
+        }
+        assert ui != null : "Successful initialization must create the UI";
         ui.start(primaryStage);
     }
 
     @Override
     public void stop() {
         logger.info("============================ [ Stopping TutorRoster ] =============================");
+        if (model == null) {
+            return;
+        }
         try {
             storage.saveUserPrefs(model.getUserPrefs());
         } catch (IOException e) {

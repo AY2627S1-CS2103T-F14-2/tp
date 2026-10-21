@@ -173,13 +173,13 @@ public class LogicManagerTest {
         Person ryan = model.getAddressBook().getPersonList().getFirst();
         logic.execute("add n/Alicia Lim p/91234567 s/English l/Secondary 4");
         Person alicia = model.getAddressBook().getPersonList().get(1);
-        logic.execute("find Ryan");
+        logic.execute("find n/Ryan");
         logic.execute("delete 1");
         assertStoredRoster(List.of(alicia));
 
         assertEquals(UndoCommand.MESSAGE_SUCCESS, logic.execute("undo").getFeedbackToUser());
         assertStoredRoster(List.of(ryan, alicia));
-        logic.execute("find Nobody");
+        logic.execute("find n/Nobody");
         assertEquals(RedoCommand.MESSAGE_SUCCESS, logic.execute("redo").getFeedbackToUser());
         assertStoredRoster(List.of(alicia));
         logic.execute("undo");
@@ -196,7 +196,7 @@ public class LogicManagerTest {
     public void execute_readOnlyAndRejectedCommands_preserveRedoAndFilter() throws Exception {
         logic.execute("add n/Ryan Tan p/81234567 s/Physics l/JC 1");
         logic.execute("undo");
-        logic.execute("find Nobody");
+        logic.execute("find n/Nobody");
         assertCommandException("undo", UndoCommand.MESSAGE_FAILURE);
         assertParseException("redo 1", RedoCommand.MESSAGE_USAGE);
         assertCommandException("delete 1", MESSAGE_INVALID_STUDENT_DISPLAYED_INDEX);
@@ -244,7 +244,7 @@ public class LogicManagerTest {
         Person ryan = model.getAddressBook().getPersonList().getFirst();
         logic.execute("add n/Alicia Lim p/91234567 s/English l/Secondary 4");
         logic.execute("undo");
-        logic.execute("find Ryan");
+        logic.execute("find n/Ryan");
         String storedBefore = Files.readString(dataPath);
         shouldFailSaving[0] = true;
 
@@ -297,7 +297,7 @@ public class LogicManagerTest {
                 new JsonUserPrefsStorage(temporaryFolder.resolve("userPrefs.json"))));
         logic.execute("add n/Ryan Tan p/81234567 s/Physics l/JC 1");
         logic.execute("add n/Alicia Lim p/91234567 s/English l/Secondary 4");
-        logic.execute("find Ryan");
+        logic.execute("find n/Ryan");
         String storedBefore = Files.readString(dataPath);
         AddressBook rosterBefore = new AddressBook(model.getAddressBook());
         shouldFail[0] = true;

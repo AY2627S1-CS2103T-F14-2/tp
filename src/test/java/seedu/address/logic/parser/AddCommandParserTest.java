@@ -5,19 +5,64 @@ import static seedu.address.logic.parser.CommandParserTestUtil.assertParseFailur
 import static seedu.address.logic.parser.CommandParserTestUtil.assertParseSuccess;
 
 import java.util.List;
+import java.util.Set;
+import java.util.stream.Collectors;
+import java.util.stream.IntStream;
 
 import org.junit.jupiter.api.Test;
 
 import seedu.address.logic.commands.AddCommand;
 import seedu.address.model.person.Person;
 import seedu.address.model.person.StudentFields;
+import seedu.address.model.tag.Tag;
 
 public class AddCommandParserTest {
     private static final String PARAMETER_GUIDE = "Required: add n/NAME p/PHONE s/SUBJECT l/LEVEL\n"
-            + "Optional: e/EMAIL r/NOTES; repeat s/SUBJECT for additional subjects.\n"
+            + "Optional: e/EMAIL; r/NOTES; /t TAG; repeat s/SUBJECT for additional subjects"
+            + " or /t TAG for additional tags.\n"
             + "Parameters may appear in any order.";
 
     private final AddCommandParser parser = new AddCommandParser();
+
+    @Test
+    public void parse_repeatedTagPrefixesInAnyOrder_success() {
+        Person expected = new Person("Amy", "123", null, List.of("Math", "Physics"), "JC 1", "Keep notes")
+                .withTags(Set.of(new Tag("exam-prep"), new Tag("group-class")));
+        assertParseSuccess(parser, " /t EXAM-Prep n/Amy p/123 s/Math /t group-class s/Physics l/JC 1 r/Keep notes",
+                new AddCommand(expected));
+    }
+
+    @Test
+    public void parse_duplicateTags_deduplicatesAndRequestsWarning() {
+        Person expected = new Person("Amy", "123", null, List.of("Math"), "JC 1")
+                .withTags(Set.of(new Tag("exam-prep")));
+        assertParseSuccess(parser, " n/Amy p/123 s/Math l/JC 1 /t EXAM-PREP /t exam-prep",
+                new AddCommand(expected, true));
+    }
+
+    @Test
+    public void parse_tagLimit_countsDistinctNormalizedTags() {
+        String tags = IntStream.range(0, 20).mapToObj(i -> " /t tag" + i).collect(Collectors.joining());
+        Set<Tag> expectedTags = IntStream.range(0, 20).mapToObj(i -> new Tag("tag" + i)).collect(Collectors.toSet());
+        Person expected = new Person("Amy", "123", null, List.of("Math"), "JC 1").withTags(expectedTags);
+        String command = " n/Amy p/123 s/Math l/JC 1" + tags;
+        assertParseSuccess(parser, command, new AddCommand(expected));
+        assertParseSuccess(parser, command + " /t TAG0", new AddCommand(expected, true));
+        assertParseFailure(parser, command + " /t tag20", Tag.MESSAGE_TAG_LIMIT);
+    }
+
+    @Test
+    public void parse_emptyMultipleOrInvalidTagValues_rejected() {
+        String command = " n/Amy p/123 s/Math l/JC 1";
+        for (String value : List.of("", "tag1 tag2", "\"exam prep\"", "bad--tag", "bad_tag", "a".repeat(31))) {
+            assertParseFailure(parser, command + " /t " + value, Tag.MESSAGE_CONSTRAINTS);
+        }
+        assertParseFailure(parser, command + " /t /t valid", Tag.MESSAGE_CONSTRAINTS);
+        assertParseFailure(parser, command + " /x exam-prep", "Unknown parameter prefix: /x");
+        Person expected = new Person("Amy", "123", null, List.of("Math"), "JC 1")
+                .withTags(Set.of(new Tag("a".repeat(30))));
+        assertParseSuccess(parser, command + " /t " + "a".repeat(30), new AddCommand(expected));
+    }
 
     @Test
     public void parse_allFieldsInAnyOrder_success() {

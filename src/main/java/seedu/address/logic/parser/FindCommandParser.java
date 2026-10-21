@@ -1,10 +1,12 @@
 package seedu.address.logic.parser;
 
+import static java.util.Objects.requireNonNull;
 import static seedu.address.logic.parser.CliSyntax.PREFIX_EMAIL;
 import static seedu.address.logic.parser.CliSyntax.PREFIX_LEVEL;
 import static seedu.address.logic.parser.CliSyntax.PREFIX_NAME;
 import static seedu.address.logic.parser.CliSyntax.PREFIX_PHONE;
 import static seedu.address.logic.parser.CliSyntax.PREFIX_SUBJECT;
+import static seedu.address.logic.parser.CliSyntax.PREFIX_TAG;
 
 import java.util.ArrayList;
 import java.util.LinkedHashMap;
@@ -29,13 +31,15 @@ public class FindCommandParser implements Parser<FindCommand> {
             PREFIX_PHONE.getPrefix(), SearchField.PHONE,
             PREFIX_SUBJECT.getPrefix(), SearchField.SUBJECT,
             PREFIX_LEVEL.getPrefix(), SearchField.LEVEL,
-            PREFIX_EMAIL.getPrefix(), SearchField.EMAIL);
+            PREFIX_EMAIL.getPrefix(), SearchField.EMAIL,
+            PREFIX_TAG.getPrefix(), SearchField.TAG);
 
     @Override
     public FindCommand parse(String args) throws ParseException {
-        String trimmedArgs = args.trim();
+        requireNonNull(args);
+        String trimmedArgs = StudentFields.trim(args);
         if (trimmedArgs.isEmpty()) {
-            throw new ParseException(FindCommand.MESSAGE_INVALID_COMMAND_FORMAT);
+            throw invalidFormat();
         }
 
         boolean isAnySearch = hasAnyOption(trimmedArgs);
@@ -43,7 +47,7 @@ public class FindCommandParser implements Parser<FindCommand> {
                 ? StudentFields.trim(trimmedArgs.substring(FindCommand.ANY_KEYWORD_OPTION.length()))
                 : trimmedArgs;
         if (searchArguments.isEmpty()) {
-            throw new ParseException(FindCommand.MESSAGE_INVALID_COMMAND_FORMAT);
+            throw invalidFormat();
         }
 
         Map<String, List<String>> values = parseSearchValues(searchArguments);
@@ -76,7 +80,7 @@ public class FindCommandParser implements Parser<FindCommand> {
         }
 
         if (firstPrefixStart != 0 || previousPrefix == null) {
-            throw new ParseException(FindCommand.MESSAGE_INVALID_COMMAND_FORMAT);
+            throw invalidFormat();
         }
         addValue(values, previousPrefix, searchArguments.substring(previousValueStart));
         return values;
@@ -96,7 +100,7 @@ public class FindCommandParser implements Parser<FindCommand> {
     private void validateSearchValues(Map<String, List<String>> values) throws ParseException {
         for (Map.Entry<String, List<String>> entry : values.entrySet()) {
             if (entry.getValue().stream().anyMatch(String::isEmpty)) {
-                throw new ParseException("Missing value for parameter " + entry.getKey());
+                throw invalidFormat();
             }
         }
     }
@@ -110,5 +114,9 @@ public class FindCommandParser implements Parser<FindCommand> {
             }
         }
         return searchTerms;
+    }
+
+    private static ParseException invalidFormat() {
+        return new ParseException(FindCommand.MESSAGE_INVALID_COMMAND_FORMAT);
     }
 }

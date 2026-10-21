@@ -12,6 +12,7 @@ import java.util.logging.Logger;
 import seedu.address.commons.core.LogsCenter;
 import seedu.address.commons.exceptions.DataLoadingException;
 import seedu.address.commons.exceptions.IllegalValueException;
+import seedu.address.commons.exceptions.TagMigrationException;
 import seedu.address.commons.util.FileUtil;
 import seedu.address.commons.util.JsonUtil;
 import seedu.address.model.ReadOnlyAddressBook;
@@ -24,6 +25,7 @@ public class JsonAddressBookStorage {
     private static final Logger logger = LogsCenter.getLogger(JsonAddressBookStorage.class);
 
     private Path filePath;
+    private boolean tagsMigrated;
 
     public JsonAddressBookStorage(Path filePath) {
         this.filePath = filePath;
@@ -31,6 +33,11 @@ public class JsonAddressBookStorage {
 
     public Path getAddressBookFilePath() {
         return filePath;
+    }
+
+    /** Returns whether the last successful read saved normalized tags. */
+    public boolean wereTagsMigrated() {
+        return tagsMigrated;
     }
 
     /**
@@ -51,6 +58,7 @@ public class JsonAddressBookStorage {
      */
     public Optional<ReadOnlyAddressBook> readAddressBook(Path filePath) throws DataLoadingException {
         requireNonNull(filePath);
+        tagsMigrated = false;
 
         Optional<JsonSerializableAddressBook> jsonAddressBook = JsonUtil.readJsonFile(
                 filePath, JsonSerializableAddressBook.class);
@@ -59,7 +67,18 @@ public class JsonAddressBookStorage {
         }
 
         try {
-            return Optional.of(jsonAddressBook.get().toModelType());
+            ReadOnlyAddressBook restored = jsonAddressBook.get().toModelType();
+            if (jsonAddressBook.get().requiresTagMigration()) {
+                try {
+                    saveAddressBookAtomically(restored, filePath);
+                } catch (IOException e) {
+                    logger.warning("Tag migration could not be saved; startup must stop.");
+                    throw new TagMigrationException(e);
+                }
+                tagsMigrated = true;
+                logger.info("Saved normalized tags in the existing roster.");
+            }
+            return Optional.of(restored);
         } catch (IllegalValueException ive) {
             logger.info("Illegal values found in " + filePath + ": " + ive.getMessage());
             throw new DataLoadingException(ive);
@@ -90,8 +109,14 @@ public class JsonAddressBookStorage {
 
     /** Writes to a sibling temporary file and replaces the data file only after the write succeeds. */
     public void saveAddressBookAtomically(ReadOnlyAddressBook addressBook) throws IOException {
+        saveAddressBookAtomically(addressBook, filePath);
+    }
+
+    /** Writes atomically to the same path that was read, including when migrating existing files. */
+    protected void saveAddressBookAtomically(ReadOnlyAddressBook addressBook, Path destination) throws IOException {
         requireNonNull(addressBook);
-        Path target = filePath.toAbsolutePath();
+        requireNonNull(destination);
+        Path target = destination.toAbsolutePath();
         Path parent = target.getParent();
         Files.createDirectories(parent);
         Path temporary = Files.createTempFile(parent, "tutorroster-", ".tmp");

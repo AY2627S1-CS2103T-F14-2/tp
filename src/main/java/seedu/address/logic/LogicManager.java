@@ -13,6 +13,7 @@ import seedu.address.logic.commands.AddCommand;
 import seedu.address.logic.commands.Command;
 import seedu.address.logic.commands.CommandResult;
 import seedu.address.logic.commands.RedoCommand;
+import seedu.address.logic.commands.TagCommand;
 import seedu.address.logic.commands.UndoCommand;
 import seedu.address.logic.commands.exceptions.CommandException;
 import seedu.address.logic.parser.AddressBookParser;
@@ -57,6 +58,7 @@ public class LogicManager implements Logic {
         CommandResult commandResult = command.execute(proposedModel);
         boolean isHistoryCommand = command instanceof UndoCommand || command instanceof RedoCommand;
         boolean hasRosterChanged = !model.getAddressBook().equals(proposedModel.getAddressBook());
+        boolean usesStudentSaveMessage = command instanceof AddCommand || command instanceof TagCommand;
 
         if (hasRosterChanged || isHistoryCommand) {
             if (!isHistoryCommand) {
@@ -65,17 +67,22 @@ public class LogicManager implements Logic {
             try {
                 storage.saveAddressBookAtomically(proposedModel.getAddressBook());
             } catch (AccessDeniedException e) {
-                String message = command instanceof AddCommand ? MESSAGE_ADD_SAVE_FAILURE
+                logger.warning("Could not save roster changes; the live roster and history were not changed.");
+                String message = usesStudentSaveMessage ? MESSAGE_ADD_SAVE_FAILURE
                         : String.format(FILE_OPS_PERMISSION_ERROR_FORMAT, e.getMessage());
                 throw new CommandException(message, e);
             } catch (IOException e) {
-                String message = command instanceof AddCommand ? MESSAGE_ADD_SAVE_FAILURE
+                logger.warning("Could not save roster changes; the live roster and history were not changed.");
+                String message = usesStudentSaveMessage ? MESSAGE_ADD_SAVE_FAILURE
                         : String.format(FILE_OPS_ERROR_FORMAT, e.getMessage());
                 throw new CommandException(message, e);
             }
         }
         // Publish roster, filter, and history together only after a successful save.
         model.restoreSnapshot(proposedModel.createSnapshot());
+        if (hasRosterChanged || isHistoryCommand) {
+            logger.info("Saved and published roster and history changes.");
+        }
 
         return commandResult;
     }

@@ -17,9 +17,9 @@ public class SampleDataUtil {
     public static Person[] getSamplePersons() {
         return new Person[] {
             new Person("Alex Yeoh", "87438807", "alexyeoh@example.com",
-                    List.of("Mathematics"), "Secondary 4"),
+                    List.of("Mathematics"), "Secondary 4").withTags(getTagSet("exam-prep", "group-class")),
             new Person("Bernice Yu", "99272758", "berniceyu@example.com",
-                    List.of("English Language", "Literature"), "JC 1"),
+                    List.of("English Language", "Literature"), "JC 1").withTags(getTagSet("needs-follow-up")),
             new Person("Charlotte Oliveiro", "93210283", null,
                     List.of("Physics"), "Secondary 3"),
             new Person("David Li", "91031282", "lidavid@example.com",

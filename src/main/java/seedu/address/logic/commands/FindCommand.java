@@ -11,6 +11,7 @@ import seedu.address.model.person.Person;
 
 /**
  * Finds and lists all students matching the supplied field-specific search terms.
+ * Keyword matching is case insensitive and allows partial matches.
  */
 public class FindCommand extends Command {
 
@@ -18,15 +19,16 @@ public class FindCommand extends Command {
     public static final String ANY_KEYWORD_OPTION = "--any";
 
     public static final String MESSAGE_USAGE = COMMAND_WORD + " [" + ANY_KEYWORD_OPTION + "] "
-            + "[n/NAME] [p/PHONE] [e/EMAIL] [s/SUBJECT]... [l/LEVEL]\n\n"
-            + "Supply at least one field.\n\n"
-            + "By default, find shows students matching every supplied value. Use `--any` to show students "
-            + "matching at least one value. All field searches are case-insensitive and support partial matching.\n\n"
+            + "[n/NAME]... [p/PHONE]... [e/EMAIL]... [s/SUBJECT]... [l/LEVEL]... [t/TAG]...\n\n"
+            + "Supply at least one field. Fields may appear in any order.\n\n"
+            + "By default, find shows students matching every supplied field. Use `--any` to show students "
+            + "matching at least one. All field searches are case-insensitive and support partial matching.\n\n"
             + "Examples:\n"
-            + "- \"find n/Alex A s/Mathematics\" returns students whose name contains “Alex A” and study "
+            + "- \"find n/Alex A s/Mathematics\" returns students whose name contains both “Alex A” and study "
             + "Mathematics.\n"
             + "- \"find --any n/Alex A s/Mathematics\" returns students whose name contains “Alex A” or study "
-            + "Mathematics.";
+            + "Mathematics."
+            + "- \"find --any t/exam-prep t/group-class\" returns students with either tag.";
 
     public static final String MESSAGE_INVALID_COMMAND_FORMAT =
             "Invalid command format!\n\nUsage: " + MESSAGE_USAGE;

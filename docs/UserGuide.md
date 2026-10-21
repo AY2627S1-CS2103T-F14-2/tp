@@ -7,8 +7,8 @@
 # TutorRoster User Guide
 
 **TutorRoster** is a desktop student directory for private freelance tutors. It keeps student names,
-contact details, subjects, education levels, and additional notes together in a roster. Type short commands to 
-add, find, list, and delete students, undo or redo changes, and view individual student details in the 
+contact details, subjects, education levels, tags, and additional notes together in a roster. Type short commands to 
+add, find, list, and delete students, undo or redo changes, add tags, and view individual student details in the 
 graphical interface.
 
 Email and notes are optional.
@@ -76,15 +76,20 @@ If you are using a PDF version of this user guide, be careful when copying comma
 | Action | Format | Example |
 | --- | --- | --- |
 | Open help | `help` | `help` |
-| Add student | `add n/NAME p/PHONE s/SUBJECT l/LEVEL [e/EMAIL] [r/NOTES] [MORE_SUBJECT]` | `add n/Ryan Tan p/81234567 s/Mathematics l/Secondary 4 r/Prefers worked examples` |
+| Add student | `add n/NAME p/PHONE [e/EMAIL] s/SUBJECT [s/SUBJECT]... l/LEVEL [/t TAG]... [r/NOTES]` | `add n/Ryan Tan p/81234567 s/Mathematics l/Secondary 4 r/Prefers worked examples` |
 | List students | `list` | `list` |
-| Find students | `find [--any] n/NAME [p/PHONE] [s/SUBJECT]... [l/LEVEL] [e/EMAIL]` | `find n/Ryan s/Math` or `find --any n/Ryan s/Math` |
+| Find students | `find [--any] [n/NAME]... [p/PHONE]... [e/EMAIL]... [s/SUBJECT]... [l/LEVEL]... [t/TAG]...` where at least one field is required | `find n/Ryan` |
 | Show student details | `show INDEX` | `show 2` |
 | Delete student | `delete INDEX` | `delete 2` |
+| Add tag | `tag INDEX TAG` | `tag 3 exam-prep` |
+| Remove tag | `untag INDEX TAG` | `untag 3 exam-prep` |
+| Clear a student's tags | `untag --all INDEX` | `untag --all 3` |
 | Undo last change | `undo` | `undo` |
 | Redo undone change | `redo` | `redo` |
 | Exit | `exit` | `exit` |
 ---
+
+Tip: While inside the input box, use the Up and Down arrow keys to recall commands from the current session. Press Enter to execute a recalled command.
 
 <br>
 
@@ -99,9 +104,11 @@ Opens a help window containing a link to this User Guide.
 ### Adding a student: `add`
 
 Adds a student and shows the complete roster, including the new student at the end.
-Only the subject prefix `s/` may be repeated within an add command. Unknown prefixes are rejected.
 
-**Format:** `add n/NAME p/PHONE [e/EMAIL] s/SUBJECT [s/SUBJECT]... l/LEVEL [r/NOTES]`
+**Format:** `add n/NAME p/PHONE [e/EMAIL] s/SUBJECT [s/SUBJECT]... l/LEVEL [/t TAG].. [r/NOTES]`
+
+* `/t exam-prep group-class`, empty `/t`, and `t/exam-prep` are invalid.
+* Repeated equivalent tags are stored once and produce `Warning: Duplicate tags were ignored.`
 
 | Field | Accepted values | Examples |
 | --- | --- | --- |
@@ -142,7 +149,8 @@ Students with different names can share a guardian's phone number or email. Stud
 name can be added when their contact details differ.
 
 If you are upgrading from AB3, older records are retained. Those older records do not block additions
-under the new student duplicate rule; their original address and tags remain in the saved file.
+under the new student duplicate rule; their original address remains in the saved file. Tags are
+retained, with spelling and duplicates normalized as described under [Tag migration](#tag-migration).
 
 #### Add errors
 
@@ -158,11 +166,46 @@ under the new student duplicate rule; their original address and tags remain in 
 
 Invalid fields produce a message explaining the applicable rule. For example, `p/9123-4567` produces:
 
-```text
+``
 Invalid phone number. Phone numbers must contain 3–15 digits and may optionally begin with '+'.
-```
+``
 
-Rejected add commands leave the records and currently displayed list unchanged, including when saving fails.
+<br>
+
+### Managing student tags: `tag` and `untag`
+
+Categorise students with labels such as `exam-prep`, `group-class`, and `needs-follow-up`.
+
+| Format | Result |
+| --- | --- |
+| `tag INDEX TAG` | Adds one tag without replacing existing tags. |
+| `untag INDEX TAG` | Removes one tag. |
+| `untag --all INDEX` | Removes every tag from that student. |
+
+`INDEX` is a positive integer identifying a student in the **currently displayed list**.
+For example, after `find Ryan`, `tag 1 exam-prep` labels the first displayed Ryan.
+These commands keep the current filter. Each command targets one student; `--all` refers to that
+student's tags, not all students. Extra arguments and `untag INDEX --all` are invalid.
+
+Tag names contain 1–30 English letters or digits, optionally separated by single hyphens.
+`exam-prep`, `group2`, and `2026` are valid. Spaces, underscores, other punctuation, leading or trailing
+hyphens, and consecutive hyphens are invalid. Quoted multiword tags are not supported.
+Tags are case-insensitive and stored in lowercase: `Exam-Prep` becomes `exam-prep`.
+A student can receive up to 20 distinct tags.
+
+Success feedback includes the student and label, such as `Tag added to Ryan Tan: exam-prep`,
+`Tag removed from Ryan Tan: exam-prep`, or `All tags removed from Ryan Tan.`
+Adding an existing tag, removing an absent tag, and clearing an already empty tag set succeed with
+a `Warning:` message. The command box clears, and no records are changed or saved.
+
+Malformed commands show the applicable usage. Invalid tag names show the naming requirements.
+An index outside the displayed list shows `The student index provided is invalid.`
+Adding a new tag at the limit shows `A student may have at most 20 tags.`
+Rejected commands preserve records and the current filter. Save failures show
+`Unable to save student data. No changes were made.` and also preserve records and the filter.
+
+Successful tag changes can be undone and redone. Each changed tag command creates one undo step;
+warning-only outcomes do not create a step or clear redo history. Undo and redo show the full roster.
 
 <br>
 
@@ -182,32 +225,32 @@ Invalid command format!
 Usage: list
 ```
 
-The displayed list remains unchanged when the arguments are invalid.
-
 <br>
 
 ### Finding students: `find`
 
-Shows students matching the given fields. By default, every given field must match. Use `--any` to find students matching at least one given field.
+Shows students matching the given fields.
 
-**Format:** `find [--any] [n/NAME] [p/PHONE] [e/EMAIL] [s/SUBJECT]... [l/LEVEL]`
+**Format:** `find [--any] [n/NAME]... [p/PHONE]... [e/EMAIL]... [s/SUBJECT]... [l/LEVEL]... [t/TAG]...`
 
-All fields are optional, but you must specify at least one field.
-
-* All field searches are case-insensitive and support partial matching. For example, `find n/Ryan T` matches `Ryan Tan` but not `Ryan Lim`.
+* You must specify at least one field.
+* By default, every given field must match. Use `--any` to find students matching at least one given field.
+* Matching is case-insensitive: `find RYAN` and `find ryan` return the same results.
+* A keyword may match part of a field: `find n/Ann` can match `Anna Lee` and `Annie Tan`.
 * Every field may be repeated. For example, `find s/Math s/English` matches students who take both Math and English.
+* The order of the fields does not matter.
 
 Examples:
-
-* `find n/Ryan T s/Mathematics` matches students whose name contains `Ryan T` and who study Mathematics.
-* `find --any n/Ryan T s/Mathematics` matches students whose name contains `Ryan T` or who study Mathematics.
-* `find s/Mathematics s/English` matches students who take both Mathematics and English.
+* `find n/Ryan` matches `Ryan Tan` and `Ryan Lim`.
+* `find n/Ryan Tan` narrows the results to names containing exactly `Ryan Tan`.
+* `find n/Ryan s/Mathematics` matches students whose name contains `Ryan` AND who study Mathematics.
+* `find --any n/Ryan s/Mathematics` matches students whose name contains `Ryan` OR who study Mathematics.
 
 <br>
 
 ### Viewing a student: `show`
 
-Opens a detailed modal for one student without changing the roster or its current filter.
+Opens a complete student record that shows the full details.
 
 **Format:** `show INDEX`
 
@@ -253,16 +296,14 @@ Examples:
 For example, `delete 0`, `delete abc`, and `delete 1 n/Ryan` are invalid. Invalid input leaves the
 records and displayed list unchanged. A save failure also leaves the roster unchanged; see [Save errors](#save-errors).
 
-#### Updating student information
+#### Updating student information: `edit`
 
-Use delete and add to replace an outdated record:
+Updates the student at the displayed index. Existing values are replaced only for supplied fields.
 
-1. Find the student and check the displayed index.
-1. Delete that record and check for successful deletion feedback.
-1. Add the student again with the corrected details, supplying every required field.
+**Format:** `edit INDEX [n/NAME] [p/PHONE] [e/EMAIL] [s/SUBJECT]... [l/LEVEL] [r/NOTES] [t/TAG]...`
 
-The replacement appears at the end of the full roster. Direct `edit` and bulk `clear` commands are
-not available in the current version.
+Subjects may be repeated. Supplying tags replaces the complete tag set; `t/` clears the tags, and
+`r/` clears notes. The command also retains the legacy `a/ADDRESS` field for older records.
 
 <br>
 
@@ -282,11 +323,12 @@ not available in the current version.
 
 The following behaviour applies to both `undo` and `redo`:
 
-* In this version, the available roster changes are `add` and `delete`. Replacing a student using
-  delete and add creates two separate undo steps.
+* In this version, the available roster changes are `add`, `edit`, `delete`, `tag`, and `untag`.
+  Each successful edit creates one undo step.
 * Restoring a roster restores the students' complete saved details and their original order.
   Both commands show the full roster afterward, even if you were viewing search results.
-* `find`, `list`, `show`, `help`, and rejected commands do not create undo steps or clear redo history.
+* `find`, `list`, `show`, `help`, rejected commands, and tag warnings that leave records unchanged
+  do not create undo steps or clear redo history.
 * After undoing, making a new successful roster change clears the remaining redo history.
 * History lasts only for the current application session. Restarting retains the saved roster,
   but starts with no changes to undo or redo. Window settings and command recall are not undone.
@@ -344,10 +386,28 @@ To move your roster to another computer:
 
 Use commands to maintain student records. Editing the JSON file directly can make the roster unreadable.
 
+### Tag migration
+
+When opening an existing roster, TutorRoster converts tags to lowercase and merges equivalent tags
+on each student. If changes are needed, it saves them atomically before opening the roster and shows:
+
+```text
+Existing tags were updated to lowercase and duplicate tags were merged.
+```
+
+Existing tag names longer than 30 characters and students with more than 20 tags are retained.
+You can remove any existing tag or clear the set. New additions must meet the new limits.
+Unrelated student fields and legacy record formats are preserved. Missing tags mean an empty tag set.
+Files needing no migration are not rewritten and produce no migration notice.
+
+If the migration cannot be saved, an error dialog appears and startup stops. The original roster
+file is left untouched. Resolve the file/folder write problem before restarting.
+Older app versions may reject files containing hyphenated tags.
+
 ### Save errors
 
-If an add cannot be saved, it shows `Unable to save student data. No changes were made.` The student
-is not added, and the current displayed list is preserved.
+If an add or tag change cannot be saved, it shows `Unable to save student data. No changes were made.`
+The roster and current displayed list are preserved.
 
 For other commands, a save error currently begins with `Could not save data` and includes details of
 the problem. Check that the launch folder and data file can be written to and that storage is available.
@@ -357,7 +417,8 @@ stored records, and undo/redo history remain unchanged. Resolve the save problem
 
 ### Trouble loading an existing roster
 
-If the existing data file cannot be loaded, the current version opens with an empty roster. It does
+Except for a failed tag migration (which stops startup), if the existing data file cannot be loaded,
+the current version opens with an empty roster. It does
 not yet show a dedicated load-error message in the result area. Subsequent successful roster changes may
 overwrite the existing data file with the current roster.
 
@@ -418,8 +479,8 @@ then the replacement. If you only want to remove the replacement temporarily, us
 
 **How do I update a student?**
 
-Delete the outdated record and add the corrected record. See
-[Updating student information](#updating-student-information).
+Use `edit INDEX` with the fields to replace. See
+[Updating student information](#updating-student-information-edit).
 
 **Why does `delete 1` remove a different student after a search?**
 

@@ -12,7 +12,7 @@ import seedu.address.commons.util.ToStringBuilder;
 public class PersonMatchesFieldsPredicate implements Predicate<Person> {
     /** Supported fields for a find query. */
     public enum SearchField {
-        NAME, PHONE, SUBJECT, LEVEL, EMAIL
+        NAME, PHONE, SUBJECT, LEVEL, EMAIL, TAG
     }
 
     /** The ways that supplied search terms can be combined. */
@@ -57,6 +57,7 @@ public class PersonMatchesFieldsPredicate implements Predicate<Person> {
             case SUBJECT -> person.getSubjects().stream().anyMatch(subject -> contains(subject, searchTerm.value()));
             case LEVEL -> contains(person.getLevel(), searchTerm.value());
             case EMAIL -> person.getEmail() != null && contains(person.getEmail().value, searchTerm.value());
+            case TAG -> person.getTags().stream().anyMatch(tag -> contains(tag.tagName, searchTerm.value()));
         };
     }
 
