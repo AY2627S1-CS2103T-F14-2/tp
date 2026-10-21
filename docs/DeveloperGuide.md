@@ -220,7 +220,7 @@ retained. Migration is idempotent and preserves unrelated model fields.
 
 Student cards display sorted, wrapping badges and hide the tag area for an empty set. First-launch
 sample students include example tags. Tag changes use the undo/redo implementation below;
-tag search and global tag operations are not implemented.
+field-targeted searches can also filter by subjects, level, notes, contact details, and tags.
 
 ### Delete student
 
@@ -244,10 +244,8 @@ save error. See the shared [recording and publishing flow](#recording-and-publis
 ### Undo and redo
 
 TutorRoster restores complete roster states so tutors can recover from accidental changes. The enabled
-roster-changing commands are currently `add`, `delete`, `tag`, and `untag`; a delete-and-add replacement
-creates two steps. Tag commands that only report a warning leave history unchanged.
-`edit` and `clear` remain disabled in the command parser. The history mechanism also supports record replacements
-at the model level.
+roster-changing commands are currently `add`, `edit`, `delete`, `tag`, and `untag`. Tag commands that only
+report a warning leave history unchanged. The history mechanism also supports record replacements at the model level.
 
 #### State and responsibilities
 
@@ -632,7 +630,7 @@ Priorities: High (must have) - `* * *`, Medium (nice to have) - `* *`, Low (unli
 | **Parameter** | A value supplied to a command, such as a student’s name or the index of a record to delete. |
 | **Prefix** | A marker identifying a parameter’s type, such as `n/` for name or `s/` for subject. |
 | **Student index (`INDEX`)** | A student’s position in the currently displayed numbered list, starting from 1. After a search, it refers to the search results. |
-| **Search keyword** | Text used to find matching records. Keywords match parts of student names. By default, every supplied keyword must match; `--any` returns records matching at least one keyword. |
+| **Search keyword** | Text used to find matching records. Unprefixed keywords match parts of student names; field prefixes can target other stored attributes. By default, every supplied criterion must match; `--any` returns records matching at least one criterion. |
 | **Filtered list** | A displayed subset of the roster containing only students who match the current search or filter criteria. |
 | **Case-insensitive matching** | Comparing text without distinguishing uppercase from lowercase letters. For example, `Ryan` and `ryan` match. |
 | **Whitespace normalization** | Removing surrounding whitespace and treating consecutive internal whitespace as one space in names, subjects, and education levels. |

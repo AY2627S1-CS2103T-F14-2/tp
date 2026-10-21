@@ -42,6 +42,7 @@ public class Tag {
 
     /** Checks the tag grammar without imposing new-add length limits on existing data. */
     public static boolean isValidStoredTagName(String test) {
+        requireNonNull(test);
         return test.matches(VALIDATION_REGEX);
     }
 
@@ -49,6 +50,7 @@ public class Tag {
      * Returns true if a given string is a valid tag name.
      */
     public static boolean isValidTagName(String test) {
+        requireNonNull(test);
         return test.length() <= MAX_NAME_LENGTH && isValidStoredTagName(test);
     }
 

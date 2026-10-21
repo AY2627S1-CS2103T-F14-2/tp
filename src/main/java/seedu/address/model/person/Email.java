@@ -50,7 +50,8 @@ public class Email {
         value = email;
     }
 
-    static Email fromStoredValue(String email) {
+    /** Creates an email from validated student data or compatible stored data. */
+    public static Email fromStoredValue(String email) {
         return new Email(email, false);
     }
 

@@ -6,6 +6,7 @@ import seedu.address.commons.core.index.Index;
 import seedu.address.logic.commands.TagCommand;
 import seedu.address.logic.commands.TagCommand.Operation;
 import seedu.address.logic.parser.exceptions.ParseException;
+import seedu.address.model.person.StudentFields;
 import seedu.address.model.tag.Tag;
 
 /** Parses the strict tag/untag syntax; each command targets one displayed student. */
@@ -20,7 +21,7 @@ public class TagCommandParser implements Parser<TagCommand> {
     public TagCommand parse(String args) throws ParseException {
         requireNonNull(args);
         String usage = removing ? TagCommand.MESSAGE_UNTAG_USAGE : TagCommand.MESSAGE_USAGE;
-        String[] parts = args.strip().split("(?U)\\s+");
+        String[] parts = StudentFields.trim(args).split("(?U)\\s+");
         if (parts.length != 2) {
             throw new ParseException(usage);
         }

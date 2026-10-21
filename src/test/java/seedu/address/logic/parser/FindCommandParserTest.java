@@ -4,12 +4,15 @@ import static seedu.address.logic.parser.CommandParserTestUtil.assertParseFailur
 import static seedu.address.logic.parser.CommandParserTestUtil.assertParseSuccess;
 
 import java.util.List;
+import java.util.Map;
 
 import org.junit.jupiter.api.Test;
 
 import seedu.address.logic.commands.FindCommand;
 import seedu.address.model.person.NameContainsKeywordsPredicate;
 import seedu.address.model.person.NameContainsKeywordsPredicate.MatchMode;
+import seedu.address.model.person.StudentContainsKeywordsPredicate;
+import seedu.address.model.person.StudentContainsKeywordsPredicate.SearchField;
 
 public class FindCommandParserTest {
 
@@ -49,6 +52,16 @@ public class FindCommandParserTest {
 
         assertParseFailure(parser, "--any", expectedMessage);
         assertParseFailure(parser, "--any   ", expectedMessage);
+    }
+
+    @Test
+    public void parse_targetedFields_returnsStudentPredicate() {
+        FindCommand expected = new FindCommand(new StudentContainsKeywordsPredicate(Map.of(
+                SearchField.SUBJECT, List.of("Mathematics"),
+                SearchField.LEVEL, List.of("JC 1"),
+                SearchField.TAG, List.of("exam-prep"))));
+
+        assertParseSuccess(parser, "s/Mathematics l/JC 1 t/exam-prep", expected);
     }
 
 }

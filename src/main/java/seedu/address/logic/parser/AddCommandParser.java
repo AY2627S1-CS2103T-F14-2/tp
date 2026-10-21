@@ -1,5 +1,7 @@
 package seedu.address.logic.parser;
 
+import static java.util.Objects.requireNonNull;
+
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.LinkedHashMap;
@@ -24,6 +26,7 @@ public class AddCommandParser implements Parser<AddCommand> {
 
     @Override
     public AddCommand parse(String args) throws ParseException {
+        requireNonNull(args);
         Map<String, List<String>> values = new LinkedHashMap<>();
         Matcher matcher = PREFIX_PATTERN.matcher(args);
         String previousPrefix = null;
@@ -106,13 +109,7 @@ public class AddCommandParser implements Parser<AddCommand> {
             throw new ParseException(StudentFields.INVALID_NOTES);
         }
         List<String> tagValues = values.getOrDefault("/t", List.of());
-        Set<Tag> tags = new HashSet<>();
-        for (String tagValue : tagValues) {
-            if (!Tag.isValidTagName(tagValue)) {
-                throw new ParseException(Tag.MESSAGE_CONSTRAINTS);
-            }
-            tags.add(new Tag(tagValue));
-        }
+        Set<Tag> tags = parseTags(tagValues);
         if (tags.size() > Tag.MAX_TAGS_PER_STUDENT) {
             throw new ParseException(Tag.MESSAGE_TAG_LIMIT);
         }
@@ -120,8 +117,20 @@ public class AddCommandParser implements Parser<AddCommand> {
         return new AddCommand(student, tags.size() < tagValues.size());
     }
 
+    private static Set<Tag> parseTags(List<String> tagValues) throws ParseException {
+        Set<Tag> tags = new HashSet<>();
+        for (String tagValue : tagValues) {
+            if (!Tag.isValidTagName(tagValue)) {
+                throw new ParseException(Tag.MESSAGE_CONSTRAINTS);
+            }
+            tags.add(new Tag(tagValue));
+        }
+        return tags;
+    }
+
     private static boolean isKnownPrefix(String prefix) {
         return prefix.equals("n/") || prefix.equals("p/") || prefix.equals("e/")
-                || prefix.equals("s/") || prefix.equals("l/") || prefix.equals("r/") || prefix.equals("/t");
+                || prefix.equals("s/") || prefix.equals("l/") || prefix.equals("r/")
+                || prefix.equals("/t");
     }
 }

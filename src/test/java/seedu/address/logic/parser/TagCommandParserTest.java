@@ -31,6 +31,16 @@ public class TagCommandParserTest {
     }
 
     @Test
+    public void parse_nonBreakingSpaceBeforeIndex_success() throws Exception {
+        var model = new ModelManager();
+        model.addPerson(new Person("Amy", "123", null, List.of("Math"), "JC 1"));
+
+        new AddressBookParser().parseCommand("tag \u00a01 exam-prep").execute(model);
+
+        assertEquals(Set.of(new Tag("exam-prep")), model.getFilteredPersonList().getFirst().getTags());
+    }
+
+    @Test
     public void parse_wrongArityOrIndex_reportsUsage() {
         for (boolean removing : List.of(false, true)) {
             var parser = new TagCommandParser(removing);

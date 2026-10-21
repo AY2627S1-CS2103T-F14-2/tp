@@ -203,7 +203,6 @@ Rejected commands preserve records and the current filter. Save failures show
 
 Successful tag changes can be undone and redone. Each changed tag command creates one undo step;
 warning-only outcomes do not create a step or clear redo history. Undo and redo show the full roster.
-Searching by tag, global rename/delete, and bulk tagging are not available in this release.
 
 ### Listing students: `list`
 
@@ -223,16 +222,17 @@ Usage: list
 
 The displayed list remains unchanged when the arguments are invalid.
 
-### Finding students by name: `find`
+### Finding students: `find`
 
-Shows students whose names contain **all** supplied keywords by default. Use `--any` to show
-students whose names contain **at least one** supplied keyword.
+Unprefixed keywords search names. Prefixes search specific fields, and all supplied criteria must
+match by default. Use `--any` to match at least one criterion.
 
-**Format:** `find [--any] KEYWORD [MORE_KEYWORDS]`
+**Format:** `find [--any] KEYWORD [MORE_KEYWORDS]` or `find [--any] FIELD/VALUE...`
 
 * Matching is case-insensitive: `find RYAN` and `find ryan` return the same results.
 * A keyword may match part of a name: `find ann` can match `Anna Lee` and `Joanne Tan`.
-* Only names are searched. Phone numbers, emails, subjects, and levels are not searched.
+* Supported fields are `n/` name, `p/` phone, `e/` email, `a/` address, `s/` subject, `l/` level,
+  `r/` notes, and `t/` tag.
 * Multiple spaces between keywords act as one separator. Keyword order does not matter.
 * By default, every keyword must match. `find Ryan Tan` can match `Ryan Wei Tan`, but does not
   match `Ryan Lim` or `Sarah Tan`.
@@ -246,6 +246,8 @@ Examples:
 * `find ali` matches `Alicia Lim`.
 * `find Ryan Tan` narrows the results to names containing both `Ryan` and `Tan`.
 * `find --any Ryan Sarah` matches students whose names contain either `Ryan` or `Sarah`.
+* `find s/Mathematics l/JC 1` matches students taking Mathematics at JC 1.
+* `find --any t/exam-prep t/group-class` matches students with either tag.
 
 The result area currently uses the feedback `N person(s) listed!`. For example, one match shows
 `1 person(s) listed!`. No matches shows `0 person(s) listed!` and an empty displayed list; the records
@@ -300,16 +302,14 @@ Examples:
 For example, `delete 0`, `delete abc`, and `delete 1 n/Ryan` are invalid. Invalid input leaves the
 records and displayed list unchanged. A save failure also leaves the roster unchanged; see [Save errors](#save-errors).
 
-#### Updating student information
+#### Updating student information: `edit`
 
-Use delete and add to replace an outdated record:
+Updates the student at the displayed index. Existing values are replaced only for supplied fields.
 
-1. Find the student and check the displayed index.
-1. Delete that record and check for successful deletion feedback.
-1. Add the student again with the corrected details, supplying every required field.
+**Format:** `edit INDEX [n/NAME] [p/PHONE] [e/EMAIL] [s/SUBJECT]... [l/LEVEL] [r/NOTES] [t/TAG]...`
 
-The replacement appears at the end of the full roster. Direct `edit` and bulk `clear` commands are
-not available in the current version.
+Subjects may be repeated. Supplying tags replaces the complete tag set; `t/` clears the tags, and
+`r/` clears notes. The command also retains the legacy `a/ADDRESS` field for older records.
 
 ### Undoing and redoing roster changes: `undo` and `redo`
 
@@ -318,8 +318,8 @@ not available in the current version.
 `undo` reverses the most recent successful roster change. Repeat it to step backward through earlier
 changes. `redo` reapplies the most recently undone change; repeat it to step forward again.
 
-* In this version, the available roster changes are `add`, `delete`, `tag`, and `untag`. Replacing a student using
-  delete and add creates two separate undo steps.
+* In this version, the available roster changes are `add`, `edit`, `delete`, `tag`, and `untag`.
+  Each successful edit creates one undo step.
 * Restoring a roster restores the students' complete saved details and their original order.
   Both commands show the full roster afterward, even if you were viewing search results.
 * `find`, `list`, `show`, `help`, rejected commands, and tag warnings that leave records unchanged
@@ -477,8 +477,8 @@ then the replacement. If you only want to remove the replacement temporarily, us
 
 **How do I update a student?**
 
-Delete the outdated record and add the corrected record. See
-[Updating student information](#updating-student-information).
+Use `edit INDEX` with the fields to replace. See
+[Updating student information](#updating-student-information-edit).
 
 **Why does `delete 1` remove a different student after a search?**
 
@@ -528,7 +528,8 @@ may have changed since the command was first entered.
 | --- | --- | --- |
 | Add student | `add n/NAME p/PHONE s/SUBJECT l/LEVEL [e/EMAIL] [r/NOTES] [s/SUBJECT]... [/t TAG]...` | `add n/Ryan Tan p/81234567 s/Mathematics l/Secondary 4 r/Prefers worked examples /t exam-prep` |
 | List students | `list` | `list` |
-| Find by name | `find [--any] KEYWORD [MORE_KEYWORDS]` | `find Ryan Tan` or `find --any Ryan Sarah` |
+| Find students | `find [--any] KEYWORD [MORE_KEYWORDS]` or `find [--any] FIELD/VALUE...` | `find Ryan Tan` or `find s/Mathematics` |
+| Edit student | `edit INDEX [FIELD/VALUE]...` | `edit 2 s/Physics l/JC 1 r/Needs revision` |
 | Show student details | `show INDEX` | `show 2` |
 | Delete student | `delete INDEX` | `delete 2` |
 | Add tag | `tag INDEX TAG` | `tag 3 exam-prep` |
