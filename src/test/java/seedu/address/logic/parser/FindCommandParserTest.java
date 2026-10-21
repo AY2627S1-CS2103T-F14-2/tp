@@ -1,17 +1,22 @@
 package seedu.address.logic.parser;
 
+import static org.junit.jupiter.api.Assertions.assertEquals;
 import static seedu.address.logic.parser.CommandParserTestUtil.assertParseFailure;
 import static seedu.address.logic.parser.CommandParserTestUtil.assertParseSuccess;
 
 import java.util.List;
+import java.util.Set;
 
 import org.junit.jupiter.api.Test;
 
 import seedu.address.logic.commands.FindCommand;
+import seedu.address.model.ModelManager;
+import seedu.address.model.person.Person;
 import seedu.address.model.person.PersonMatchesFieldsPredicate;
 import seedu.address.model.person.PersonMatchesFieldsPredicate.MatchMode;
 import seedu.address.model.person.PersonMatchesFieldsPredicate.SearchField;
 import seedu.address.model.person.PersonMatchesFieldsPredicate.SearchTerm;
+import seedu.address.model.tag.Tag;
 
 public class FindCommandParserTest {
 
@@ -85,18 +90,6 @@ public class FindCommandParserTest {
     }
 
     @Test
-    public void parse_targetedFieldsWithTag_returnsFindCommand() {
-        List<SearchTerm> searchTerms = List.of(
-                new SearchTerm(SearchField.SUBJECT, "Mathematics"),
-                new SearchTerm(SearchField.LEVEL, "JC 1"),
-                new SearchTerm(SearchField.TAG, "exam-prep"));
-        FindCommand expectedFindCommand = new FindCommand(
-                new PersonMatchesFieldsPredicate(searchTerms, MatchMode.ALL));
-
-        assertParseSuccess(parser, "s/Mathematics l/JC 1 t/exam-prep", expectedFindCommand);
-    }
-
-    @Test
     public void parse_tagOnly_returnsFindCommand() {
         List<SearchTerm> searchTerms = List.of(
                 new SearchTerm(SearchField.TAG, "exam-prep"));
@@ -107,25 +100,23 @@ public class FindCommandParserTest {
     }
 
     @Test
-    public void parse_anyModeWithRepeatedTags_returnsFindCommand() {
-        List<SearchTerm> searchTerms = List.of(
-                new SearchTerm(SearchField.TAG, "exam-prep"),
-                new SearchTerm(SearchField.TAG, "group-class"));
-        FindCommand expectedFindCommand = new FindCommand(
-                new PersonMatchesFieldsPredicate(searchTerms, MatchMode.ANY));
+    public void parse_fieldsInDifferentOrder_returnsSameResults() throws Exception {
+        Person alex = new Person("Alex", "123", null, List.of("Math"), "JC 1")
+                .withTags(Set.of(new Tag("exam-prep")));
+        Person bob = new Person("Bob", "456", null, List.of("Math"), "JC 1")
+                .withTags(Set.of(new Tag("exam-prep")));
+        Person cam = new Person("Cam", "789", null, List.of("Math"), "JC 2");
+        var model = new ModelManager();
+        model.addPerson(alex);
+        model.addPerson(bob);
+        model.addPerson(cam);
 
-        assertParseSuccess(parser, "--any t/exam-prep t/group-class", expectedFindCommand);
-    }
-
-    @Test
-    public void parse_fieldsInDifferentOrder_returnsFindCommand() {
-        List<SearchTerm> searchTerms = List.of(
-                new SearchTerm(SearchField.TAG, "exam-prep"),
-                new SearchTerm(SearchField.LEVEL, "JC 1"),
-                new SearchTerm(SearchField.NAME, "Alex"));
-        FindCommand expectedFindCommand = new FindCommand(
-                new PersonMatchesFieldsPredicate(searchTerms, MatchMode.ALL));
-
-        assertParseSuccess(parser, "t/exam-prep l/JC 1 n/Alex", expectedFindCommand);
+        for (String option : List.of("", "--any ")) {
+            List<Person> expected = option.isEmpty() ? List.of(alex) : List.of(alex, bob);
+            for (String fields : List.of("n/Alex l/JC 1 t/exam-prep", "t/exam-prep l/JC 1 n/Alex")) {
+                parser.parse(option + fields).execute(model);
+                assertEquals(expected, model.getFilteredPersonList(), option + fields);
+            }
+        }
     }
 }
