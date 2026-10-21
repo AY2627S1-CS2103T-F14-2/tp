@@ -8,7 +8,7 @@ title Undo inside the working model
 
 box Model MODEL_COLOR_T1
 participant "proposed:ModelManager" as Model MODEL_COLOR
-participant ":VersionedAddressBook" as History MODEL_COLOR
+participant ":VersionedTutorRoster" as History MODEL_COLOR
 end box
 
 [-> Model : undoAddressBook()
@@ -21,10 +21,14 @@ Checks availability at runtime.
 Asserts the working roster equals
 the current committed state.
 end note
-History -> History : resetData(states.get(--currentStatePointer))
+History -> History : resetData(states.get(currentStatePointer - 1))
 activate History
 History --> History
 deactivate History
+note right of History
+After restoration succeeds:
+currentStatePointer--
+end note
 History --> Model
 deactivate History
 Model -> Model : updateFilteredPersonList(\nPREDICATE_SHOW_ALL_PERSONS)

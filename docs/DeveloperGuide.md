@@ -129,7 +129,7 @@ How the parsing works:
 The `Model` component,
 
 * stores student records as `Person` objects in a `UniquePersonList`, together with session history in
-  `VersionedAddressBook`, which extends `AddressBook`.
+  `VersionedTutorRoster`, which extends `AddressBook`.
 * stores the `Person` objects selected by the current filter, such as search results, in a separate _filtered_ list. It exposes this list as an unmodifiable `ObservableList<Person>` that the UI can observe and bind to, so the UI updates when the list changes.
 * stores a `UserPrefs` object that represents the user’s preferences (currently, just the GUI settings). This is exposed to the outside as a `ReadOnlyUserPrefs` object.
 * does not depend on any of the other three components (as the `Model` represents data entities of the domain, they should make sense on their own without depending on other components)
@@ -216,14 +216,14 @@ at the model level.
 
 | Class | Responsibility |
 | --- | --- |
-| `VersionedAddressBook` | Extends `AddressBook` with a private `states` list of roster snapshots and a `currentStatePointer`. Implements `commit()`, `canUndo()`, `canRedo()`, `undo()`, and `redo()`. |
+| `VersionedTutorRoster` | Extends `AddressBook` with a private `states` list of roster snapshots and a `currentStatePointer`. Implements `commit()`, `canUndo()`, `canRedo()`, `undo()`, and `redo()`. |
 | `ModelManager` | Owns the versioned roster and filtered list. Exposes history operations through `Model`, and shows the full roster after undo/redo. |
 | `ModelSnapshot` | Checkpoints the working roster, its entire undo/redo history, and its current filter for isolated execution and later publication. |
 | `UndoCommandParser` / `RedoCommandParser` | Reject arguments and create the corresponding command. `AddressBookParser` dispatches to them. |
 | `UndoCommand` / `RedoCommand` | Check history availability, restore the previous/next roster through `Model`, and return feedback. |
 | `LogicManager` | Coordinates command execution, history commits, atomic persistence, and publication to the live model. |
 
-`VersionedAddressBook` starts with one snapshot of the loaded or sample roster and a pointer of `0`.
+`VersionedTutorRoster` starts with one snapshot of the loaded or sample roster and a pointer of `0`.
 `canUndo()` is true when the pointer is greater than `0`; `canRedo()` is true when the pointer is less than
 `states.size() - 1`. Each roster snapshot preserves the complete student records and their order. The private
 roster copies can share immutable `Person` values without exposing a mutable historical list.
@@ -250,7 +250,7 @@ The filter is not restored from an older undo step: a successful undo or redo de
    Restoring the checkpoint transfers the roster, pointer, history, and filter while retaining the observable
    list instance used by the UI. Return the command's `CommandResult`.
 
-Display-only commands such as `find` and `list` publish their updated filter without committing history or
+Display-only commands such as `find`, `list`, and `show` publish their updated filter without committing history or
 writing the roster file. Undo and redo move within the existing history; they do not append a new state.
 The same save-before-publication rule applies to them, so a failed save cannot consume an undo or redo step.
 
@@ -269,15 +269,17 @@ is not returned to the UI until the restored roster has been saved and published
 
 The next diagram expands `undoAddressBook()` inside the working model:
 
-<puml src="diagrams/UndoSequenceDiagram-Model.puml" alt="Working ModelManager restores the previous VersionedAddressBook state and clears the display filter" />
+<puml src="diagrams/UndoSequenceDiagram-Model.puml" alt="Working ModelManager restores the previous VersionedTutorRoster state and clears the display filter" />
 
-`VersionedAddressBook.undo()` checks availability, asserts that there are no uncommitted roster changes,
-decrements `currentStatePointer`, and calls `resetData` with that historical state. `ModelManager` then calls
+`VersionedTutorRoster.undo()` checks availability, asserts that there are no uncommitted roster changes,
+calls `resetData` with `states.get(currentStatePointer - 1)`, and decrements the pointer only after restoration
+succeeds. A restoration exception leaves the pointer unchanged. `ModelManager` then calls
 `updateFilteredPersonList(PREDICATE_SHOW_ALL_PERSONS)`. These steps affect only the working model until
 `LogicManager` completes persistence and publication.
 
 Redo follows the same flow using `RedoCommandParser`, `RedoCommand`, `canRedoAddressBook()`, and
-`redoAddressBook()`. `VersionedAddressBook.redo()` increments the pointer and restores that next state.
+`redoAddressBook()`. `VersionedTutorRoster.redo()` restores `states.get(currentStatePointer + 1)` before
+incrementing the pointer, so the same failure protection applies.
 
 #### History example
 
@@ -308,7 +310,7 @@ filter. Loading the saved roster into a new `ModelManager` starts a fresh one-st
   or `There are no changes to redo.`. It does not restore a state or clear the live search filter.
 * An `IOException` or `AccessDeniedException` during atomic saving becomes a `CommandException`. The live
   roster, filter, history, and previously saved file remain unchanged. The proposed pointer movement is discarded.
-* Java `assert` statements in `VersionedAddressBook` check that the history contains a valid current pointer,
+* Java `assert` statements in `VersionedTutorRoster` check that the history contains a valid current pointer,
   new commits end the redo branch, and undo/redo starts from a committed roster. These diagnose programmer errors.
   History availability and command syntax also have runtime checks, so user-input validation works when Java
   assertions are disabled.
@@ -327,9 +329,10 @@ for command execution. Updating the live model first would require restoring all
 `LogicManager` detects the changed roster and records it centrally. Avoid independently committing a second
 history step, preserve `Person` immutability when adding fields, and cover undo/redo and save failures in tests.
 
-Existing coverage includes `VersionedAddressBookTest`, `ModelHistoryTest`, `UndoCommandTest`, `RedoCommandTest`,
+Existing coverage includes `VersionedTutorRosterTest`, `ModelHistoryTest`, `UndoCommandTest`, `RedoCommandTest`,
 `HistoryCommandParserTest`, and `LogicManagerTest`. Together they cover bounds, record replacements, ordering,
-redo-branch replacement, filtered deletion, persistence, save failures, and fresh history after restart.
+redo-branch replacement, filtered deletion, persistence, save failures, failed restorations with retry,
+notes preservation, read-only detail viewing, and fresh history after restart.
 
 ### \[Proposed\] Data archiving
 

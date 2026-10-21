@@ -83,7 +83,7 @@ After a search, the roster shows matching students and numbers them from 1. A su
   education levels, consecutive internal whitespace is stored as one space. Capitalization is
   preserved for display.
 * Only the subject prefix `s/` may be repeated within an add command. Unknown prefixes are rejected.
-* `list`, `undo`, and `redo` accept no arguments; `show` and `delete` accepts exactly one index. `find` accepts the optional
+* `list`, `undo`, and `redo` accept no arguments; `show` and `delete` accept exactly one index. `find` accepts the optional
   `--any` flag before its search keywords. Use `help` and `exit` as shown in their formats below.
 
 If you copy a command from a PDF, check that it remains on one line with spaces between parameters.
@@ -274,7 +274,7 @@ changes. `redo` reapplies the most recently undone change; repeat it to step for
   delete and add creates two separate undo steps.
 * Restoring a roster restores the students' complete saved details and their original order.
   Both commands show the full roster afterward, even if you were viewing search results.
-* `find`, `list`, `help`, and rejected commands do not create undo steps or clear redo history.
+* `find`, `list`, `show`, `help`, and rejected commands do not create undo steps or clear redo history.
 * After undoing, making a new successful roster change clears the remaining redo history.
 * History lasts only for the current application session. Restarting retains the saved roster,
   but starts with no changes to undo or redo. Window settings and command recall are not undone.
