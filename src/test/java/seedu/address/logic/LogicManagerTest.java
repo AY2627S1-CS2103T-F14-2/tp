@@ -3,6 +3,7 @@ package seedu.address.logic;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
+import static seedu.address.logic.Messages.MESSAGE_INVALID_COMMAND_FORMAT;
 import static seedu.address.logic.Messages.MESSAGE_UNKNOWN_COMMAND;
 import static seedu.address.logic.commands.DeleteCommand.MESSAGE_INVALID_STUDENT_DISPLAYED_INDEX;
 import static seedu.address.testutil.Assert.assertThrows;
@@ -18,8 +19,10 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
 
 import seedu.address.logic.commands.CommandResult;
+import seedu.address.logic.commands.HelpCommand;
 import seedu.address.logic.commands.ListCommand;
 import seedu.address.logic.commands.RedoCommand;
+import seedu.address.logic.commands.ShowCommand;
 import seedu.address.logic.commands.UndoCommand;
 import seedu.address.logic.commands.exceptions.CommandException;
 import seedu.address.logic.parser.exceptions.ParseException;
@@ -63,6 +66,39 @@ public class LogicManagerTest {
     public void execute_commandExecutionError_throwsCommandException() {
         String deleteCommand = "delete 9";
         assertCommandException(deleteCommand, MESSAGE_INVALID_STUDENT_DISPLAYED_INDEX);
+    }
+
+    @Test
+    public void execute_showFilteredStudent_returnsStudentFromDisplayedOrder() throws Exception {
+        model.setAddressBook(TypicalPersons.getTypicalAddressBook());
+        logic.execute("find Meier");
+
+        CommandResult result = logic.execute("show 2");
+
+        assertEquals(TypicalPersons.DANIEL, result.getPersonToShow().orElseThrow());
+        assertEquals(2, logic.getFilteredPersonList().size());
+    }
+
+    @Test
+    public void execute_showInvalidDisplayedIndex_throwsCommandException() throws Exception {
+        model.setAddressBook(TypicalPersons.getTypicalAddressBook());
+        logic.execute("find Benson");
+
+        CommandException exception = org.junit.jupiter.api.Assertions.assertThrows(CommandException.class, ()
+                -> logic.execute("show 2"));
+        assertEquals(ShowCommand.MESSAGE_INVALID_STUDENT_DISPLAYED_INDEX, exception.getMessage());
+        assertEquals(1, logic.getFilteredPersonList().size());
+    }
+
+    @Test
+    public void execute_nullCommand_throwsParseException() {
+        assertParseException(null, String.format(MESSAGE_INVALID_COMMAND_FORMAT, HelpCommand.MESSAGE_USAGE));
+    }
+
+    @Test
+    public void constructor_nullRequiredDependency_throwsNullPointerException() {
+        assertThrows(NullPointerException.class, () -> new LogicManager(null, null));
+        assertThrows(NullPointerException.class, () -> new LogicManager(model, null));
     }
 
     @Test
@@ -182,6 +218,54 @@ public class LogicManagerTest {
         assertCommandException(addRyan, "This student already exists in TutorRoster.");
         logic.execute("redo");
         assertEquals(2, model.getAddressBook().getPersonList().size());
+    }
+
+    @Test
+    public void execute_showWithRedoAvailable_preservesHistoryNotesAndSavedRoster() throws Exception {
+        boolean[] shouldFailSaving = {false};
+        Path dataPath = temporaryFolder.resolve("addressBook.json");
+        StorageManager storage = new StorageManager(new JsonAddressBookStorage(dataPath),
+                new JsonUserPrefsStorage(temporaryFolder.resolve("userPrefs.json"))) {
+            @Override
+            public void saveAddressBook(ReadOnlyAddressBook addressBook) throws IOException {
+                throw DUMMY_IO_EXCEPTION;
+            }
+
+            @Override
+            public void saveAddressBookAtomically(ReadOnlyAddressBook addressBook) throws IOException {
+                if (shouldFailSaving[0]) {
+                    throw DUMMY_IO_EXCEPTION;
+                }
+                super.saveAddressBookAtomically(addressBook);
+            }
+        };
+        logic = new LogicManager(model, storage);
+        logic.execute("add n/Ryan Tan p/81234567 s/Physics l/JC 1 r/Revise algebra");
+        Person ryan = model.getAddressBook().getPersonList().getFirst();
+        logic.execute("add n/Alicia Lim p/91234567 s/English l/Secondary 4");
+        logic.execute("undo");
+        logic.execute("find Ryan");
+        String storedBefore = Files.readString(dataPath);
+        shouldFailSaving[0] = true;
+
+        CommandResult result = logic.execute("show 1");
+
+        assertEquals(ShowCommand.MESSAGE_SHOW_STUDENT_SUCCESS, result.getFeedbackToUser());
+        assertEquals(ryan, result.getPersonToShow().orElseThrow());
+        assertEquals("Revise algebra", result.getPersonToShow().orElseThrow().getNotes());
+        assertEquals(List.of(ryan), model.getFilteredPersonList());
+        assertTrue(model.canRedoAddressBook());
+        assertEquals(storedBefore, Files.readString(dataPath));
+
+        shouldFailSaving[0] = false;
+        logic.execute("redo");
+        assertEquals(2, model.getAddressBook().getPersonList().size());
+        logic.execute("undo");
+        logic.execute("undo");
+        assertStoredRoster(List.of());
+        logic.execute("redo");
+        assertStoredRoster(List.of(ryan));
+        assertEquals("Revise algebra", model.getFilteredPersonList().getFirst().getNotes());
     }
 
     @Test

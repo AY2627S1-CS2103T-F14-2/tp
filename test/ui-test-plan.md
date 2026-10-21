@@ -57,9 +57,8 @@ tutor's existing JavaFX cache as part of this test preparation.
 
 Allow 30 seconds for startup and 10 seconds per command. All six cases below
 explicitly share one application session, in the recorded order. The starting
-roster is `1. Alicia Lim`, `2. Ryan Tan`, `3. Sarah Lee`. The fixture currently
-uses inherited AB3 fields because the team's new student fields are separate
-work. Find and list feedback below matches the current implementation.
+roster is `1. Alicia Lim`, `2. Ryan Tan`, `3. Sarah Lee`. The fixture retains inherited AB3 fields to verify compatibility with existing
+records. Find and list feedback below matches the current implementation.
 
 After the final case, enter `exit` and require a normal exit with status 0
 within 10 seconds. Terminate the test process if startup, a case, or exit times
@@ -219,3 +218,36 @@ Aim: Saved records remain, while session history does not persist.
 | `redo` | `There are no changes to redo.` | `1. Alicia Lim`, `2. Ryan Tan`, `3. Sarah Lee`, `4. Jamie Koh` |
 
 Enter `exit` and require status 0 within 10 seconds.
+
+
+## INT-UI-01 Notes, detail viewing, and undo/redo integration
+
+Aim: Show uses the displayed index without creating an undo step or clearing
+redo, and restored student records retain their notes.
+
+Start a fresh isolated session with the same three-student fixture and launch
+instructions. This case has its own session and does not continue HIST-UI-05.
+After each `show 1`, check the detail modal and close it using its Close button
+before entering the next command. For the first and final detail views,
+verify these exact displayed field values: name `Jamie Koh`, phone `81234567`, subjects `Physics`, level `JC 1`, and notes
+`Needs practice`. Email, address, and tags each show `Not provided`.
+
+| Exact GUI input | Exact expected result-area output | Expected numbered names |
+| --- | --- | --- |
+| `add n/Jamie Koh p/81234567 s/Physics l/JC 1 r/Needs practice` | `New student added: Jamie Koh` | `1. Alicia Lim`, `2. Ryan Tan`, `3. Sarah Lee`, `4. Jamie Koh` |
+| `find Jamie` | `1 person(s) listed!` | `1. Jamie Koh` |
+| `show 1` | `Showing student details.` | `1. Jamie Koh` |
+| `undo` | `Undo successful.` | `1. Alicia Lim`, `2. Ryan Tan`, `3. Sarah Lee` |
+| `show 1` | `Showing student details.` | `1. Alicia Lim`, `2. Ryan Tan`, `3. Sarah Lee` |
+| `redo` | `Redo successful.` | `1. Alicia Lim`, `2. Ryan Tan`, `3. Sarah Lee`, `4. Jamie Koh` |
+| `find Jamie` | `1 person(s) listed!` | `1. Jamie Koh` |
+| `delete 1` | `Student removed: Jamie Koh` | `1. Alicia Lim`, `2. Ryan Tan`, `3. Sarah Lee` |
+| `undo` | `Undo successful.` | `1. Alicia Lim`, `2. Ryan Tan`, `3. Sarah Lee`, `4. Jamie Koh` |
+| `find Jamie` | `1 person(s) listed!` | `1. Jamie Koh` |
+| `show 1` | `Showing student details.` | `1. Jamie Koh` |
+
+The middle `show 1` targets Alicia and must show her fixture details instead:
+name `Alicia Lim`, phone `81234567`, email `alicia@example.com`, address
+`Test address 1`; tags, subjects, level, and notes each show `Not provided`.
+It must leave Jamie's addition available for redo. Enter `exit` and require
+status 0 within 10 seconds after the final modal is closed.

@@ -21,5 +21,6 @@
     </VBox>
     <Label fx:id="subjects" styleClass="card-detail" wrapText="true" />
     <Label fx:id="level" styleClass="card-detail" />
+    <Label fx:id="notes" styleClass="card-detail" wrapText="true" />
   </VBox>
 </HBox>

@@ -103,10 +103,14 @@ The sequence diagram below illustrates the interactions within the `Logic` compo
 How the `Logic` component works:
 
 1. When `Logic` is called upon to execute a command, the command is passed to an `AddressBookParser` object, which in turn creates a parser that matches the command (e.g., `DeleteCommandParser`) and uses it to parse the command.
-1. This results in a `Command` object (more precisely, an object of one of its subclasses e.g., `DeleteCommand`) which is executed by the `LogicManager`.
-1. The command can communicate with the `Model` when it is executed (e.g. to delete a person).<br>
-   Note that although this is shown as a single step in the diagram above for simplicity, the code can require several interactions between the command object and the `Model` to complete the operation.
-1. The result of the command execution is encapsulated as a `CommandResult` object which is returned from `Logic`.
+1. This produces a `Command` object, such as `DeleteCommand`. `LogicManager` executes it against an isolated
+   working model containing a checkpoint of the live roster, history, and filter.
+1. The command communicates with that working `Model`, for example to delete a student. The Delete sequence
+   diagram focuses on these command/model calls; its `m:Model` represents the working model.
+1. For a roster change or an undo/redo operation, `LogicManager` saves the proposed roster atomically before
+   publishing the working model's checkpoint to the live model. Display-only commands do not save roster data.
+1. The result is returned as a `CommandResult` after successful execution and any required save. See
+   [Recording and publishing a change](#recording-and-publishing-a-change) for the complete flow.
 
 Here are the other classes in `Logic` (omitted from the class diagram above) that are used for parsing a user command:
 
@@ -124,7 +128,8 @@ How the parsing works:
 
 The `Model` component,
 
-* stores the address book data i.e., all `Person` objects (which are contained in a `UniquePersonList` object).
+* stores student records as `Person` objects in a `UniquePersonList`, together with session history in
+  `VersionedTutorRoster`, which extends `AddressBook`.
 * stores the `Person` objects selected by the current filter, such as search results, in a separate _filtered_ list. It exposes this list as an unmodifiable `ObservableList<Person>` that the UI can observe and bind to, so the UI updates when the list changes.
 * stores a `UserPrefs` object that represents the user’s preferences (currently, just the GUI settings). This is exposed to the outside as a `ReadOnlyUserPrefs` object.
 * does not depend on any of the other three components (as the `Model` represents data entities of the domain, they should make sense on their own without depending on other components)
@@ -161,7 +166,7 @@ This section describes some noteworthy details on how certain features are imple
 
 ### Add student
 
-`AddCommandParser` recognizes `n/`, `p/`, `e/`, `s/`, and `l/` at parameter boundaries.
+`AddCommandParser` recognizes `n/`, `p/`, `e/`, `s/`, `l/`, and optional `r/` notes at parameter boundaries.
 It rejects unknown prefixes and repeated single-use prefixes first. For a missing required prefix or an empty
 required value, it reports the affected field and shows separate required and optional parameter lists. Invalid
 field values are checked before constructing a student. `StudentFields` defines normalization and field validation.
@@ -170,16 +175,16 @@ before validation.
 Subject duplicate comparison uses that normalized value without case; storage retains the normalized value and
 entered capitalization. Subjects remain in input order.
 
-New student records have subjects and a level. `Person.isSamePerson` compares two new-format records by normalized
+New student records have subjects, a level, and optional notes. Notes are trimmed, limited to 500 Unicode characters,
+and cannot contain control characters. `Person.isSamePerson` compares two new-format records by normalized
 name and either normalized phone or case-insensitive email. Legacy records retain their original address and tags
 for storage compatibility, but do not participate in new-student duplicate checks. Existing stored records are
 restored without reapplying add-time duplicate checks.
 
-For `add`, `LogicManager` first executes the command against a proposed copy of the model.
-`JsonAddressBookStorage` writes that proposed roster to a sibling temporary file and atomically replaces the
-data file after a successful write. Only then does `LogicManager` add the student to the live model, which resets
-the displayed list to the full roster. A save failure leaves the live roster and data file unchanged.
-Other commands keep their existing save path.
+`AddCommand` changes an isolated working model and resets its filter to the full roster. `LogicManager`
+records the changed roster in that model's history, saves it atomically, and then publishes its checkpoint
+(roster, history, and filter) to the live model. A save failure leaves the live model and data file unchanged.
+This is the shared [recording and publishing flow](#recording-and-publishing-a-change) used for roster changes.
 
 ### Delete student
 
@@ -195,98 +200,139 @@ The command returns `Student removed: NAME`; it does not display contact details
 
 <puml src="diagrams/DeleteSequenceDiagram.puml" alt="Delete student sequence" />
 
-`LogicManager` performs the existing automatic save after command execution.
-The shared persistence requirement to restore records and the previous filter after a failed save is still pending;
-the current inherited save-error handling does not roll back an in-memory deletion.
+The diagram shows `DeleteCommand` operating on the isolated working model. `LogicManager` records the deletion
+as one undo step and saves the proposed roster atomically before publishing it to the live model. If saving
+fails, the live roster, filter, and history remain unchanged; the command can be retried after resolving the
+save error. See the shared [recording and publishing flow](#recording-and-publishing-a-change).
 
-### \[Proposed\] Undo/redo feature
+### Undo and redo
 
-#### Proposed Implementation
+TutorRoster restores complete roster states so tutors can recover from accidental changes. The enabled
+roster-changing commands are currently `add` and `delete`; a delete-and-add replacement creates two steps.
+`edit` and `clear` remain disabled in the command parser. The history mechanism also supports record replacements
+at the model level.
 
-The proposed undo/redo mechanism is facilitated by `VersionedAddressBook`. It extends `AddressBook` with an undo/redo history, stored internally as an `addressBookStateList` and `currentStatePointer`. Additionally, it implements the following operations:
+#### State and responsibilities
 
-* `VersionedAddressBook#commit()` -- Saves the current address book state in its history.
-* `VersionedAddressBook#undo()` -- Restores the previous address book state from its history.
-* `VersionedAddressBook#redo()` -- Restores a previously undone address book state from its history.
+| Class | Responsibility |
+| --- | --- |
+| `VersionedTutorRoster` | Extends `AddressBook` with a private `states` list of roster snapshots and a `currentStatePointer`. Implements `commit()`, `canUndo()`, `canRedo()`, `undo()`, and `redo()`. |
+| `ModelManager` | Owns the versioned roster and filtered list. Exposes history operations through `Model`, and shows the full roster after undo/redo. |
+| `ModelSnapshot` | Checkpoints the working roster, its entire undo/redo history, and its current filter for isolated execution and later publication. |
+| `UndoCommandParser` / `RedoCommandParser` | Reject arguments and create the corresponding command. `AddressBookParser` dispatches to them. |
+| `UndoCommand` / `RedoCommand` | Check history availability, restore the previous/next roster through `Model`, and return feedback. |
+| `LogicManager` | Coordinates command execution, history commits, atomic persistence, and publication to the live model. |
 
-These operations are exposed in the `Model` interface as `Model#commitAddressBook()`, `Model#undoAddressBook()` and `Model#redoAddressBook()` respectively.
+`VersionedTutorRoster` starts with one snapshot of the loaded or sample roster and a pointer of `0`.
+`canUndo()` is true when the pointer is greater than `0`; `canRedo()` is true when the pointer is less than
+`states.size() - 1`. Each roster snapshot preserves the complete student records and their order. The private
+roster copies can share immutable `Person` values without exposing a mutable historical list.
 
-Given below is an example usage scenario and how the undo/redo mechanism behaves at each step.
+The history snapshots and `ModelSnapshot` serve different purposes: `states` supports stepping through roster
+changes, while `ModelSnapshot` carries both that history and the display filter across the save boundary.
+The filter is not restored from an older undo step: a successful undo or redo deliberately shows all students.
 
-Step 1. The user launches the application for the first time. The `VersionedAddressBook` will be initialized with the initial address book state, and the `currentStatePointer` pointing to that single address book state.
+#### Recording and publishing a change
 
-<puml src="diagrams/UndoRedoState0.puml" alt="UndoRedoState0" />
+`LogicManager.execute` uses the following flow for every parsed command:
 
-Step 2. The user executes `delete 5` command to delete the 5th person in the address book. The `delete` command calls `Model#commitAddressBook()`, causing the modified state of the address book after the `delete 5` command executes to be saved in the `addressBookStateList`, and the `currentStatePointer` is shifted to the newly inserted address book state.
+1. Construct an isolated `ModelManager` from the live roster and preferences, then call
+   `proposedModel.restoreSnapshot(model.createSnapshot())` to copy the current history and filter as well.
+1. Execute the command against `proposedModel`. An index-based command therefore resolves the same displayed
+   student as it would in the live model. Parser or command errors do not publish any working state.
+1. Compare the working and live rosters. If the roster changed and the command is neither undo nor redo, call
+   `proposedModel.commitAddressBook()`. `commit()` discards the redo suffix, appends a roster copy, and advances
+   the pointer to that new last state. An unchanged roster does not create a history entry.
+1. If the roster changed, or the command is undo/redo, call
+   `storage.saveAddressBookAtomically(proposedModel.getAddressBook())`. `StorageManager` delegates to
+   `JsonAddressBookStorage`, which writes a sibling temporary file and atomically replaces the data file.
+1. Only after saving succeeds, publish with `model.restoreSnapshot(proposedModel.createSnapshot())`.
+   Restoring the checkpoint transfers the roster, pointer, history, and filter while retaining the observable
+   list instance used by the UI. Return the command's `CommandResult`.
 
-<puml src="diagrams/UndoRedoState1.puml" alt="UndoRedoState1" />
+Display-only commands such as `find`, `list`, and `show` publish their updated filter without committing history or
+writing the roster file. Undo and redo move within the existing history; they do not append a new state.
+The same save-before-publication rule applies to them, so a failed save cannot consume an undo or redo step.
 
-Step 3. The user executes `add n/David …​` to add a new person. The `add` command also calls `Model#commitAddressBook()`, causing another modified address book state to be saved into the `addressBookStateList`.
+#### Successful undo sequence
 
-<puml src="diagrams/UndoRedoState2.puml" alt="UndoRedoState2" />
+The following PlantUML sequence diagram follows `undo` through both parsers, the command, the working model,
+persistence, and the live model. It assumes an earlier state exists and the save succeeds. Routine data getters
+and the internal copying performed by checkpoints are omitted to keep the command flow readable.
 
-<box type="info" seamless>
+<puml src="diagrams/UndoSequenceDiagram-Logic.puml" alt="Undo command parsing, working-model restoration, atomic save, and live-model publication" />
 
-**Note:** If a command fails its execution, it will not call `Model#commitAddressBook()`, so the address book state will not be saved into the `addressBookStateList`.
-</box>
+`AddressBookParser.parseCommand("undo")` creates an `UndoCommandParser`, whose `parse("")` returns an
+`UndoCommand`. `LogicManager` prepares the working model before calling `UndoCommand.execute(proposedModel)`.
+The command calls `canUndoAddressBook()` and then `undoAddressBook()` on that working model. Its success result
+is not returned to the UI until the restored roster has been saved and published.
 
-Step 4. The user now decides that adding the person was a mistake, and decides to undo that action by executing the `undo` command. The `undo` command will call `Model#undoAddressBook()`, which will shift the `currentStatePointer` once to the left, pointing it to the previous address book state, and restores the address book to that state.
+The next diagram expands `undoAddressBook()` inside the working model:
 
-<puml src="diagrams/UndoRedoState3.puml" alt="UndoRedoState3" />
+<puml src="diagrams/UndoSequenceDiagram-Model.puml" alt="Working ModelManager restores the previous VersionedTutorRoster state and clears the display filter" />
 
+`VersionedTutorRoster.undo()` checks availability, asserts that there are no uncommitted roster changes,
+calls `resetData` with `states.get(currentStatePointer - 1)`, and decrements the pointer only after restoration
+succeeds. A restoration exception leaves the pointer unchanged. `ModelManager` then calls
+`updateFilteredPersonList(PREDICATE_SHOW_ALL_PERSONS)`. These steps affect only the working model until
+`LogicManager` completes persistence and publication.
 
-<box type="info" seamless>
+Redo follows the same flow using `RedoCommandParser`, `RedoCommand`, `canRedoAddressBook()`, and
+`redoAddressBook()`. `VersionedTutorRoster.redo()` restores `states.get(currentStatePointer + 1)` before
+incrementing the pointer, so the same failure protection applies.
 
-**Note:** If the `currentStatePointer` is at index 0, pointing to the initial AddressBook state, then there are no previous AddressBook states to restore. The `undo` command uses `Model#canUndoAddressBook()` to check if this is the case. If so, it will return an error to the user rather
-than attempting to perform the undo.
-</box>
+#### History example
 
-The following sequence diagram shows how an undo operation goes through the `Logic` component:
+Assume the session starts with Alicia Lim, Ryan Tan, and Sarah Lee in that order. Let `S0` be that initial
+roster, `S1` the roster after deleting Ryan, and `S2` the roster after subsequently adding Jamie Koh.
+All commands below succeed unless the feedback says otherwise.
 
-<puml src="diagrams/UndoSequenceDiagram-Logic.puml" alt="UndoSequenceDiagram-Logic" />
+| Command | `states` after publication | Pointer | Result |
+| --- | --- | --- | --- |
+| Start the session | `[S0]` | `0` | No undo or redo available. |
+| `delete 2` | `[S0, S1]` | `1` | Alicia and Sarah remain. |
+| `add n/Jamie Koh p/81234567 s/Physics l/JC 1` | `[S0, S1, S2]` | `2` | Jamie is appended. |
+| `undo` | `[S0, S1, S2]` | `1` | The complete roster in `S1` is restored. |
+| `list` | `[S0, S1, S2]` | `1` | History is unchanged. |
+| `redo` | `[S0, S1, S2]` | `2` | Jamie is restored. |
+| `undo` | `[S0, S1, S2]` | `1` | Jamie is removed again. |
+| `add n/Noah Goh p/91234567 s/English l/Secondary 4` | `[S0, S1, S3]` | `2` | The new roster `S3` replaces the abandoned redo branch `S2`. |
+| `redo` | `[S0, S1, S3]` | `2` | `There are no changes to redo.`; history is unchanged. |
 
-<box type="info" seamless>
+The history is session-only. Saving writes the current roster, without `states`, the pointer, or the display
+filter. Loading the saved roster into a new `ModelManager` starts a fresh one-state history.
 
-**Note:** The lifeline for `UndoCommand` should end at the destroy marker (X), but due to a limitation of PlantUML, it continues to the end of the diagram.
-</box>
+#### Errors and invariants
 
-Similarly, how an undo operation goes through the `Model` component is shown below:
+* Arguments such as `undo 1` and `redo all` produce `ParseException` with
+  `Invalid command format. Usage: undo` or `Invalid command format. Usage: redo`.
+* When history is unavailable, the command throws `CommandException` with `There are no changes to undo.`
+  or `There are no changes to redo.`. It does not restore a state or clear the live search filter.
+* An `IOException` or `AccessDeniedException` during atomic saving becomes a `CommandException`. The live
+  roster, filter, history, and previously saved file remain unchanged. The proposed pointer movement is discarded.
+* Java `assert` statements in `VersionedTutorRoster` check that the history contains a valid current pointer,
+  new commits end the redo branch, and undo/redo starts from a committed roster. These diagnose programmer errors.
+  History availability and command syntax also have runtime checks, so user-input validation works when Java
+  assertions are disabled.
 
-<puml src="diagrams/UndoSequenceDiagram-Model.puml" alt="UndoSequenceDiagram-Model" />
+#### Design considerations and extension
 
-The `redo` command does the opposite — it calls `Model#redoAddressBook()`, which shifts the `currentStatePointer` once to the right, pointing to the previously undone state, and restores the address book to that state.
+**Whole-roster snapshots:** A state restores every student field and roster position together. This avoids
+maintaining separate inverse operations for add, delete, and future record replacements. The cost is memory
+that grows with the number of retained states and roster size; history is not persisted across sessions.
 
-<box type="info" seamless>
+**Save before publication:** Preparing the entire operation on a working model keeps roster data, redo history,
+and display state consistent on save failure. This requires copying the working roster and history metadata
+for command execution. Updating the live model first would require restoring all three after a failed save.
 
-**Note:** If the `currentStatePointer` is at index `addressBookStateList.size() - 1`, pointing to the latest address book state, then there are no undone AddressBook states to restore. The `redo` command uses `Model#canRedoAddressBook()` to check if this is the case. If so, it will return an error to the user rather than attempting to perform the redo.
-</box>
+**Adding a roster-changing command:** Enable its parser and change the supplied working `Model` in `execute`.
+`LogicManager` detects the changed roster and records it centrally. Avoid independently committing a second
+history step, preserve `Person` immutability when adding fields, and cover undo/redo and save failures in tests.
 
-Step 5. The user then decides to execute the command `list`. Commands that do not modify the address book, such as `list`, will usually not call `Model#commitAddressBook()`, `Model#undoAddressBook()` or `Model#redoAddressBook()`. Thus, the `addressBookStateList` remains unchanged.
-
-<puml src="diagrams/UndoRedoState4.puml" alt="UndoRedoState4" />
-
-Step 6. The user executes `clear`, which calls `Model#commitAddressBook()`. Since the `currentStatePointer` is not pointing at the end of the `addressBookStateList`, all address book states after the `currentStatePointer` will be purged. Reason: It no longer makes sense to redo the `add n/David …` command. This is the behavior that most modern desktop applications follow.
-
-<puml src="diagrams/UndoRedoState5.puml" alt="UndoRedoState5" />
-
-The following activity diagram summarizes what happens when a user executes a new command:
-
-<puml src="diagrams/CommitActivityDiagram.puml" width="250" />
-
-#### Design considerations:
-
-**Aspect: How undo & redo execute:**
-
-* **Alternative 1 (current choice):** Saves the entire address book.
-  * Pros: Easy to implement.
-  * Cons: May have performance issues in terms of memory usage.
-
-* **Alternative 2:** Individual command knows how to undo/redo by
-  itself.
-  * Pros: Will use less memory (e.g. for `delete`, just save the person being deleted).
-  * Cons: We must ensure that the implementation of each individual command is correct.
-
-_{more aspects and alternatives to be added}_
+Existing coverage includes `VersionedTutorRosterTest`, `ModelHistoryTest`, `UndoCommandTest`, `RedoCommandTest`,
+`HistoryCommandParserTest`, and `LogicManagerTest`. Together they cover bounds, record replacements, ordering,
+redo-branch replacement, filtered deletion, persistence, save failures, failed restorations with retry,
+notes preservation, read-only detail viewing, and fresh history after restart.
 
 ### \[Proposed\] Data archiving
 
@@ -542,7 +588,7 @@ Priorities: High (must have) - `* * *`, Medium (nice to have) - `* *`, Low (unli
 | **Education level** | The academic stage at which a student is taught, such as Primary 6, Secondary 4, or JC 1. |
 | **School** | The educational institution a student attends. A planned field beyond the strict MVP. |
 | **Tag** | A tutor-defined label used to categorize students, such as `exam-prep`. A planned feature beyond the strict MVP. |
-| **Student notes** | Free-text information about a student that does not fit into the standard fields. A planned feature beyond the strict MVP. |
+| **Student notes** | Optional free-text information about a student, such as learning difficulties, goals, preferred explanations, or parent requests. |
 | **Preferred contact person** | The student or guardian whom the tutor should contact first. A planned feature beyond the strict MVP. |
 | **Command** | A typed instruction that performs an operation, such as `list` or `delete 1`. |
 | **CLI-first interface** | An interface where typing commands is the primary way to interact with the application, while a graphical interface displays records and feedback. |

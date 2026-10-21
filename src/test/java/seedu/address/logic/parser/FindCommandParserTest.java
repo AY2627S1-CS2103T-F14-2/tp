@@ -13,15 +13,7 @@ import seedu.address.model.person.NameContainsKeywordsPredicate.MatchMode;
 
 public class FindCommandParserTest {
 
-    private static final String EXPECTED_INVALID_COMMAND_FORMAT = "Invalid command format!\n\n"
-            + "Usage: find [--any] KEYWORD [MORE_KEYWORDS]...\n\n"
-            + "By default, find shows students whose names match all specified keywords "
-            + "(case-insensitive, partial matches allowed).\n"
-            + "Use `--any` to show students whose names match "
-            + "at least one specified keyword.\n\n"
-            + "Examples:\n"
-            + "- \"find alice bob\" returns students whose names contain both “alice” and “bob”.\n"
-            + "- \"find --any alice bob\" returns students whose names contain “alice”, “bob”, or both.";
+    private static final String EXPECTED_INVALID_COMMAND_FORMAT = FindCommand.MESSAGE_INVALID_COMMAND_FORMAT;
 
     private FindCommandParser parser = new FindCommandParser();
 

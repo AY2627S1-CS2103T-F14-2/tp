@@ -16,7 +16,7 @@ Optimized for tutors who type fast and prefer a **Command Line Interface (CLI)**
 
 ## Key Features
 
-* **Student & Guardian Profiles**: Track crucial tutoring-specific details including subjects taught, education level, school, parent/guardian contacts, and customized student notes.
+* **Student & Guardian Profiles**: Track crucial tutoring-specific details including subjects taught, education level, school, parent/guardian contacts, and customised student notes.
 * **Rapid CLI-First Workflow**: Perform common operations (adding, searching, filtering, and updating student profiles) with concise keyboard commands.
 * **Targeted Search & Tagging**: Quickly filter students by subject, academic level, school, or custom tags without needing to memorize full names.
 * **Data Integrity & Safety**: Built-in duplicate warnings, validation checks, and deletion safeguards to keep your records accurate and secure.

@@ -52,7 +52,7 @@ public class AddCommandParser implements Parser<AddCommand> {
             throw new ParseException(AddCommand.MESSAGE_USAGE);
         }
 
-        for (String prefix : List.of("n/", "p/", "e/", "l/")) {
+        for (String prefix : List.of("n/", "p/", "e/", "l/", "r/")) {
             if (values.getOrDefault(prefix, List.of()).size() > 1) {
                 throw new ParseException("Parameter " + prefix + " must not be specified more than once.");
             }
@@ -71,6 +71,7 @@ public class AddCommandParser implements Parser<AddCommand> {
         String email = values.containsKey("e/") ? values.get("e/").getFirst() : null;
         List<String> subjects = values.get("s/");
         String level = StudentFields.normalizeWhitespace(values.get("l/").getFirst());
+        String notes = values.containsKey("r/") ? values.get("r/").getFirst() : "";
 
         if (!StudentFields.isValidName(name)) {
             throw new ParseException(StudentFields.INVALID_NAME);
@@ -98,12 +99,15 @@ public class AddCommandParser implements Parser<AddCommand> {
         if (!StudentFields.isValidLevel(level)) {
             throw new ParseException(StudentFields.INVALID_LEVEL);
         }
-        Person student = new Person(name, phone, email, normalizedSubjects, level);
+        if (values.containsKey("r/") && !StudentFields.isValidNotes(notes)) {
+            throw new ParseException(StudentFields.INVALID_NOTES);
+        }
+        Person student = new Person(name, phone, email, normalizedSubjects, level, notes);
         return new AddCommand(student);
     }
 
     private static boolean isKnownPrefix(String prefix) {
         return prefix.equals("n/") || prefix.equals("p/") || prefix.equals("e/")
-                || prefix.equals("s/") || prefix.equals("l/");
+                || prefix.equals("s/") || prefix.equals("l/") || prefix.equals("r/");
     }
 }

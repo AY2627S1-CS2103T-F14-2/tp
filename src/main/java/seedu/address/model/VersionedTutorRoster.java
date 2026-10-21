@@ -9,14 +9,14 @@ import java.util.List;
  * Stores session-only roster snapshots and the position of the current committed state.
  * Snapshots are private copies; changing the working roster never changes an earlier state.
  */
-public class VersionedAddressBook extends AddressBook {
+public class VersionedTutorRoster extends AddressBook {
     private final List<AddressBook> states = new ArrayList<>();
     private int currentStatePointer;
 
     /**
      * Creates a history whose initial state is the supplied roster.
      */
-    public VersionedAddressBook(ReadOnlyAddressBook initialState) {
+    public VersionedTutorRoster(ReadOnlyAddressBook initialState) {
         super(initialState);
         states.add(new AddressBook(initialState));
     }
@@ -24,7 +24,7 @@ public class VersionedAddressBook extends AddressBook {
     /**
      * Copies both the working roster and its history, without sharing mutable roster data.
      */
-    public VersionedAddressBook(VersionedAddressBook source) {
+    public VersionedTutorRoster(VersionedTutorRoster source) {
         super(source);
         states.addAll(source.states);
         currentStatePointer = source.currentStatePointer;
@@ -72,7 +72,8 @@ public class VersionedAddressBook extends AddressBook {
             throw new IllegalStateException("No roster change to undo");
         }
         assert equals(states.get(currentStatePointer)) : "Commit pending roster changes before undoing";
-        resetData(states.get(--currentStatePointer));
+        resetData(states.get(currentStatePointer - 1));
+        currentStatePointer--;
     }
 
     /**
@@ -85,13 +86,14 @@ public class VersionedAddressBook extends AddressBook {
             throw new IllegalStateException("No roster change to redo");
         }
         assert equals(states.get(currentStatePointer)) : "Commit pending roster changes before redoing";
-        resetData(states.get(++currentStatePointer));
+        resetData(states.get(currentStatePointer + 1));
+        currentStatePointer++;
     }
 
     /**
      * Replaces the working roster and history while keeping the observable list instance stable.
      */
-    public void restoreFrom(VersionedAddressBook source) {
+    public void restoreFrom(VersionedTutorRoster source) {
         requireNonNull(source);
         if (source == this) {
             return;

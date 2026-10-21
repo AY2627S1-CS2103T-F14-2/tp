@@ -30,12 +30,12 @@ test {
     finalizedBy jacocoTestReport
 }
 
-def coverageExclusions = ['**/*.jar', '**/CommandBox*.class']
+def coverageExclusions = [
+        '**/*.jar', '**/ui/**', '**/Main.class', '**/MainApp.class', '**/commons/util/AppUtil.class'
+]
 
 jacocoTestReport {
-    // CommandBox only adapts pure command logic to JavaFX controls. Its event
-    // wiring requires a graphical environment, so the logic is covered through
-    // CommandBoxLogicTest instead.
+    // JavaFX UI and application-entry code is excluded because the test suite is headless.
     afterEvaluate {
         classDirectories.setFrom(files(classDirectories.files.collect {
             fileTree(dir: it, exclude: coverageExclusions)

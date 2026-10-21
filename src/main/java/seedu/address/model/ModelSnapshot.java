@@ -9,16 +9,16 @@ import seedu.address.model.person.Person;
  * ModelManager uses checkpoints to prepare changes without publishing them before saving.
  */
 public final class ModelSnapshot {
-    private final VersionedAddressBook addressBook;
+    private final VersionedTutorRoster roster;
     private final Predicate<? super Person> filter;
 
-    ModelSnapshot(VersionedAddressBook addressBook, Predicate<? super Person> filter) {
-        this.addressBook = new VersionedAddressBook(addressBook);
+    ModelSnapshot(VersionedTutorRoster roster, Predicate<? super Person> filter) {
+        this.roster = new VersionedTutorRoster(roster);
         this.filter = filter;
     }
 
-    VersionedAddressBook copyAddressBook() {
-        return new VersionedAddressBook(addressBook);
+    VersionedTutorRoster copyRoster() {
+        return new VersionedTutorRoster(roster);
     }
 
     Predicate<? super Person> getFilter() {

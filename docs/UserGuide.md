@@ -39,8 +39,9 @@ Student records are saved locally so you can return to them in later sessions.
    | Command | What it does |
    | --- | --- |
    | `list` | Shows the complete roster. |
-   | `add n/Ryan Tan p/+6591234567 s/Mathematics l/Secondary 4` | Adds Ryan's student record. |
+   | `add n/Ryan Tan p/+6591234567 s/Mathematics l/Secondary 4 r/Prefers worked examples` | Adds Ryan's student record. |
    | `find Ryan` | Shows students whose names contain `Ryan`. |
+   | `show 1` | Opens the complete record for student 1 in the currently displayed list. |
    | `delete 1` | Removes the student numbered 1 in the currently displayed list. |
    | `undo` | Reverses the last successful roster change in this session. |
    | `redo` | Reapplies the last undone change. |
@@ -53,11 +54,14 @@ number before deleting a student, particularly after a search.
 ## Reading the interface
 
 * **Your students:** the numbered roster. Each new student card shows the name, phone number,
-  subjects, education level, and email when supplied.
+  subjects, education level, email, and notes when supplied.
 * **Result area:** feedback for the last command, including validation errors.
 * **Command box:** where you enter commands and press Enter to execute them. A successful command
   clears the box; an invalid command stays in the box so you can correct it. Use the Up and Down
   arrow keys to recall commands from the current session.
+* **Student detail modal:** the `show` command opens a complete, scrollable student record above a
+  dimmed roster. It includes contact details, subjects, education level, notes, address, and tags.
+  Press **Esc** or select **Close** to dismiss it.
 * **Status bar:** the path of the roster data file.
 
 After a search, the roster shows matching students and numbers them from 1. A successful `add`,
@@ -79,7 +83,7 @@ After a search, the roster shows matching students and numbers them from 1. A su
   education levels, consecutive internal whitespace is stored as one space. Capitalization is
   preserved for display.
 * Only the subject prefix `s/` may be repeated within an add command. Unknown prefixes are rejected.
-* `list`, `undo`, and `redo` accept no arguments; `delete` accepts exactly one index. `find` accepts the optional
+* `list`, `undo`, and `redo` accept no arguments; `show` and `delete` accept exactly one index. `find` accepts the optional
   `--any` flag before its search keywords. Use `help` and `exit` as shown in their formats below.
 
 If you copy a command from a PDF, check that it remains on one line with spaces between parameters.
@@ -88,9 +92,9 @@ If you copy a command from a PDF, check that it remains on one line with spaces 
 
 Adds a student and shows the complete roster, including the new student at the end.
 
-**Format:** `add n/NAME p/PHONE [e/EMAIL] s/SUBJECT [s/SUBJECT]... l/LEVEL`
+**Format:** `add n/NAME p/PHONE [e/EMAIL] [r/NOTES] s/SUBJECT [s/SUBJECT]... l/LEVEL`
 
-Required fields are name, phone number, at least one subject, and education level. Email is optional.
+Required fields are name, phone number, at least one subject, and education level. Email and notes are optional.
 
 | Field | Accepted values | Examples |
 | --- | --- | --- |
@@ -99,14 +103,16 @@ Required fields are name, phone number, at least one subject, and education leve
 | `EMAIL` | Exactly one `@`, a non-empty local part, and a domain containing a full stop with non-empty text between full stops. No whitespace. | `ryan@example.com`, `parent.tan@example.sg` |
 | `SUBJECT` | 1–50 characters after whitespace normalization. Letters, numbers, spaces, `&`, `+`, `/`, apostrophes, hyphens, and full stops; at least one letter or number. | `Mathematics`, `C++`, `Physics/Chemistry` |
 | `LEVEL` | 1–30 characters after whitespace normalization. Letters, numbers, spaces, and hyphens; at least one letter or number. | `Secondary 4`, `JC 1`, `Grade 8`, `Year-10` |
+| `NOTES` | Optional free text of 1–500 characters after trimming. Control characters are not allowed. | `Prefers worked examples; parent requests weekly updates` |
 
 For example, `s/English  Language` is stored as `English Language`, and `l/Secondary  4` is stored
-as `Secondary 4`. An empty `e/` is invalid; omit the prefix entirely when you have no email to supply.
+as `Secondary 4`. An empty `e/` or `r/` is invalid; omit the prefix entirely when you have no email or notes to supply.
 
 Examples:
 
 * `add n/Ryan Tan p/+6591234567 e/ryan@example.com s/Mathematics l/Secondary 4`
 * `add n/Alicia Lim p/81234567 s/Mathematics s/Physics l/JC 1`
+* `add n/Sarah Lee p/+821012345678 s/English l/Grade 8 r/Needs visual explanations; goal is to improve essay writing`
 * `add l/Grade 8 s/English n/Sarah Lee p/+821012345678`
 
 **Success feedback:** `New student added: NAME`, for example `New student added: Ryan Tan`.
@@ -140,6 +146,7 @@ under the new student duplicate rule; their original address and tags remain in 
 | A repeated single-use prefix, such as `n/` | `Parameter n/ must not be specified more than once` |
 | A repeated subject | `Duplicate subject: SUBJECT` |
 | An existing student matches the duplicate rule | `This student already exists in TutorRoster.` |
+| Notes are empty, too long, or contain control characters | `Invalid notes. Notes must be 1–500 characters and must not contain control characters.` |
 | Saving fails | `Unable to save student data. No changes were made.` |
 
 Invalid fields produce a message explaining the applicable rule. For example, `p/9123-4567` produces:
@@ -199,6 +206,23 @@ are still stored. Enter `list` to show them again.
 A bare `find` or `find --any` is invalid and shows usage instructions because at least one keyword
 is required. The current displayed list is preserved.
 
+### Viewing a student: `show`
+
+Opens a detailed modal for one student without changing the roster or its current filter.
+
+**Format:** `show INDEX`
+
+* `INDEX` is a positive integer starting from 1 and refers to the **currently displayed list**.
+* After `find`, use the number beside the student in the search results, not the number from the full roster.
+* The modal displays every available field: name, phone, email, subjects, education level, notes, address, and tags.
+* Optional fields that are not present are shown as `Not provided`.
+* Press **Esc** or select **Close** to return to the roster.
+
+| Problem | Feedback |
+| --- | --- |
+| Missing, zero, negative, decimal, or nonnumeric index; extra arguments | `Invalid command format. Usage: show INDEX` |
+| Positive index outside the displayed list, including an empty list | `The student index provided is invalid. Choose an index from the currently displayed list.` |
+
 ### Deleting a student: `delete`
 
 Removes a student from the active roster and shows the complete remaining roster.
@@ -250,7 +274,7 @@ changes. `redo` reapplies the most recently undone change; repeat it to step for
   delete and add creates two separate undo steps.
 * Restoring a roster restores the students' complete saved details and their original order.
   Both commands show the full roster afterward, even if you were viewing search results.
-* `find`, `list`, `help`, and rejected commands do not create undo steps or clear redo history.
+* `find`, `list`, `show`, `help`, and rejected commands do not create undo steps or clear redo history.
 * After undoing, making a new successful roster change clears the remaining redo history.
 * History lasts only for the current application session. Restarting retains the saved roster,
   but starts with no changes to undo or redo. Window settings and command recall are not undone.
@@ -335,6 +359,52 @@ overwrite the existing data file with the current roster.
 If your saved roster unexpectedly appears empty, close the main window and make a copy of
 `data/addressbook.json` before entering more commands. Restore a readable backup before reopening.
 
+## Undo and redo examples
+
+These examples assume a new session with three saved students in this order:
+`1. Alicia Lim`, `2. Ryan Tan`, `3. Sarah Lee`. Use a test copy of your roster when trying the
+whole sequence. Each row continues from the preceding row; the second example continues from the first.
+
+### Recovering a filtered deletion
+
+You have searched for Ryan and accidentally removed the displayed match. Undo restores Ryan's
+complete record in its original position, then shows all students. Redo removes Ryan again;
+it does not reinterpret the old displayed index against the full roster.
+
+| Command | Result-area feedback | Displayed roster |
+| --- | --- | --- |
+| `find Ryan` | `1 person(s) listed!` | `1. Ryan Tan` |
+| `delete 1` | `Student removed: Ryan Tan` | `1. Alicia Lim`, `2. Sarah Lee` |
+| `undo` | `Undo successful.` | `1. Alicia Lim`, `2. Ryan Tan`, `3. Sarah Lee` |
+| `find Nobody` | `0 person(s) listed!` | Empty search results |
+| `redo` | `Redo successful.` | `1. Alicia Lim`, `2. Sarah Lee` |
+| `undo` | `Undo successful.` | `1. Alicia Lim`, `2. Ryan Tan`, `3. Sarah Lee` |
+
+The search commands do not become undo steps. After the final row, the deletion can still be redone.
+
+### Making a new change after undo
+
+Continue from the preceding example. Adding Jamie creates a new history branch and discards the
+undone deletion. The next `redo` therefore reports that no change can be redone. Undoing the add
+removes Jamie; redoing it restores Jamie's record at the end of the roster.
+
+| Command | Result-area feedback | Displayed roster |
+| --- | --- | --- |
+| `add n/Jamie Koh p/81234567 s/Physics l/JC 1` | `New student added: Jamie Koh` | `1. Alicia Lim`, `2. Ryan Tan`, `3. Sarah Lee`, `4. Jamie Koh` |
+| `redo` | `There are no changes to redo.` | `1. Alicia Lim`, `2. Ryan Tan`, `3. Sarah Lee`, `4. Jamie Koh` |
+| `undo` | `Undo successful.` | `1. Alicia Lim`, `2. Ryan Tan`, `3. Sarah Lee` |
+| `redo` | `Redo successful.` | `1. Alicia Lim`, `2. Ryan Tan`, `3. Sarah Lee`, `4. Jamie Koh` |
+
+A rejected add, invalid index, or malformed command would leave the previous redo history available.
+Closing and reopening TutorRoster retains the last saved roster, but starts a new, empty undo/redo history.
+
+### Reversing a delete-and-add replacement
+
+When you update a student by deleting the old record and adding a corrected one, those are two
+separate changes. The first `undo` removes the replacement. A second `undo` restores the original
+record, including its old details and roster position. Two `redo` commands reapply the deletion and
+then the replacement. If you only want to remove the replacement temporarily, use one `undo`.
+
 ## FAQ
 
 **How do I update a student?**
@@ -375,7 +445,7 @@ Copy the saved `data/addressbook.json` while the app is closed. See [Backups and
 | Action | Shortcut | Description |
 | --- | --- | --- |
 | Focus command input | `/` | When focus is outside the command box, focuses it with the cursor at the end without entering `/`. |
-| Return to the roster | `Esc` | When the command box has focus, moves focus to the student list. |
+| Return to the roster | `Esc` | Closes the student detail modal, or moves focus to the student list when the command box has focus. |
 | Previous command | Up arrow | When the command box has focus, recalls an earlier command entered during this session. |
 | Next command | Down arrow | Recalls a later command. Moving past the newest command restores the unfinished draft. |
 | Toggle Help window | `F1` | Opens the Help window when closed, or closes it when open. |
@@ -388,9 +458,10 @@ may have changed since the command was first entered.
 
 | Action | Format | Example |
 | --- | --- | --- |
-| Add student | `add n/NAME p/PHONE s/SUBJECT l/LEVEL [e/EMAIL] [MORE_SUBJECT]` | `add n/Ryan Tan p/81234567 s/Mathematics l/Secondary 4` |
+| Add student | `add n/NAME p/PHONE s/SUBJECT l/LEVEL [e/EMAIL] [r/NOTES] [MORE_SUBJECT]` | `add n/Ryan Tan p/81234567 s/Mathematics l/Secondary 4 r/Prefers worked examples` |
 | List students | `list` | `list` |
 | Find by name | `find [--any] KEYWORD [MORE_KEYWORDS]` | `find Ryan Tan` or `find --any Ryan Sarah` |
+| Show student details | `show INDEX` | `show 2` |
 | Delete student | `delete INDEX` | `delete 2` |
 | Undo last change | `undo` | `undo` |
 | Redo undone change | `redo` | `redo` |

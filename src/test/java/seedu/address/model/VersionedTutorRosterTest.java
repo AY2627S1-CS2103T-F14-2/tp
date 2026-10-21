@@ -13,10 +13,10 @@ import org.junit.jupiter.api.Test;
 
 import seedu.address.model.person.Person;
 
-public class VersionedAddressBookTest {
+public class VersionedTutorRosterTest {
     @Test
     public void initialState_cannotUndoOrRedo() {
-        VersionedAddressBook roster = new VersionedAddressBook(new AddressBook());
+        VersionedTutorRoster roster = new VersionedTutorRoster(new AddressBook());
         assertFalse(roster.canUndo());
         assertFalse(roster.canRedo());
         assertThrows(IllegalStateException.class, roster::undo);
@@ -28,7 +28,7 @@ public class VersionedAddressBookTest {
         AddressBook initial = new AddressBook();
         initial.addPerson(ALICE);
         initial.addPerson(BENSON);
-        VersionedAddressBook roster = new VersionedAddressBook(initial);
+        VersionedTutorRoster roster = new VersionedTutorRoster(initial);
         Person edited = new Person("Alice Pauline", "+6591234567", null,
                 List.of("English", "Mathematics"), "Secondary 4");
         roster.setPerson(ALICE, edited);
@@ -52,7 +52,7 @@ public class VersionedAddressBookTest {
 
     @Test
     public void commit_afterUndo_discardsRedoButNoOpPreservesIt() {
-        VersionedAddressBook roster = new VersionedAddressBook(new AddressBook());
+        VersionedTutorRoster roster = new VersionedTutorRoster(new AddressBook());
         roster.addPerson(ALICE);
         roster.commit();
         roster.undo();
@@ -71,10 +71,10 @@ public class VersionedAddressBookTest {
 
     @Test
     public void copy_independentChanges_preservesOriginalHistory() {
-        VersionedAddressBook original = new VersionedAddressBook(new AddressBook());
+        VersionedTutorRoster original = new VersionedTutorRoster(new AddressBook());
         original.addPerson(ALICE);
         original.commit();
-        VersionedAddressBook copy = new VersionedAddressBook(original);
+        VersionedTutorRoster copy = new VersionedTutorRoster(original);
         copy.undo();
         copy.addPerson(BENSON);
         copy.commit();
@@ -87,7 +87,7 @@ public class VersionedAddressBookTest {
 
     @Test
     public void undo_uncommittedChange_detectsMissingCommit() {
-        VersionedAddressBook roster = new VersionedAddressBook(new AddressBook());
+        VersionedTutorRoster roster = new VersionedTutorRoster(new AddressBook());
         roster.addPerson(ALICE);
         roster.commit();
         roster.addPerson(BENSON);
@@ -95,7 +95,67 @@ public class VersionedAddressBookTest {
     }
 
     @Test
-    public void assertions_areEnabledForHistoryTests() {
-        assertTrue(VersionedAddressBook.class.desiredAssertionStatus());
+    public void undo_restoreFails_preservesPointerAndAllowsRetry() {
+        FailingRestoreRoster roster = new FailingRestoreRoster();
+        roster.addPerson(ALICE);
+        roster.commit();
+        roster.addPerson(BENSON);
+        roster.commit();
+        roster.shouldFailRestore = true;
+
+        assertThrows(IllegalStateException.class, "Simulated restoration failure", roster::undo);
+        assertEquals(List.of(ALICE, BENSON), roster.getPersonList());
+        assertTrue(roster.canUndo());
+        assertFalse(roster.canRedo());
+
+        roster.shouldFailRestore = false;
+        roster.undo();
+        assertEquals(List.of(ALICE), roster.getPersonList());
+        roster.redo();
+        assertEquals(List.of(ALICE, BENSON), roster.getPersonList());
     }
+
+    @Test
+    public void redo_restoreFails_preservesPointerAndAllowsRetry() {
+        FailingRestoreRoster roster = new FailingRestoreRoster();
+        roster.addPerson(ALICE);
+        roster.commit();
+        roster.addPerson(BENSON);
+        roster.commit();
+        roster.undo();
+        roster.shouldFailRestore = true;
+
+        assertThrows(IllegalStateException.class, "Simulated restoration failure", roster::redo);
+        assertEquals(List.of(ALICE), roster.getPersonList());
+        assertTrue(roster.canUndo());
+        assertTrue(roster.canRedo());
+
+        roster.shouldFailRestore = false;
+        roster.redo();
+        assertEquals(List.of(ALICE, BENSON), roster.getPersonList());
+    }
+
+    @Test
+    public void assertions_areEnabledForHistoryTests() {
+        assertTrue(VersionedTutorRoster.class.desiredAssertionStatus());
+    }
+    /**
+     * Simulates a restoration failure before roster data is replaced.
+     */
+    private static class FailingRestoreRoster extends VersionedTutorRoster {
+        private boolean shouldFailRestore;
+
+        FailingRestoreRoster() {
+            super(new AddressBook());
+        }
+
+        @Override
+        public void resetData(ReadOnlyAddressBook newData) {
+            if (shouldFailRestore) {
+                throw new IllegalStateException("Simulated restoration failure");
+            }
+            super.resetData(newData);
+        }
+    }
+
 }

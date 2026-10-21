@@ -4,6 +4,7 @@ import static java.util.Objects.requireNonNull;
 import static seedu.address.logic.parser.CliSyntax.PREFIX_EMAIL;
 import static seedu.address.logic.parser.CliSyntax.PREFIX_LEVEL;
 import static seedu.address.logic.parser.CliSyntax.PREFIX_NAME;
+import static seedu.address.logic.parser.CliSyntax.PREFIX_NOTES;
 import static seedu.address.logic.parser.CliSyntax.PREFIX_PHONE;
 import static seedu.address.logic.parser.CliSyntax.PREFIX_SUBJECT;
 
@@ -23,7 +24,8 @@ public class AddCommand extends Command {
     public static final String MESSAGE_PARAMETER_GUIDE = "Required: " + COMMAND_WORD + " "
             + PREFIX_NAME + "NAME " + PREFIX_PHONE + "PHONE "
             + PREFIX_SUBJECT + "SUBJECT " + PREFIX_LEVEL + "LEVEL\n"
-            + "Optional: " + PREFIX_EMAIL + "EMAIL; repeat " + PREFIX_SUBJECT + "SUBJECT for additional subjects.\n"
+            + "Optional: " + PREFIX_EMAIL + "EMAIL " + PREFIX_NOTES + "NOTES; repeat "
+            + PREFIX_SUBJECT + "SUBJECT for additional subjects.\n"
             + "Parameters may appear in any order.";
     public static final String MESSAGE_USAGE = "Invalid command format for add.\n" + MESSAGE_PARAMETER_GUIDE;
 
