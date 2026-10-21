@@ -15,6 +15,9 @@ import static seedu.address.testutil.TypicalIndexes.INDEX_FIRST_PERSON;
 import static seedu.address.testutil.TypicalIndexes.INDEX_SECOND_PERSON;
 import static seedu.address.testutil.TypicalPersons.getTypicalAddressBook;
 
+import java.util.List;
+import java.util.Set;
+
 import org.junit.jupiter.api.Test;
 
 import seedu.address.commons.core.index.Index;
@@ -25,6 +28,7 @@ import seedu.address.model.Model;
 import seedu.address.model.ModelManager;
 import seedu.address.model.UserPrefs;
 import seedu.address.model.person.Person;
+import seedu.address.model.tag.Tag;
 import seedu.address.testutil.EditPersonDescriptorBuilder;
 import seedu.address.testutil.PersonBuilder;
 
@@ -47,6 +51,29 @@ public class EditCommandTest {
         expectedModel.setPerson(model.getFilteredPersonList().get(0), editedPerson);
 
         assertCommandSuccess(editCommand, model, expectedMessage, expectedModel);
+    }
+
+    @Test
+    public void execute_newStudentFields_preservesAndReplacesNewData() throws Exception {
+        Model studentModel = new ModelManager();
+        Person student = new Person("Amy Bee", "85355255", "amy@example.com", List.of("Math"), "JC 1",
+                "Old notes").withTags(Set.of(new Tag("old-tag")));
+        studentModel.addPerson(student);
+
+        EditPersonDescriptor descriptor = new EditPersonDescriptor();
+        descriptor.setSubjects(List.of("Physics", "Chemistry"));
+        descriptor.setLevel("Secondary 4");
+        descriptor.setNotes("New notes");
+        descriptor.setTags(Set.of(new Tag("new-tag")));
+
+        new EditCommand(Index.fromOneBased(1), descriptor).execute(studentModel);
+
+        Person edited = studentModel.getAddressBook().getPersonList().getFirst();
+        assertEquals(List.of("Physics", "Chemistry"), edited.getSubjects());
+        assertEquals("Secondary 4", edited.getLevel());
+        assertEquals("New notes", edited.getNotes());
+        assertEquals(Set.of(new Tag("new-tag")), edited.getTags());
+        assertEquals("amy@example.com", edited.getEmail().value);
     }
 
     @Test

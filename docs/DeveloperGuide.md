@@ -166,7 +166,9 @@ This section describes some noteworthy details on how certain features are imple
 
 ### Add student
 
-`AddCommandParser` recognizes `n/`, `p/`, `e/`, `s/`, `l/`, and optional `r/` notes at parameter boundaries.
+`AddCommandParser` recognizes `n/`, `p/`, `e/`, `s/`, `l/`, optional `r/` notes, and `/t` at parameter boundaries.
+Each repeated `/t TAG` supplies one tag. Equivalent tags are deduplicated with warning feedback,
+and invalid tags or more than 20 distinct tags reject the entire command.
 It rejects unknown prefixes and repeated single-use prefixes first. For a missing required prefix or an empty
 required value, it reports the affected field and shows separate required and optional parameter lists. Invalid
 field values are checked before constructing a student. `StudentFields` defines normalization and field validation.
@@ -185,6 +187,40 @@ restored without reapplying add-time duplicate checks.
 records the changed roster in that model's history, saves it atomically, and then publishes its checkpoint
 (roster, history, and filter) to the live model. A save failure leaves the live model and data file unchanged.
 This is the shared [recording and publishing flow](#recording-and-publishing-a-change) used for roster changes.
+
+### Student tags
+
+`TagCommandParser` parses `tag INDEX TAG`, `untag INDEX TAG`, and `untag --all INDEX`.
+The two command words share `TagCommand`, whose operation is ADD, REMOVE, or CLEAR.
+It validates the index against the displayed list and replaces the selected immutable student using
+`Person.withTags`. That copy preserves all other fields, optional-field presence, and legacy format.
+The model's tag sets are unmodifiable and copied defensively.
+
+`Tag` stores canonical lowercase names. New names contain at most 30 English letters/digits with
+single hyphens between nonempty segments. `Tag.fromStoredName` validates the same grammar without
+the new length limit, allowing old tags to remain readable and removable. Commands enforce the
+20-tag addition limit; removals remain possible when legacy data exceeds it.
+
+`LogicManager` executes tag commands through the shared snapshot flow, copying the roster, current
+filter, and undo/redo history into the working model. Unchanged outcomes return warning feedback
+without saving or altering history. Changed outcomes create one undo step and are saved atomically
+before the complete snapshot is published. Tag commands retain the current filter; undo/redo show
+the full roster. An I/O failure raises a command exception and leaves the live roster, filter, and
+history unchanged. The observable list instance remains stable.
+Input validation uses exceptions; assertions check internal identity invariants. Logs record operation
+and save outcomes without adding tag values to the new log messages.
+
+Storage keeps the existing per-student JSON `tags` array, sorted when written. On load,
+`JsonAdaptedPerson` detects spelling changes and duplicate tags. `JsonAddressBookStorage` atomically
+saves normalized data only when migration is needed and exposes whether migration occurred.
+`MainApp` passes the completed-migration notice to the UI. `TagMigrationException` distinguishes a
+failed migration save from other load errors, so it stops startup with an error dialog instead of
+falling back to an empty editable roster. Existing tag lengths and counts above the new limits are
+retained. Migration is idempotent and preserves unrelated model fields.
+
+Student cards display sorted, wrapping badges and hide the tag area for an empty set. First-launch
+sample students include example tags. Tag changes use the undo/redo implementation below;
+field-targeted searches can also filter by subjects, level, notes, contact details, and tags.
 
 ### Delete student
 
@@ -208,9 +244,8 @@ save error. See the shared [recording and publishing flow](#recording-and-publis
 ### Undo and redo
 
 TutorRoster restores complete roster states so tutors can recover from accidental changes. The enabled
-roster-changing commands are currently `add` and `delete`; a delete-and-add replacement creates two steps.
-`edit` and `clear` remain disabled in the command parser. The history mechanism also supports record replacements
-at the model level.
+roster-changing commands are currently `add`, `edit`, `delete`, `tag`, and `untag`. Tag commands that only
+report a warning leave history unchanged. The history mechanism also supports record replacements at the model level.
 
 #### State and responsibilities
 
@@ -587,7 +622,7 @@ Priorities: High (must have) - `* * *`, Medium (nice to have) - `* *`, Low (unli
 | **Subject** | An academic subject the tutor teaches a student, such as Mathematics or Physics. A student may have multiple subjects. |
 | **Education level** | The academic stage at which a student is taught, such as Primary 6, Secondary 4, or JC 1. |
 | **School** | The educational institution a student attends. A planned field beyond the strict MVP. |
-| **Tag** | A tutor-defined label used to categorize students, such as `exam-prep`. A planned feature beyond the strict MVP. |
+| **Tag** | A lowercase label such as `exam-prep`, attached with `tag INDEX TAG` or `/t TAG` during add, and removed with `untag`. |
 | **Student notes** | Optional free-text information about a student, such as learning difficulties, goals, preferred explanations, or parent requests. |
 | **Preferred contact person** | The student or guardian whom the tutor should contact first. A planned feature beyond the strict MVP. |
 | **Command** | A typed instruction that performs an operation, such as `list` or `delete 1`. |
@@ -595,7 +630,7 @@ Priorities: High (must have) - `* * *`, Medium (nice to have) - `* *`, Low (unli
 | **Parameter** | A value supplied to a command, such as a student’s name or the index of a record to delete. |
 | **Prefix** | A marker identifying a parameter’s type, such as `n/` for name or `s/` for subject. |
 | **Student index (`INDEX`)** | A student’s position in the currently displayed numbered list, starting from 1. After a search, it refers to the search results. |
-| **Search keyword** | Text used to find matching records. Keywords match parts of student names. By default, every supplied keyword must match; `--any` returns records matching at least one keyword. |
+| **Search keyword** | Text used to find matching records. Unprefixed keywords match parts of student names; field prefixes can target other stored attributes. By default, every supplied criterion must match; `--any` returns records matching at least one criterion. |
 | **Filtered list** | A displayed subset of the roster containing only students who match the current search or filter criteria. |
 | **Case-insensitive matching** | Comparing text without distinguishing uppercase from lowercase letters. For example, `Ryan` and `ryan` match. |
 | **Whitespace normalization** | Removing surrounding whitespace and treating consecutive internal whitespace as one space in names, subjects, and education levels. |

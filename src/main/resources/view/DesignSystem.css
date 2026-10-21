@@ -31,6 +31,14 @@
     -fx-font-weight: normal;
 }
 
+.student-tag {
+    -fx-background-color: #EFF6F2;
+    -fx-background-radius: 8;
+    -fx-padding: 3 8;
+    -fx-text-fill: #0F5B50;
+    -fx-font-size: 11px;
+}
+
 .app-shell .label,
 .app-shell .text-field,
 .app-shell .text-area,

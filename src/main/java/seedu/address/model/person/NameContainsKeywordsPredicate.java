@@ -40,6 +40,7 @@ public class NameContainsKeywordsPredicate implements Predicate<Person> {
 
     @Override
     public boolean test(Person person) {
+        requireNonNull(person);
         String normalizedName = person.getName().fullName.toLowerCase(Locale.ROOT);
 
         if (keywords.isEmpty()) {

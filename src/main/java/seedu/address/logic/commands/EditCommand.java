@@ -3,11 +3,15 @@ package seedu.address.logic.commands;
 import static java.util.Objects.requireNonNull;
 import static seedu.address.logic.parser.CliSyntax.PREFIX_ADDRESS;
 import static seedu.address.logic.parser.CliSyntax.PREFIX_EMAIL;
+import static seedu.address.logic.parser.CliSyntax.PREFIX_LEVEL;
 import static seedu.address.logic.parser.CliSyntax.PREFIX_NAME;
+import static seedu.address.logic.parser.CliSyntax.PREFIX_NOTES;
 import static seedu.address.logic.parser.CliSyntax.PREFIX_PHONE;
+import static seedu.address.logic.parser.CliSyntax.PREFIX_SUBJECT;
 import static seedu.address.logic.parser.CliSyntax.PREFIX_TAG;
 import static seedu.address.model.Model.PREDICATE_SHOW_ALL_PERSONS;
 
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashSet;
 import java.util.List;
@@ -43,6 +47,9 @@ public class EditCommand extends Command {
             + "[" + PREFIX_PHONE + "PHONE] "
             + "[" + PREFIX_EMAIL + "EMAIL] "
             + "[" + PREFIX_ADDRESS + "ADDRESS] "
+            + "[" + PREFIX_SUBJECT + "SUBJECT]... "
+            + "[" + PREFIX_LEVEL + "LEVEL] "
+            + "[" + PREFIX_NOTES + "NOTES] "
             + "[" + PREFIX_TAG + "TAG]...\n"
             + "Example: " + COMMAND_WORD + " 1 "
             + PREFIX_PHONE + "91234567 "
@@ -51,6 +58,10 @@ public class EditCommand extends Command {
     public static final String MESSAGE_EDIT_PERSON_SUCCESS = "Edited person: %1$s";
     public static final String MESSAGE_NOT_EDITED = "At least one field to edit must be provided.";
     public static final String MESSAGE_DUPLICATE_PERSON = "This person already exists in the address book.";
+    public static final String MESSAGE_LEGACY_STUDENT_FIELDS =
+            "Subjects, education level, and notes cannot be edited on a legacy record without student data.";
+    public static final String MESSAGE_STUDENT_ADDRESS =
+            "Address is only available on legacy records; student records use subjects, level, and notes.";
 
     private final Index index;
     private final EditPersonDescriptor editPersonDescriptor;
@@ -77,7 +88,12 @@ public class EditCommand extends Command {
         }
 
         Person personToEdit = lastShownList.get(index.getZeroBased());
-        Person editedPerson = createEditedPerson(personToEdit, editPersonDescriptor);
+        Person editedPerson;
+        try {
+            editedPerson = createEditedPerson(personToEdit, editPersonDescriptor);
+        } catch (IllegalArgumentException | IllegalStateException exception) {
+            throw new CommandException(exception.getMessage(), exception);
+        }
 
         if (!personToEdit.isSamePerson(editedPerson) && model.hasPerson(editedPerson)) {
             throw new CommandException(MESSAGE_DUPLICATE_PERSON);
@@ -92,14 +108,32 @@ public class EditCommand extends Command {
      * Creates and returns a {@code Person} with the details of {@code personToEdit}
      * edited with {@code editPersonDescriptor}.
      */
-    private static Person createEditedPerson(Person personToEdit, EditPersonDescriptor editPersonDescriptor) {
-        assert personToEdit != null;
+    private static Person createEditedPerson(Person personToEdit, EditPersonDescriptor editPersonDescriptor)
+            throws CommandException {
+        requireNonNull(personToEdit);
+        requireNonNull(editPersonDescriptor);
 
         Name updatedName = editPersonDescriptor.getName().orElse(personToEdit.getName());
         Phone updatedPhone = editPersonDescriptor.getPhone().orElse(personToEdit.getPhone());
         Email updatedEmail = editPersonDescriptor.getEmail().orElse(personToEdit.getEmail());
         Address updatedAddress = editPersonDescriptor.getAddress().orElse(personToEdit.getAddress());
         Set<Tag> updatedTags = editPersonDescriptor.getTags().orElse(personToEdit.getTags());
+
+        if (personToEdit.isNewFormat()) {
+            if (editPersonDescriptor.getAddress().isPresent()) {
+                throw new CommandException(MESSAGE_STUDENT_ADDRESS);
+            }
+            List<String> updatedSubjects = editPersonDescriptor.getSubjects().orElse(personToEdit.getSubjects());
+            String updatedLevel = editPersonDescriptor.getLevel().orElse(personToEdit.getLevel());
+            String updatedNotes = editPersonDescriptor.getNotes().orElse(personToEdit.getNotes());
+            return personToEdit.withStudentDetails(updatedName.fullName, updatedPhone.value,
+                    updatedEmail == null ? null : updatedEmail.value, updatedSubjects, updatedLevel,
+                    updatedNotes, updatedTags);
+        }
+
+        if (editPersonDescriptor.hasStudentFields()) {
+            throw new CommandException(MESSAGE_LEGACY_STUDENT_FIELDS);
+        }
 
         return new Person(updatedName, updatedPhone, updatedEmail, updatedAddress, updatedTags);
     }
@@ -137,6 +171,9 @@ public class EditCommand extends Command {
         private Email email;
         private Address address;
         private Set<Tag> tags;
+        private List<String> subjects;
+        private String level;
+        private String notes;
 
         public EditPersonDescriptor() {}
 
@@ -150,13 +187,16 @@ public class EditCommand extends Command {
             setEmail(toCopy.email);
             setAddress(toCopy.address);
             setTags(toCopy.tags);
+            setSubjects(toCopy.subjects);
+            setLevel(toCopy.level);
+            setNotes(toCopy.notes);
         }
 
         /**
          * Returns true if at least one field is edited.
          */
         public boolean isAnyFieldEdited() {
-            return CollectionUtil.isAnyNonNull(name, phone, email, address, tags);
+            return CollectionUtil.isAnyNonNull(name, phone, email, address, tags, subjects, level, notes);
         }
 
         public void setName(Name name) {
@@ -196,7 +236,12 @@ public class EditCommand extends Command {
          * A defensive copy of {@code tags} is used internally.
          */
         public void setTags(Set<Tag> tags) {
-            this.tags = (tags != null) ? new HashSet<>(tags) : null;
+            if (tags == null) {
+                this.tags = null;
+                return;
+            }
+            CollectionUtil.requireAllNonNull(tags);
+            this.tags = new HashSet<>(tags);
         }
 
         /**
@@ -206,6 +251,42 @@ public class EditCommand extends Command {
          */
         public Optional<Set<Tag>> getTags() {
             return (tags != null) ? Optional.of(Collections.unmodifiableSet(tags)) : Optional.empty();
+        }
+
+        /** Sets the replacement subjects using a defensive copy. */
+        public void setSubjects(List<String> subjects) {
+            if (subjects == null) {
+                this.subjects = null;
+                return;
+            }
+            this.subjects = new ArrayList<>(subjects);
+            CollectionUtil.requireAllNonNull(this.subjects);
+        }
+
+        /** Returns an unmodifiable replacement subject list, if supplied. */
+        public Optional<List<String>> getSubjects() {
+            return subjects == null ? Optional.empty() : Optional.of(Collections.unmodifiableList(subjects));
+        }
+
+        public void setLevel(String level) {
+            this.level = level;
+        }
+
+        public Optional<String> getLevel() {
+            return Optional.ofNullable(level);
+        }
+
+        public void setNotes(String notes) {
+            this.notes = notes;
+        }
+
+        public Optional<String> getNotes() {
+            return Optional.ofNullable(notes);
+        }
+
+        /** Returns whether any student-only field was supplied. */
+        public boolean hasStudentFields() {
+            return CollectionUtil.isAnyNonNull(subjects, level, notes);
         }
 
         @Override
@@ -223,7 +304,10 @@ public class EditCommand extends Command {
                     && Objects.equals(phone, otherEditPersonDescriptor.phone)
                     && Objects.equals(email, otherEditPersonDescriptor.email)
                     && Objects.equals(address, otherEditPersonDescriptor.address)
-                    && Objects.equals(tags, otherEditPersonDescriptor.tags);
+                    && Objects.equals(tags, otherEditPersonDescriptor.tags)
+                    && Objects.equals(subjects, otherEditPersonDescriptor.subjects)
+                    && Objects.equals(level, otherEditPersonDescriptor.level)
+                    && Objects.equals(notes, otherEditPersonDescriptor.notes);
         }
 
         @Override
@@ -234,6 +318,9 @@ public class EditCommand extends Command {
                     .add("email", email)
                     .add("address", address)
                     .add("tags", tags)
+                    .add("subjects", subjects)
+                    .add("level", level)
+                    .add("notes", notes)
                     .toString();
         }
     }
