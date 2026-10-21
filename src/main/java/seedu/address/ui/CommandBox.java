@@ -56,35 +56,35 @@ public class CommandBox extends UiPart<Region> {
         suggestionPopup.getContent().add(suggestionContainer);
 
         // calls #setStyleToDefault() whenever there is a change to the text of the command box.
-        commandTextField.textProperty().addListener((unused1, unused2, unused3) -> {
+        commandTextField.textProperty().addListener((_, _, _) -> {
             setStyleToDefault();
             if (!isUpdatingCommandField) {
                 commandBoxLogic.resetHistoryNavigation();
             }
             updateSuggestions();
         });
-        commandTextField.focusedProperty().addListener((observable, oldValue, isFocused) -> {
+        commandTextField.focusedProperty().addListener((_, _, isFocused) -> {
             if (!isFocused) {
                 hideSuggestions();
             } else {
                 updateSuggestions();
             }
         });
-        commandTextField.setOnMouseClicked(event -> {
+        commandTextField.setOnMouseClicked(_ -> {
             if (commandTextField.isFocused()) {
                 updateSuggestions();
             }
         });
         commandTextField.addEventFilter(KeyEvent.KEY_PRESSED, this::handleKeyPressed);
 
-        commandTextField.sceneProperty().addListener((obsScene, oldScene, newScene) -> {
+        commandTextField.sceneProperty().addListener((_, _, newScene) -> {
             if (newScene != null) {
-                newScene.windowProperty().addListener((obsWin, oldWin, newWin) -> {
+                newScene.windowProperty().addListener((_, _, newWin) -> {
                     if (newWin != null) {
-                        newWin.xProperty().addListener((obs, o, n) -> hideSuggestions());
-                        newWin.yProperty().addListener((obs, o, n) -> hideSuggestions());
-                        newWin.widthProperty().addListener((obs, o, n) -> hideSuggestions());
-                        newWin.heightProperty().addListener((obs, o, n) -> hideSuggestions());
+                        newWin.xProperty().addListener((_, _, _) -> hideSuggestions());
+                        newWin.yProperty().addListener((_, _, _) -> hideSuggestions());
+                        newWin.widthProperty().addListener((_, _, _) -> hideSuggestions());
+                        newWin.heightProperty().addListener((_, _, _) -> hideSuggestions());
                     }
                 });
             }
