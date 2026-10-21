@@ -18,7 +18,7 @@ Optimized for tutors who type fast and prefer a **Command Line Interface (CLI)**
 
 * **Student & Guardian Profiles**: Track crucial tutoring-specific details including subjects taught, education level, school, parent/guardian contacts, and customised student notes.
 * **Rapid CLI-First Workflow**: Perform common operations (adding, searching, filtering, and updating student profiles) with concise keyboard commands.
-* **Targeted Search & Tagging**: Quickly filter students by subject, academic level, school, or custom tags without needing to memorize full names.
+* **Name Search & Student Tags**: Find students by name and organise them with labels such as `exam-prep`. Add labels with `tag INDEX TAG`, remove them with `untag INDEX TAG`, or clear them with `untag --all INDEX`. Tag searching is not currently supported.
 * **Data Integrity & Safety**: Built-in duplicate warnings, validation checks, and deletion safeguards to keep your records accurate and secure.
 
 > **Note**: TutorRoster focuses on student contact and profile management. It intentionally does not handle lesson scheduling, attendance tracking, billing/payments, or teaching materials.

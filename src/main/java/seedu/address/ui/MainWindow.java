@@ -242,6 +242,11 @@ public class MainWindow extends UiPart<Stage> {
         return personListPanel;
     }
 
+    /** Shows startup information after the result area has been initialized. */
+    void showStartupFeedback(String message) {
+        resultDisplay.setFeedbackToUser(message);
+    }
+
     public CommandBox getCommandBox() {
         return commandBox;
     }

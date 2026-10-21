@@ -181,6 +181,13 @@ public class Person {
         return Collections.unmodifiableSet(tags);
     }
 
+    /** Copies this record with new tags, preserving every other field and the original record format. */
+    public Person withTags(Set<Tag> replacementTags) {
+        requireAllNonNull(replacementTags);
+        return new Person(name.fullName, phone.value, email == null ? null : email.value,
+                subjectsPresent ? subjects : null, level, notes, address, replacementTags, newFormat);
+    }
+
     /**
      * New students match only other new-format students, using name and either contact method.
      * Legacy records retain their former comparison for direct legacy operations.

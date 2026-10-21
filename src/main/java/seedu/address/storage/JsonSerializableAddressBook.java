@@ -53,4 +53,13 @@ class JsonSerializableAddressBook {
         return addressBook;
     }
 
+    /** Returns whether any existing tags need canonical spelling or deduplication. */
+    boolean requiresTagMigration() throws IllegalValueException {
+        boolean changed = false;
+        for (JsonAdaptedPerson person : persons) {
+            changed |= person.requiresTagMigration();
+        }
+        return changed;
+    }
+
 }

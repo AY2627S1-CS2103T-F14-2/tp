@@ -26,14 +26,21 @@ public class UiManager implements Ui {
     private Logic logic;
     private Path dataFilePath;
     private MainWindow mainWindow;
+    private final String startupFeedback;
 
     /**
      * Creates a {@code UiManager} with the given {@code Logic} and the data file path
      * to show in the status bar.
      */
     public UiManager(Logic logic, Path dataFilePath) {
+        this(logic, dataFilePath, "");
+    }
+
+    /** Creates the UI with an optional notice about a completed data migration. */
+    public UiManager(Logic logic, Path dataFilePath, String startupFeedback) {
         this.logic = logic;
         this.dataFilePath = dataFilePath;
+        this.startupFeedback = java.util.Objects.requireNonNull(startupFeedback);
     }
 
     @Override
@@ -47,6 +54,9 @@ public class UiManager implements Ui {
             mainWindow = new MainWindow(primaryStage, logic, dataFilePath);
             mainWindow.show(); //This should be called before creating other UI parts
             mainWindow.fillInnerParts();
+            if (!startupFeedback.isEmpty()) {
+                mainWindow.showStartupFeedback(startupFeedback);
+            }
 
         } catch (Throwable e) {
             logger.severe(StringUtil.getDetails(e));
