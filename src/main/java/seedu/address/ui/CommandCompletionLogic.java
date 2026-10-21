@@ -76,7 +76,7 @@ public class CommandCompletionLogic {
 
     /**
      * Computes suggestions based on the user's current input.
-     * When the input is empty or blank, all available commands are returned sorted alphabetically.
+     * When the input is empty or blank, all available commands are returned.
      *
      * @param currentText input currently in the command field.
      * @return an unmodifiable list of suggestions matching the input.
