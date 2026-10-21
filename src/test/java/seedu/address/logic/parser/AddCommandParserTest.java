@@ -14,7 +14,8 @@ import seedu.address.model.person.StudentFields;
 
 public class AddCommandParserTest {
     private static final String PARAMETER_GUIDE = "Required: add n/NAME p/PHONE s/SUBJECT l/LEVEL\n"
-            + "Optional: e/EMAIL r/NOTES; repeat s/SUBJECT for additional subjects.\n"
+            + "Optional: e/EMAIL; r/NOTES; /t TAG; repeat s/SUBJECT for additional subjects"
+            + " or /t TAG for additional tags.\n"
             + "Parameters may appear in any order.";
 
     private final AddCommandParser parser = new AddCommandParser();
