@@ -10,6 +10,7 @@ import java.util.Set;
 import org.junit.jupiter.api.Test;
 
 import seedu.address.logic.commands.FindCommand;
+import seedu.address.logic.parser.exceptions.ParseException;
 import seedu.address.model.ModelManager;
 import seedu.address.model.person.Person;
 import seedu.address.model.person.PersonMatchesFieldsPredicate;
@@ -46,7 +47,8 @@ public class FindCommandParserTest {
 
     @Test
     public void parse_repeatedFieldValues_returnsFindCommand() {
-        List<SearchTerm> searchTerms = List.of(new SearchTerm(SearchField.NAME, "Alex"),
+        List<SearchTerm> searchTerms = List.of(
+                new SearchTerm(SearchField.NAME, "Alex"),
                 new SearchTerm(SearchField.NAME, "Alexander"),
                 new SearchTerm(SearchField.PHONE, "9123"),
                 new SearchTerm(SearchField.PHONE, "4567"),
@@ -100,7 +102,7 @@ public class FindCommandParserTest {
     }
 
     @Test
-    public void parse_fieldsInDifferentOrder_returnsSameResults() throws Exception {
+    public void parse_fieldsInDifferentOrder_returnsSameResults() throws ParseException {
         Person alex = new Person("Alex", "123", null, List.of("Math"), "JC 1")
                 .withTags(Set.of(new Tag("exam-prep")));
         Person bob = new Person("Bob", "456", null, List.of("Math"), "JC 1")
@@ -111,12 +113,16 @@ public class FindCommandParserTest {
         model.addPerson(bob);
         model.addPerson(cam);
 
-        for (String option : List.of("", "--any ")) {
-            List<Person> expected = option.isEmpty() ? List.of(alex) : List.of(alex, bob);
-            for (String fields : List.of("n/Alex l/JC 1 t/exam-prep", "t/exam-prep l/JC 1 n/Alex")) {
-                parser.parse(option + fields).execute(model);
-                assertEquals(expected, model.getFilteredPersonList(), option + fields);
-            }
-        }
+        assertSearchResults(model, "n/Alex l/JC 1 t/exam-prep", List.of(alex));
+        assertSearchResults(model, "t/exam-prep l/JC 1 n/Alex", List.of(alex));
+        assertSearchResults(model, "--any n/Alex l/JC 1 t/exam-prep", List.of(alex, bob));
+        assertSearchResults(model, "--any t/exam-prep l/JC 1 n/Alex", List.of(alex, bob));
+    }
+
+    /** Checks the displayed students after parsing and executing a search. */
+    private void assertSearchResults(ModelManager model, String arguments, List<Person> expectedStudents)
+            throws ParseException {
+        parser.parse(arguments).execute(model);
+        assertEquals(expectedStudents, model.getFilteredPersonList(), arguments);
     }
 }
