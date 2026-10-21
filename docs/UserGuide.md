@@ -99,6 +99,7 @@ Opens a help window containing a link to this User Guide.
 ### Adding a student: `add`
 
 Adds a student and shows the complete roster, including the new student at the end.
+Only the subject prefix `s/` may be repeated within an add command. Unknown prefixes are rejected.
 
 **Format:** `add n/NAME p/PHONE [e/EMAIL] s/SUBJECT [s/SUBJECT]... l/LEVEL [r/NOTES]`
 
@@ -285,7 +286,7 @@ The following behaviour applies to both `undo` and `redo`:
   delete and add creates two separate undo steps.
 * Restoring a roster restores the students' complete saved details and their original order.
   Both commands show the full roster afterward, even if you were viewing search results.
-* `find`, `list`, `help`, and rejected commands do not create undo steps or clear redo history.
+* `find`, `list`, `show`, `help`, and rejected commands do not create undo steps or clear redo history.
 * After undoing, making a new successful roster change clears the remaining redo history.
 * History lasts only for the current application session. Restarting retains the saved roster,
   but starts with no changes to undo or redo. Window settings and command recall are not undone.
