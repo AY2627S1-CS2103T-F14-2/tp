@@ -56,12 +56,12 @@ public class PersonMatchesFieldsPredicateTest {
     public void test_repeatedFieldValues_followMatchMode() {
         PersonMatchesFieldsPredicate allPredicate = new PersonMatchesFieldsPredicate(
                 List.of(new SearchTerm(SearchField.NAME, "Alex"),
-                        new SearchTerm(SearchField.NAME, "Alexander")), MatchMode.ALL);
+                        new SearchTerm(SearchField.NAME, "Beatrice")), MatchMode.ALL);
         PersonMatchesFieldsPredicate anyPredicate = new PersonMatchesFieldsPredicate(
                 List.of(new SearchTerm(SearchField.NAME, "Beatrice"),
-                        new SearchTerm(SearchField.NAME, "Alexander")), MatchMode.ANY);
+                        new SearchTerm(SearchField.NAME, "Alex")), MatchMode.ANY);
 
-        assertTrue(allPredicate.test(ALEX_ALEXANDER));
+        assertFalse(allPredicate.test(ALEX_ALEXANDER));
         assertTrue(anyPredicate.test(ALEX_ALEXANDER));
     }
 
