@@ -313,6 +313,47 @@
     -fx-border-color: #B84C4C;
 }
 
+.suggestion-box {
+    -fx-background-color: #FFFFFF;
+    -fx-background-radius: 12;
+    -fx-border-color: #DCE5E1;
+    -fx-border-radius: 12;
+    -fx-border-width: 1;
+    -fx-padding: 8 12 8 12;
+    -fx-spacing: 4;
+    -fx-effect: dropshadow(gaussian, rgba(23, 55, 52, 0.18), 16, 0.15, 0, 4);
+}
+
+.suggestion-header {
+    -fx-font-size: 11px;
+    -fx-font-weight: bold;
+    -fx-text-fill: #647572;
+    -fx-padding: 0 0 4 0;
+}
+
+.suggestion-item {
+    -fx-padding: 4 8 4 8;
+    -fx-background-radius: 6;
+    -fx-cursor: hand;
+}
+
+.suggestion-item:hover {
+    -fx-background-color: #EFF6F2;
+}
+
+.suggestion-format {
+    -fx-font-family: "Menlo", "Consolas", monospace;
+    -fx-font-size: 12px;
+    -fx-font-weight: bold;
+    -fx-text-fill: #177565;
+}
+
+.suggestion-description {
+    -fx-font-size: 12px;
+    -fx-text-fill: #647572;
+}
+
+
 .status-region {
     -fx-padding: 0 28 12 28;
 }

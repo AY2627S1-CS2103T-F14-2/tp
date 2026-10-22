@@ -1,11 +1,22 @@
 package seedu.address.ui;
 
+import static java.util.Objects.requireNonNull;
+
+import java.util.List;
+import java.util.Optional;
+
 import javafx.collections.ObservableList;
 import javafx.fxml.FXML;
+import javafx.geometry.Bounds;
+import javafx.scene.Scene;
+import javafx.scene.control.Label;
 import javafx.scene.control.TextField;
 import javafx.scene.input.KeyCode;
 import javafx.scene.input.KeyEvent;
+import javafx.scene.layout.HBox;
 import javafx.scene.layout.Region;
+import javafx.scene.layout.VBox;
+import javafx.stage.Popup;
 import seedu.address.logic.commands.CommandResult;
 import seedu.address.logic.commands.exceptions.CommandException;
 import seedu.address.logic.parser.exceptions.ParseException;
@@ -19,6 +30,8 @@ public class CommandBox extends UiPart<Region> {
     private static final String FXML = "CommandBox.fxml";
 
     private final CommandBoxLogic commandBoxLogic;
+    private final Popup suggestionPopup;
+    private final VBox suggestionContainer;
     private boolean isUpdatingCommandField;
 
     @FXML
@@ -30,14 +43,52 @@ public class CommandBox extends UiPart<Region> {
     public CommandBox(CommandExecutor commandExecutor) {
         super(FXML);
         this.commandBoxLogic = new CommandBoxLogic(commandExecutor::execute);
+
+        suggestionPopup = new Popup();
+        suggestionPopup.setAutoHide(true);
+        suggestionPopup.setAutoFix(false);
+
+        suggestionContainer = new VBox();
+        suggestionContainer.getStyleClass().add("suggestion-box");
+        suggestionContainer.getStylesheets().add(
+                requireNonNull(getClass().getResource("/view/DesignSystem.css")).toExternalForm());
+        suggestionContainer.setFocusTraversable(false);
+        suggestionPopup.getContent().add(suggestionContainer);
+
         // calls #setStyleToDefault() whenever there is a change to the text of the command box.
-        commandTextField.textProperty().addListener((unused1, unused2, unused3) -> {
+        commandTextField.textProperty().addListener((_, _, _) -> {
             setStyleToDefault();
             if (!isUpdatingCommandField) {
                 commandBoxLogic.resetHistoryNavigation();
             }
+            updateSuggestions();
         });
-        commandTextField.setOnKeyPressed(this::handleCommandHistoryNavigation);
+        commandTextField.focusedProperty().addListener((_, _, isFocused) -> {
+            if (!isFocused) {
+                hideSuggestions();
+            } else {
+                updateSuggestions();
+            }
+        });
+        commandTextField.setOnMouseClicked(_ -> {
+            if (commandTextField.isFocused()) {
+                updateSuggestions();
+            }
+        });
+        commandTextField.addEventFilter(KeyEvent.KEY_PRESSED, this::handleKeyPressed);
+
+        commandTextField.sceneProperty().addListener((_, _, newScene) -> {
+            if (newScene != null) {
+                newScene.windowProperty().addListener((_, _, newWin) -> {
+                    if (newWin != null) {
+                        newWin.xProperty().addListener((_, _, _) -> hideSuggestions());
+                        newWin.yProperty().addListener((_, _, _) -> hideSuggestions());
+                        newWin.widthProperty().addListener((_, _, _) -> hideSuggestions());
+                        newWin.heightProperty().addListener((_, _, _) -> hideSuggestions());
+                    }
+                });
+            }
+        });
     }
 
     /**
@@ -56,17 +107,54 @@ public class CommandBox extends UiPart<Region> {
     }
 
     /**
+     * Returns true if the suggestion popup is currently visible.
+     */
+    public boolean hasSuggestionsVisible() {
+        return suggestionPopup.isShowing();
+    }
+
+    /**
+     * Hides the floating suggestion popup.
+     */
+    public void hideSuggestions() {
+        if (suggestionPopup.isShowing()) {
+            suggestionPopup.hide();
+        }
+        suggestionContainer.getChildren().clear();
+    }
+
+    /**
      * Handles the Enter button pressed event.
      */
     @FXML
     private void handleCommandEntered() {
         String commandText = commandTextField.getText();
+        hideSuggestions();
         try {
             if (commandBoxLogic.executeCommand(commandText)) {
                 commandTextField.setText("");
             }
         } catch (CommandException | ParseException e) {
             setStyleToIndicateCommandFailure();
+        }
+    }
+
+    /**
+     * Handles keyboard events including autocomplete on Tab and history navigation.
+     */
+    private void handleKeyPressed(KeyEvent event) {
+        if (event.getCode() == KeyCode.TAB) {
+            Optional<String> completed = commandBoxLogic.autocomplete(commandTextField.getText());
+            if (completed.isPresent()) {
+                setCommandFieldText(completed.get());
+                updateSuggestions();
+            }
+            event.consume();
+        } else if (event.getCode() == KeyCode.ESCAPE && suggestionPopup.isShowing()) {
+            hideSuggestions();
+            event.consume();
+        } else {
+            handleCommandHistoryNavigation(event);
         }
     }
 
@@ -84,6 +172,77 @@ public class CommandBox extends UiPart<Region> {
         } else if (event.getCode() == KeyCode.DOWN) {
             setCommandFieldText(commandBoxLogic.nextCommand(commandTextField.getText()));
             event.consume();
+        }
+    }
+
+    /**
+     * Updates and displays matching completion suggestions in the floating popup.
+     */
+    private void updateSuggestions() {
+        if (!commandTextField.isFocused()) {
+            hideSuggestions();
+            return;
+        }
+
+        String currentText = commandTextField.getText();
+        List<CommandCompletionLogic.Suggestion> suggestions = commandBoxLogic.getSuggestions(currentText);
+
+        if (suggestions.isEmpty()) {
+            hideSuggestions();
+            return;
+        }
+
+        Scene scene = commandTextField.getScene();
+        if (scene == null || scene.getWindow() == null || !scene.getWindow().isShowing()) {
+            return;
+        }
+
+        Bounds bounds = commandTextField.localToScreen(commandTextField.getBoundsInLocal());
+        if (bounds == null) {
+            return;
+        }
+
+        suggestionContainer.getChildren().clear();
+
+        Label hintHeader = new Label("Suggestions (Press Tab to autocomplete):");
+        hintHeader.getStyleClass().add("suggestion-header");
+        hintHeader.setFocusTraversable(false);
+        suggestionContainer.getChildren().add(hintHeader);
+
+        for (CommandCompletionLogic.Suggestion suggestion : suggestions) {
+            HBox itemRow = new HBox(8);
+            itemRow.getStyleClass().add("suggestion-item");
+            itemRow.setFocusTraversable(false);
+
+            Label formatLabel = new Label(suggestion.formatText());
+            formatLabel.getStyleClass().add("suggestion-format");
+            formatLabel.setFocusTraversable(false);
+
+            Label descLabel = new Label("— " + suggestion.description());
+            descLabel.getStyleClass().add("suggestion-description");
+            descLabel.setFocusTraversable(false);
+
+            itemRow.getChildren().addAll(formatLabel, descLabel);
+            itemRow.setOnMousePressed(event -> {
+                setCommandFieldText(suggestion.completionText());
+                focus();
+                updateSuggestions();
+                event.consume();
+            });
+
+            suggestionContainer.getChildren().add(itemRow);
+        }
+
+        double x = bounds.getMinX();
+        double y = bounds.getMaxY() + 4;
+        suggestionContainer.setMinWidth(bounds.getWidth());
+        suggestionContainer.setMaxWidth(bounds.getWidth());
+
+        if (!suggestionPopup.isShowing()) {
+            suggestionPopup.show(scene.getWindow(), x, y);
+        } else {
+            suggestionPopup.setX(x);
+            suggestionPopup.setY(y);
         }
     }
 

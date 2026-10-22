@@ -1,5 +1,6 @@
 package seedu.address.testutil;
 
+import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
@@ -35,6 +36,11 @@ public class EditPersonDescriptorBuilder {
         descriptor.setName(person.getName());
         descriptor.setPhone(person.getPhone());
         descriptor.setEmail(person.getEmail());
+        if (person.isNewFormat()) {
+            descriptor.setSubjects(person.getSubjects());
+            descriptor.setLevel(person.getLevel());
+            descriptor.setNotes(person.getNotes());
+        }
         descriptor.setAddress(person.getAddress());
         descriptor.setTags(person.getTags());
     }
@@ -43,7 +49,7 @@ public class EditPersonDescriptorBuilder {
      * Sets the {@code Name} of the {@code EditPersonDescriptor} that we are building.
      */
     public EditPersonDescriptorBuilder withName(String name) {
-        descriptor.setName(new Name(name));
+        descriptor.setName(Name.fromStoredValue(name));
         return this;
     }
 
@@ -51,7 +57,7 @@ public class EditPersonDescriptorBuilder {
      * Sets the {@code Phone} of the {@code EditPersonDescriptor} that we are building.
      */
     public EditPersonDescriptorBuilder withPhone(String phone) {
-        descriptor.setPhone(new Phone(phone));
+        descriptor.setPhone(Phone.fromStoredValue(phone));
         return this;
     }
 
@@ -59,7 +65,31 @@ public class EditPersonDescriptorBuilder {
      * Sets the {@code Email} of the {@code EditPersonDescriptor} that we are building.
      */
     public EditPersonDescriptorBuilder withEmail(String email) {
-        descriptor.setEmail(new Email(email));
+        descriptor.setEmail(Email.fromStoredValue(email));
+        return this;
+    }
+
+    /**
+     * Sets the {@code List<String>} subjects of the {@code EditPersonDescriptor} that we are building.
+     */
+    public EditPersonDescriptorBuilder withSubjects(String... subjects) {
+        descriptor.setSubjects(List.of(subjects));
+        return this;
+    }
+
+    /**
+     * Sets the {@code level} of the {@code EditPersonDescriptor} that we are building.
+     */
+    public EditPersonDescriptorBuilder withLevel(String level) {
+        descriptor.setLevel(level);
+        return this;
+    }
+
+    /**
+     * Sets the {@code notes} of the {@code EditPersonDescriptor} that we are building.
+     */
+    public EditPersonDescriptorBuilder withNotes(String notes) {
+        descriptor.setNotes(notes);
         return this;
     }
 

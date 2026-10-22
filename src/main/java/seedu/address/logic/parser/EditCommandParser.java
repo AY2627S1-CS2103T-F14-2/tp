@@ -23,6 +23,9 @@ import seedu.address.commons.core.index.Index;
 import seedu.address.logic.commands.EditCommand;
 import seedu.address.logic.commands.EditCommand.EditPersonDescriptor;
 import seedu.address.logic.parser.exceptions.ParseException;
+import seedu.address.model.person.Email;
+import seedu.address.model.person.Name;
+import seedu.address.model.person.Phone;
 import seedu.address.model.person.StudentFields;
 import seedu.address.model.tag.Tag;
 
@@ -57,13 +60,25 @@ public class EditCommandParser implements Parser<EditCommand> {
         EditPersonDescriptor editPersonDescriptor = new EditPersonDescriptor();
 
         if (argMultimap.getValue(PREFIX_NAME).isPresent()) {
-            editPersonDescriptor.setName(ParserUtil.parseStudentName(argMultimap.getValue(PREFIX_NAME).get()));
+            String normalizedName = StudentFields.normalizeName(argMultimap.getValue(PREFIX_NAME).get());
+            if (!StudentFields.isValidName(normalizedName)) {
+                throw new ParseException(StudentFields.INVALID_NAME);
+            }
+            editPersonDescriptor.setName(Name.fromStoredValue(normalizedName));
         }
         if (argMultimap.getValue(PREFIX_PHONE).isPresent()) {
-            editPersonDescriptor.setPhone(ParserUtil.parseStudentPhone(argMultimap.getValue(PREFIX_PHONE).get()));
+            String phone = argMultimap.getValue(PREFIX_PHONE).get();
+            if (!StudentFields.isValidPhone(phone)) {
+                throw new ParseException(StudentFields.INVALID_PHONE);
+            }
+            editPersonDescriptor.setPhone(Phone.fromStoredValue(phone));
         }
         if (argMultimap.getValue(PREFIX_EMAIL).isPresent()) {
-            editPersonDescriptor.setEmail(ParserUtil.parseStudentEmail(argMultimap.getValue(PREFIX_EMAIL).get()));
+            String email = argMultimap.getValue(PREFIX_EMAIL).get();
+            if (!StudentFields.isValidEmail(email)) {
+                throw new ParseException(StudentFields.INVALID_EMAIL);
+            }
+            editPersonDescriptor.setEmail(Email.fromStoredValue(email));
         }
         if (argMultimap.getValue(PREFIX_ADDRESS).isPresent()) {
             editPersonDescriptor.setAddress(ParserUtil.parseAddress(argMultimap.getValue(PREFIX_ADDRESS).get()));

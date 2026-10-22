@@ -1,7 +1,7 @@
 # Software Engineering Standards
 
-**Consolidated reference for humans and coding agents**  
-**Source snapshot:** 20 October 2026  
+**Consolidated reference for humans and coding agents**
+**Source snapshot:** 20 October 2026
 **Applies to:** Java code, Java error handling and logging, and Git history/branch naming in an SE student project.
 
 This document consolidates the four source pages listed at the end, including the expandable exercises and answer panels in the NUS CS2103/T error-handling chapter. It is a **standards reference**, not a task checklist. It paraphrases the requirements and relevant teaching examples rather than reproducing the source pages verbatim.
@@ -574,13 +574,13 @@ These exercise-specific constants and domain assumptions must **not** be promote
 
 The following four pages are the sources for this document:
 
-1. **NUS CS2103/T adapted textbook: Error Handling**, including the *Defensive programming* section, neighbouring exceptions/assertions/logging and Design-by-Contract sections, and the answers inside expandable exercise panels.  
+1. **NUS CS2103/T adapted textbook: Error Handling**, including the *Defensive programming* section, neighbouring exceptions/assertions/logging and Design-by-Contract sections, and the answers inside expandable exercise panels.
    <https://nus-cs2103-ay2627-s1.github.io/website/se-book-adapted/chapters/errorHandling.html#defensive-programming>
-2. **SE Education: Java logging conventions** (recommended logging API and four severity levels).  
+2. **SE Education: Java logging conventions** (recommended logging API and four severity levels).
    <https://se-education.org/guides/conventions/java/logging.html>
-3. **SE Education: Java coding standard (all rules)** (naming, layout, imports, declarations, comments, Javadoc).  
+3. **SE Education: Java coding standard (all rules)** (naming, layout, imports, declarations, comments, Javadoc).
    <https://se-education.org/guides/conventions/java/index.html>
-4. **SE Education: Git conventions** (commit subjects, message bodies, branch names).  
+4. **SE Education: Git conventions** (commit subjects, message bodies, branch names).
    <https://se-education.org/guides/conventions/git.html>
 
 The NUS site's textbook content is adapted from the SE Education textbook. Its expandable questions and answer panels have been consulted alongside the visible page content. Some original textbook examples are intentionally simplified or contain assumed helper methods; this document states their intended invariants rather than treating every sketch as production-ready, compilable code.

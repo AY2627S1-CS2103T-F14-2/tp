@@ -7,12 +7,12 @@
 # TutorRoster User Guide
 
 **TutorRoster** is a desktop student directory for private freelance tutors. It keeps student names,
-contact details, subjects, education levels, tags, and additional notes together in a roster. Type short commands to 
-add, find, list, and delete students, undo or redo changes, add tags, and view individual student details in the 
+contact details, subjects, education levels, tags, and additional notes together in a roster. Type short commands to
+add, find, list, and delete students, undo or redo changes, add tags, and view individual student details in the
 graphical interface.
 
 Email and notes are optional.
-The contact phone number can belong to the student or their guardian. 
+The contact phone number can belong to the student or their guardian.
 Student records are saved locally so you can return to them in later sessions.
 
 <page-nav-print />
@@ -40,32 +40,58 @@ Student records are saved locally so you can return to them in later sessions.
 1. Click the command box, type a command, and press **Enter**. You can then keep typing commands
    without selecting buttons. Press `/` to return focus to the command box from the roster.
 
-   Try these example commands:
+   | Command | What it does |
+   | --- | --- |
+   | `list` | Shows the complete roster. |
+   | `add n/Ryan Tan p/+6591234567 s/Mathematics l/Secondary 4 r/Prefers worked examples` | Adds Ryan's student record. |
+   | `find Ryan` | Shows students whose names contain `Ryan`. |
+   | `show 1` | Opens the complete record for student 1 in the currently displayed list. |
+   | `edit 1 p/+6591234567 l/Secondary 5` | Updates student 1's phone and level in the currently displayed list. |
+   | `delete 1` | Removes the student numbered 1 in the currently displayed list. |
+   | `undo` | Reverses the last successful roster change in this session. |
+   | `redo` | Reapplies the last undone change. |
+   | `help` | Opens a window containing the User Guide link. |
+   | `exit` | Closes TutorRoster. |
 
-   * `list` shows the complete roster.
-   * `add n/Ryan Tan p/+6591234567 s/Mathematics l/Secondary 4` adds Ryan to the student roster.
-   * `find n/Ryan` shows students whose names contain `Ryan`.
-   * `show 1` opens the complete record for the first student in the currently displayed list.
-   * `delete 1` removes the first student in the currently displayed list.
+Use the [Features](#features) section for command details. Always check the displayed name and
+number before deleting a student, particularly after a search.
 
-Refer to the [Features](#features) section for details about each command.
+## Reading the interface
 
-<br>
+* **Your students:** the numbered roster. Each new student card shows the name, phone number,
+  subjects, education level, email, and notes when supplied.
+* **Result area:** feedback for the last command, including validation errors.
+* **Command box:** where you enter commands and press Enter to execute them. A successful command
+  clears the box; an invalid command stays in the box so you can correct it. Use the Up and Down
+  arrow keys to recall commands from the current session. As you type, live completion suggestions
+  appear below the box showing matching commands and missing parameter fields (such as `n/`,
+  `p/`, `s/`, `l/` for `add`). Press **Tab** to autocomplete the top suggestion, or click a suggestion directly.
+* **Student detail modal:** the `show` command opens a complete, scrollable student record above a
+  dimmed roster. It includes contact details, subjects, education level, notes, address, and tags.
+  Press **Esc** or select **Close** to dismiss it.
+* **Status bar:** the path of the roster data file.
+
+After a search, the roster shows matching students and numbers them from 1. A successful `add`,
+`delete`, `list`, `undo`, or `redo` returns to the full roster.
 
 ## Features
-
-### Command format
-
 <box type="info" seamless>
 
 **Notes about command format:**
 
 * Command words and prefixes are lowercase. For example, `add` and `n/`.
+* As you type in the command box, live suggestions show available command words and remaining parameter prefixes. Press **Tab** to autocomplete.
 * Words in `UPPER_CASE` are parameters to be replaced with your own values. For example, `n/NAME` becomes `n/Ryan Tan`.
 * Square brackets mark optional input. For example, `n/NAME [t/Tag]` becomes `n/Ryan Tan t/online` or `n/Ryan Tan`.
 * `...` means that the preceding item may be repeated. For example, `s/SUBJECT [s/SUBJECT]...`
   requires one subject and allows additional subjects.
 * Fields may appear in any order. For example, `add p/81234567 n/Ryan Tan` is valid.
+* Spaces around the complete command and textual values are ignored. In names, subjects, and
+  education levels, consecutive internal whitespace is stored as one space. Capitalization is
+  preserved for display.
+* Only the subject prefix `s/` may be repeated within an add command. Unknown prefixes are rejected.
+* `list`, `undo`, and `redo` accept no arguments; `show` and `delete` accepts exactly one index. `find` accepts the optional
+  `--any` flag before its search keywords. Use `help` and `exit` as shown in their formats below.
 
 </box>
 
@@ -310,14 +336,40 @@ same application session.
 | --- | --- |
 | Extra arguments | `Invalid command format. Usage: clear` |
 
-#### Updating student information: `edit`
 
-Updates the student at the displayed index. Existing values are replaced only for supplied fields.
+### Editing a student: `edit`
+
+Edits the details of an existing student identified by their index in the currently displayed roster.
+Existing values are overwritten by the input values, while omitted fields remain unchanged.
 
 **Format:** `edit INDEX [n/NAME] [p/PHONE] [e/EMAIL] [s/SUBJECT]... [l/LEVEL] [r/NOTES] [t/TAG]...`
 
-Subjects may be repeated. Supplying tags replaces the complete tag set; `t/` clears the tags, and
-`r/` clears notes. The command also retains the legacy `a/ADDRESS` field for older records.
+* `INDEX` is a positive integer starting from 1 and refers to the **currently displayed list**.
+* At least one field to edit must be provided.
+* When editing subjects using `s/`, the existing subjects of the student are replaced by the newly supplied subjects. At least one subject must be provided, and duplicate subjects are not allowed.
+* Supplying `t/` replaces the complete tag set; `t/` alone clears the tags. Supplying `r/` alone clears notes.
+* The legacy `a/ADDRESS` field is available only for older records. Student-only fields cannot be edited on a legacy record.
+* Single-use prefixes (`n/`, `p/`, `e/`, `l/`, `r/`) cannot be repeated within the same command.
+* If the edited student matches another existing student according to TutorRoster duplicate rules, the command is rejected with `This student already exists in TutorRoster.`.
+* After a successful edit, the roster resets to show the complete student list.
+
+Examples:
+
+* `edit 3 p/+6591234567 l/Secondary 5`
+* `edit 1 n/Ryan Tan s/Mathematics s/Physics`
+* `edit 2 r/Prefers worked examples`
+
+**Success feedback:** `Edited student: NAME`, for example `Edited student: Ryan Tan`.
+
+| Problem | Feedback |
+| --- | --- |
+| Missing, zero, negative, decimal, or nonnumeric index; extra preamble | `Invalid command format!` followed by usage guide |
+| No fields specified | `At least one field to edit must be provided.` |
+| Positive index outside the displayed list, including an empty list | `The student index provided is invalid.` |
+| An existing student matches the duplicate rule | `This student already exists in TutorRoster.` |
+| Repeated single-use prefix | `Multiple values specified for the following single-valued field(s): ...` |
+| Repeated subject | `Duplicate subject: SUBJECT` |
+| Invalid field value | Message explaining the applicable rule (e.g. `Invalid phone number. ...`) |
 
 <br>
 
@@ -493,8 +545,8 @@ then the replacement. If you only want to remove the replacement temporarily, us
 
 **How do I update a student?**
 
-Use `edit INDEX` with the fields to replace. See
-[Updating student information](#updating-student-information-edit).
+Use the `edit` command to update the student's details, e.g. `edit 3 p/+6591234567 l/Secondary 5`. See
+[Editing a student: edit](#editing-a-student-edit).
 
 **Why does `delete 1` remove a different student after a search?**
 
@@ -534,7 +586,8 @@ Copy the saved `data/addressbook.json` while the app is closed. See [Backups and
 | Action | Shortcut | Description |
 | --- | --- | --- |
 | Focus command input | `/` | When focus is outside the command box, focuses it with the cursor at the end without entering `/`. |
-| Return to the roster | `Esc` | Closes the student detail modal, or moves focus to the student list when the command box has focus. |
+| Autocomplete suggestion | `Tab` | Autocompletes the top matching command word or parameter prefix into the command box. |
+| Return to the roster | `Esc` | Dismisses completion suggestions if open, closes the student detail modal if open, or moves focus to the student list when the command box has focus. |
 | Previous command | Up arrow | When the command box has focus, recalls an earlier command entered during this session. |
 | Next command | Down arrow | Recalls a later command. Moving past the newest command restores the unfinished draft. |
 | Toggle Help window | `F1` | Opens the Help window when closed, or closes it when open. |
@@ -542,3 +595,21 @@ Copy the saved `data/addressbook.json` while the app is closed. See [Backups and
 Command history is kept for the current session. Recalling a command does not execute it; press Enter
 when you are ready. Check any displayed index before repeating a delete command because the roster
 may have changed since the command was first entered.
+
+## Command summary
+
+| Action | Format | Example |
+| --- | --- | --- |
+| Add student | `add n/NAME p/PHONE [e/EMAIL] s/SUBJECT [s/SUBJECT]... l/LEVEL [/t TAG]... [r/NOTES]` | `add n/Ryan Tan p/81234567 s/Mathematics l/Secondary 4 r/Prefers worked examples` |
+| List students | `list` | `list` |
+| Find students | `find [--any] [n/NAME]... [p/PHONE]... [e/EMAIL]... [s/SUBJECT]... [l/LEVEL]... [t/TAG]...` | `find n/Ryan` or `find --any n/Ryan s/Physics` |
+| Show student details | `show INDEX` | `show 2` |
+| Edit student | `edit INDEX [n/NAME] [p/PHONE] [e/EMAIL] [s/SUBJECT]... [l/LEVEL] [r/NOTES] [t/TAG]...` | `edit 3 p/+6591234567 l/Secondary 5` |
+| Delete student | `delete INDEX` | `delete 2` |
+| Undo last change | `undo` | `undo` |
+| Redo undone change | `redo` | `redo` |
+| Add a tag | `tag INDEX TAG` | `tag 2 exam-prep` |
+| Remove a tag | `untag INDEX TAG` | `untag 2 exam-prep` |
+| Clear tags | `untag --all INDEX` | `untag --all 2` |
+| Open help | `help` | `help` |
+| Exit | `exit` | `exit` |
