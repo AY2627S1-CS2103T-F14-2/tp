@@ -8,7 +8,6 @@ import static seedu.address.testutil.Assert.assertThrows;
 import static seedu.address.testutil.TypicalIndexes.INDEX_FIRST_PERSON;
 
 import java.util.List;
-import java.util.stream.Collectors;
 
 import org.junit.jupiter.api.Test;
 
@@ -22,9 +21,11 @@ import seedu.address.logic.commands.FindCommand;
 import seedu.address.logic.commands.HelpCommand;
 import seedu.address.logic.commands.ListCommand;
 import seedu.address.logic.parser.exceptions.ParseException;
-import seedu.address.model.person.NameContainsKeywordsPredicate;
-import seedu.address.model.person.NameContainsKeywordsPredicate.MatchMode;
 import seedu.address.model.person.Person;
+import seedu.address.model.person.PersonMatchesFieldsPredicate;
+import seedu.address.model.person.PersonMatchesFieldsPredicate.MatchMode;
+import seedu.address.model.person.PersonMatchesFieldsPredicate.SearchField;
+import seedu.address.model.person.PersonMatchesFieldsPredicate.SearchTerm;
 //import seedu.address.testutil.EditPersonDescriptorBuilder;
 
 public class AddressBookParserTest {
@@ -69,15 +70,15 @@ public class AddressBookParserTest {
 
     @Test
     public void parseCommand_find() throws Exception {
-        List<String> keywords = List.of("foo", "bar", "baz");
         FindCommand command = (FindCommand) parser.parseCommand(
-                FindCommand.COMMAND_WORD + " " + keywords.stream().collect(Collectors.joining(" ")));
-        assertEquals(new FindCommand(new NameContainsKeywordsPredicate(keywords)), command);
+                FindCommand.COMMAND_WORD + " n/foo s/bar s/baz");
+        List<SearchTerm> searchTerms = List.of(new SearchTerm(SearchField.NAME, "foo"),
+                new SearchTerm(SearchField.SUBJECT, "bar"), new SearchTerm(SearchField.SUBJECT, "baz"));
+        assertEquals(new FindCommand(new PersonMatchesFieldsPredicate(searchTerms, MatchMode.ALL)), command);
 
         FindCommand anyKeywordCommand = (FindCommand) parser.parseCommand(
-                FindCommand.COMMAND_WORD + " " + FindCommand.ANY_KEYWORD_OPTION + " "
-                        + keywords.stream().collect(Collectors.joining(" ")));
-        assertEquals(new FindCommand(new NameContainsKeywordsPredicate(keywords, MatchMode.ANY)), anyKeywordCommand);
+                FindCommand.COMMAND_WORD + " " + FindCommand.ANY_KEYWORD_OPTION + " n/foo s/bar s/baz");
+        assertEquals(new FindCommand(new PersonMatchesFieldsPredicate(searchTerms, MatchMode.ANY)), anyKeywordCommand);
     }
 
     @Test

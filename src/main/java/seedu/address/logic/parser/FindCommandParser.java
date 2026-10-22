@@ -1,34 +1,39 @@
 package seedu.address.logic.parser;
 
 import static java.util.Objects.requireNonNull;
-import static seedu.address.logic.parser.CliSyntax.PREFIX_ADDRESS;
 import static seedu.address.logic.parser.CliSyntax.PREFIX_EMAIL;
 import static seedu.address.logic.parser.CliSyntax.PREFIX_LEVEL;
 import static seedu.address.logic.parser.CliSyntax.PREFIX_NAME;
-import static seedu.address.logic.parser.CliSyntax.PREFIX_NOTES;
 import static seedu.address.logic.parser.CliSyntax.PREFIX_PHONE;
 import static seedu.address.logic.parser.CliSyntax.PREFIX_SUBJECT;
 import static seedu.address.logic.parser.CliSyntax.PREFIX_TAG;
 
 import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.EnumMap;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 import seedu.address.logic.commands.FindCommand;
 import seedu.address.logic.parser.exceptions.ParseException;
-import seedu.address.model.person.NameContainsKeywordsPredicate;
-import seedu.address.model.person.StudentContainsKeywordsPredicate;
-import seedu.address.model.person.StudentContainsKeywordsPredicate.MatchMode;
-import seedu.address.model.person.StudentContainsKeywordsPredicate.SearchField;
+import seedu.address.model.person.PersonMatchesFieldsPredicate;
+import seedu.address.model.person.PersonMatchesFieldsPredicate.MatchMode;
+import seedu.address.model.person.PersonMatchesFieldsPredicate.SearchField;
+import seedu.address.model.person.PersonMatchesFieldsPredicate.SearchTerm;
 import seedu.address.model.person.StudentFields;
 
-/** Parses name searches and field-targeted student searches. */
+/** Parses field-specific search terms into a {@link FindCommand}. */
 public class FindCommandParser implements Parser<FindCommand> {
-    private static final Prefix PREFIX_LEGACY_TAG = new Prefix("/t");
+    private static final Pattern PREFIX_PATTERN = Pattern.compile("(?U)(?<!\\S)([a-z])/");
+    private static final Map<String, SearchField> SEARCH_FIELDS = Map.of(
+            PREFIX_NAME.getPrefix(), SearchField.NAME,
+            PREFIX_PHONE.getPrefix(), SearchField.PHONE,
+            PREFIX_SUBJECT.getPrefix(), SearchField.SUBJECT,
+            PREFIX_LEVEL.getPrefix(), SearchField.LEVEL,
+            PREFIX_EMAIL.getPrefix(), SearchField.EMAIL,
+            PREFIX_TAG.getPrefix(), SearchField.TAG);
 
-    /** Parses unprefixed name searches and prefixed profile-field searches. */
     @Override
     public FindCommand parse(String args) throws ParseException {
         requireNonNull(args);
@@ -37,74 +42,78 @@ public class FindCommandParser implements Parser<FindCommand> {
             throw invalidFormat();
         }
 
-        boolean anyKeywordSearch = startsWithAnyOption(trimmedArgs);
-        String searchArguments = anyKeywordSearch
+        boolean isAnySearch = hasAnyOption(trimmedArgs);
+        String searchArguments = isAnySearch
                 ? StudentFields.trim(trimmedArgs.substring(FindCommand.ANY_KEYWORD_OPTION.length()))
                 : trimmedArgs;
         if (searchArguments.isEmpty()) {
             throw invalidFormat();
         }
 
-        if (!containsTargetedPrefix(searchArguments)) {
-            String[] arguments = searchArguments.split("(?U)\\s+");
-            List<String> nameKeywords = Arrays.stream(arguments).toList();
-            return new FindCommand(new NameContainsKeywordsPredicate(nameKeywords,
-                    anyKeywordSearch ? NameContainsKeywordsPredicate.MatchMode.ANY
-                            : NameContainsKeywordsPredicate.MatchMode.ALL));
+        Map<String, List<String>> values = parseSearchValues(searchArguments);
+        validateSearchValues(values);
+        List<SearchTerm> searchTerms = createSearchTerms(values);
+        MatchMode matchMode = isAnySearch ? MatchMode.ANY : MatchMode.ALL;
+        return new FindCommand(new PersonMatchesFieldsPredicate(searchTerms, matchMode));
+    }
+
+    private Map<String, List<String>> parseSearchValues(String searchArguments) throws ParseException {
+        Map<String, List<String>> values = new LinkedHashMap<>();
+        Matcher matcher = PREFIX_PATTERN.matcher(searchArguments);
+        String previousPrefix = null;
+        int previousValueStart = 0;
+        int firstPrefixStart = -1;
+
+        while (matcher.find()) {
+            String prefix = matcher.group(1) + "/";
+            if (!SEARCH_FIELDS.containsKey(prefix)) {
+                throw new ParseException("Unknown parameter prefix: " + prefix);
+            }
+            if (firstPrefixStart < 0) {
+                firstPrefixStart = matcher.start(1);
+            }
+            if (previousPrefix != null) {
+                addValue(values, previousPrefix, searchArguments.substring(previousValueStart, matcher.start(1)));
+            }
+            previousPrefix = prefix;
+            previousValueStart = matcher.end();
         }
 
-        // ArgumentTokenizer recognises prefixes at whitespace boundaries; the leading space also handles
-        // a prefix at the beginning of the find argument list.
-        ArgumentMultimap argumentMultimap = ArgumentTokenizer.tokenize(" " + searchArguments,
-                PREFIX_NAME, PREFIX_PHONE,
-                PREFIX_EMAIL, PREFIX_ADDRESS, PREFIX_SUBJECT, PREFIX_LEVEL, PREFIX_NOTES, PREFIX_TAG,
-                PREFIX_LEGACY_TAG);
-        if (!StudentFields.trim(argumentMultimap.getPreamble()).isEmpty()) {
+        if (firstPrefixStart != 0 || previousPrefix == null) {
             throw invalidFormat();
         }
-
-        Map<SearchField, List<String>> criteria = new EnumMap<>(SearchField.class);
-        addCriteria(criteria, SearchField.NAME, argumentMultimap.getAllValues(PREFIX_NAME));
-        addCriteria(criteria, SearchField.PHONE, argumentMultimap.getAllValues(PREFIX_PHONE));
-        addCriteria(criteria, SearchField.EMAIL, argumentMultimap.getAllValues(PREFIX_EMAIL));
-        addCriteria(criteria, SearchField.ADDRESS, argumentMultimap.getAllValues(PREFIX_ADDRESS));
-        addCriteria(criteria, SearchField.SUBJECT, argumentMultimap.getAllValues(PREFIX_SUBJECT));
-        addCriteria(criteria, SearchField.LEVEL, argumentMultimap.getAllValues(PREFIX_LEVEL));
-        addCriteria(criteria, SearchField.NOTES, argumentMultimap.getAllValues(PREFIX_NOTES));
-        addCriteria(criteria, SearchField.TAG, argumentMultimap.getAllValues(PREFIX_TAG));
-        addCriteria(criteria, SearchField.TAG, argumentMultimap.getAllValues(PREFIX_LEGACY_TAG));
-
-        if (criteria.isEmpty()) {
-            throw invalidFormat();
-        }
-        return new FindCommand(new StudentContainsKeywordsPredicate(criteria,
-                anyKeywordSearch ? MatchMode.ANY : MatchMode.ALL));
+        addValue(values, previousPrefix, searchArguments.substring(previousValueStart));
+        return values;
     }
 
-    private static boolean startsWithAnyOption(String args) {
-        return args.equals(FindCommand.ANY_KEYWORD_OPTION)
-                || args.startsWith(FindCommand.ANY_KEYWORD_OPTION + " ")
-                || args.startsWith(FindCommand.ANY_KEYWORD_OPTION + "\t");
+    private boolean hasAnyOption(String arguments) {
+        int optionLength = FindCommand.ANY_KEYWORD_OPTION.length();
+        return arguments.equals(FindCommand.ANY_KEYWORD_OPTION)
+                || (arguments.length() > optionLength && arguments.startsWith(FindCommand.ANY_KEYWORD_OPTION)
+                && Character.isWhitespace(arguments.charAt(optionLength)));
     }
 
-    private static boolean containsTargetedPrefix(String args) {
-        return args.matches("(?U)(?s).*?(?<!\\S)(?:[a-z]/|/[a-z])(?=\\S|\\s|$).*");
+    private void addValue(Map<String, List<String>> values, String prefix, String value) {
+        values.computeIfAbsent(prefix, ignored -> new ArrayList<>()).add(StudentFields.trim(value));
     }
 
-    private static void addCriteria(Map<SearchField, List<String>> criteria, SearchField field,
-            List<String> values) throws ParseException {
-        if (values.isEmpty()) {
-            return;
-        }
-        List<String> cleanedValues = new ArrayList<>();
-        for (String value : values) {
-            String cleanedValue = StudentFields.trim(value);
-            if (cleanedValue.isEmpty()) {
+    private void validateSearchValues(Map<String, List<String>> values) throws ParseException {
+        for (Map.Entry<String, List<String>> entry : values.entrySet()) {
+            if (entry.getValue().stream().anyMatch(String::isEmpty)) {
                 throw invalidFormat();
             }
-            cleanedValues.add(cleanedValue);
         }
-        criteria.computeIfAbsent(field, ignored -> new ArrayList<>()).addAll(cleanedValues);
+    }
+
+    private List<SearchTerm> createSearchTerms(Map<String, List<String>> values) {
+        List<SearchTerm> searchTerms = new ArrayList<>();
+        for (Map.Entry<String, List<String>> entry : values.entrySet()) {
+            SearchField field = SEARCH_FIELDS.get(entry.getKey());
+            for (String value : entry.getValue()) {
+                searchTerms.add(new SearchTerm(field, value));
+            }
+        }
+        return searchTerms;
     }
 
     private static ParseException invalidFormat() {

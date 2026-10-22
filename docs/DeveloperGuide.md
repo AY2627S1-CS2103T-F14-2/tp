@@ -409,7 +409,7 @@ Priorities: High (must have) - `* * *`, Medium (nice to have) - `* *`, Low (unli
 | `* * *`  | new user                                   | see usage instructions       | refer to instructions when I forget how to use the App                 |
 | `* * *`  | user                                       | add a new person             |                                                                        |
 | `* * *`  | user                                       | delete a person              | remove entries that I no longer need                                   |
-| `* * *`  | user                                       | find a person by name        | locate details of persons without having to go through the entire list |
+| `* * *`  | user                                       | find students by their fields | locate details of students without going through the entire list |
 | `* *`    | user                                       | hide private contact details | minimize chance of someone else seeing them by accident                |
 | `*`      | user with many persons in the address book | sort persons by name         | locate a person easily                                                 |
 
@@ -506,12 +506,12 @@ Priorities: High (must have) - `* * *`, Medium (nice to have) - `* *`, Low (unli
 
 ---
 
-**Use case: Find a student by name**
+**Use case: Find students by field**
 
 **MSS**
 
-1. User enters one or more name keywords
-2. TutorRoster searches student names using case-insensitive partial matching
+1. User enters one or more field-prefixed search values
+2. TutorRoster searches the specified fields using case-insensitive partial matching
 3. TutorRoster displays the matching students in roster order
 4. TutorRoster displays the number of students found
 
@@ -630,7 +630,6 @@ Priorities: High (must have) - `* * *`, Medium (nice to have) - `* *`, Low (unli
 | **Parameter** | A value supplied to a command, such as a student’s name or the index of a record to delete. |
 | **Prefix** | A marker identifying a parameter’s type, such as `n/` for name or `s/` for subject. |
 | **Student index (`INDEX`)** | A student’s position in the currently displayed numbered list, starting from 1. After a search, it refers to the search results. |
-| **Search keyword** | Text used to find matching records. Unprefixed keywords match parts of student names; field prefixes can target other stored attributes. By default, every supplied criterion must match; `--any` returns records matching at least one criterion. |
 | **Filtered list** | A displayed subset of the roster containing only students who match the current search or filter criteria. |
 | **Case-insensitive matching** | Comparing text without distinguishing uppercase from lowercase letters. For example, `Ryan` and `ryan` match. |
 | **Whitespace normalization** | Removing surrounding whitespace and treating consecutive internal whitespace as one space in names, subjects, and education levels. |

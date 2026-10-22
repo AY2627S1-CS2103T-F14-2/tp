@@ -10,7 +10,7 @@ import seedu.address.model.Model;
 import seedu.address.model.person.Person;
 
 /**
- * Finds and lists students whose name or selected profile fields match the supplied keywords.
+ * Finds and lists all students matching the supplied field-specific search terms.
  * Keyword matching is case insensitive and allows partial matches.
  */
 public class FindCommand extends Command {
@@ -19,13 +19,15 @@ public class FindCommand extends Command {
     public static final String ANY_KEYWORD_OPTION = "--any";
 
     public static final String MESSAGE_USAGE = COMMAND_WORD + " [" + ANY_KEYWORD_OPTION + "] "
-            + "KEYWORD [MORE_KEYWORDS]... or [FIELD/]VALUE...\n\n"
-            + "Unprefixed keywords search names. Supported fields are n/ name, p/ phone, e/ email, "
-            + "a/ address, s/ subject, l/ level, r/ notes, and t/ tag.\n"
-            + "By default, find shows students matching all specified criteria; use `--any` to match at least one.\n\n"
+            + "[n/NAME]... [p/PHONE]... [e/EMAIL]... [s/SUBJECT]... [l/LEVEL]... [t/TAG]...\n\n"
+            + "Supply at least one field. Fields may appear in any order.\n\n"
+            + "By default, find shows students matching every supplied field. Use `--any` to show students "
+            + "matching at least one. All field searches are case-insensitive and support partial matching.\n\n"
             + "Examples:\n"
-            + "- \"find alice bob\" returns students whose names contain both “alice” and “bob”.\n"
-            + "- \"find s/Mathematics l/JC 1\" returns matching subject and level records.\n"
+            + "- \"find n/Alex A s/Mathematics\" returns students whose name contains both “Alex A” and study "
+            + "Mathematics.\n"
+            + "- \"find --any n/Alex A s/Mathematics\" returns students whose name contains “Alex A” or study "
+            + "Mathematics."
             + "- \"find --any t/exam-prep t/group-class\" returns students with either tag.";
 
     public static final String MESSAGE_INVALID_COMMAND_FORMAT =
@@ -34,7 +36,7 @@ public class FindCommand extends Command {
     private final Predicate<Person> predicate;
 
     /**
-     * Creates a command that lists students matching the given name predicate.
+     * Creates a command that lists students matching the given predicate.
      */
     public FindCommand(Predicate<Person> predicate) {
         this.predicate = requireNonNull(predicate);

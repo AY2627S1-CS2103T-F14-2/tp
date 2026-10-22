@@ -69,7 +69,7 @@ public class TagHistoryIntegrationTest {
     @Test
     public void execute_filteredTag_undoRedoPreservesDetailsAndSavesEachState() throws Exception {
         var displayed = model.getFilteredPersonList();
-        logic.execute("find Bob");
+        logic.execute("find n/Bob");
         assertEquals("Tag added to Bob: exam-prep", logic.execute("tag 1 exam-prep").getFeedbackToUser());
         Person tagged = bob.withTags(Set.of(new Tag("exam-prep")));
         assertEquals(List.of(tagged), displayed);
@@ -95,7 +95,7 @@ public class TagHistoryIntegrationTest {
         logic.execute("tag 2 group-class");
         Person both = bob.withTags(Set.of(new Tag("exam-prep"), new Tag("group-class")));
         Person remaining = bob.withTags(Set.of(new Tag("group-class")));
-        logic.execute("find Bob");
+        logic.execute("find n/Bob");
         assertEquals("Tag removed from Bob: exam-prep", logic.execute("untag 1 exam-prep").getFeedbackToUser());
         assertEquals(List.of(remaining), model.getFilteredPersonList());
         assertRoster(amy, remaining);
@@ -104,7 +104,7 @@ public class TagHistoryIntegrationTest {
         logic.execute("redo");
         assertRoster(amy, remaining);
         logic.execute("undo");
-        logic.execute("find Bob");
+        logic.execute("find n/Bob");
         assertEquals("All tags removed from Bob.", logic.execute("untag --all 1").getFeedbackToUser());
         assertEquals(List.of(bob), model.getFilteredPersonList());
         assertRoster(amy, bob);
@@ -154,7 +154,7 @@ public class TagHistoryIntegrationTest {
         logic.execute("tag 2 exam-prep");
         logic.execute("tag 2 group-class");
         logic.execute("undo");
-        logic.execute("find Bob");
+        logic.execute("find n/Bob");
         Person tagged = bob.withTags(Set.of(new Tag("exam-prep")));
         String original = Files.readString(file);
         for (IOException failure : List.of(new IOException("disk failure"), new AccessDeniedException("roster"))) {
