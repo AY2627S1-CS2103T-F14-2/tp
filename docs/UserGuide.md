@@ -7,12 +7,12 @@
 # TutorRoster User Guide
 
 **TutorRoster** is a desktop student directory for private freelance tutors. It keeps student names,
-contact details, subjects, education levels, tags, and additional notes together in a roster. Type short commands to 
-add, find, list, and delete students, undo or redo changes, add tags, and view individual student details in the 
+contact details, subjects, education levels, tags, and additional notes together in a roster. Type short commands to
+add, find, list, and delete students, undo or redo changes, add tags, and view individual student details in the
 graphical interface.
 
 Email and notes are optional.
-The contact phone number can belong to the student or their guardian. 
+The contact phone number can belong to the student or their guardian.
 Student records are saved locally so you can return to them in later sessions.
 
 <page-nav-print />
@@ -46,6 +46,7 @@ Student records are saved locally so you can return to them in later sessions.
    | `add n/Ryan Tan p/+6591234567 s/Mathematics l/Secondary 4 r/Prefers worked examples` | Adds Ryan's student record. |
    | `find Ryan` | Shows students whose names contain `Ryan`. |
    | `show 1` | Opens the complete record for student 1 in the currently displayed list. |
+   | `edit 1 p/+6591234567 l/Secondary 5` | Updates student 1's phone and level in the currently displayed list. |
    | `delete 1` | Removes the student numbered 1 in the currently displayed list. |
    | `undo` | Reverses the last successful roster change in this session. |
    | `redo` | Reapplies the last undone change. |
@@ -321,14 +322,39 @@ Examples:
 For example, `delete 0`, `delete abc`, and `delete 1 n/Ryan` are invalid. Invalid input leaves the
 records and displayed list unchanged. A save failure also leaves the roster unchanged; see [Save errors](#save-errors).
 
-#### Updating student information: `edit`
+### Editing a student: `edit`
 
-Updates the student at the displayed index. Existing values are replaced only for supplied fields.
+Edits the details of an existing student identified by their index in the currently displayed roster.
+Existing values are overwritten by the input values, while omitted fields remain unchanged.
 
 **Format:** `edit INDEX [n/NAME] [p/PHONE] [e/EMAIL] [s/SUBJECT]... [l/LEVEL] [r/NOTES] [t/TAG]...`
 
-Subjects may be repeated. Supplying tags replaces the complete tag set; `t/` clears the tags, and
-`r/` clears notes. The command also retains the legacy `a/ADDRESS` field for older records.
+* `INDEX` is a positive integer starting from 1 and refers to the **currently displayed list**.
+* At least one field to edit must be provided.
+* When editing subjects using `s/`, the existing subjects of the student are replaced by the newly supplied subjects. At least one subject must be provided, and duplicate subjects are not allowed.
+* Supplying `t/` replaces the complete tag set; `t/` alone clears the tags. Supplying `r/` alone clears notes.
+* The legacy `a/ADDRESS` field is available only for older records. Student-only fields cannot be edited on a legacy record.
+* Single-use prefixes (`n/`, `p/`, `e/`, `l/`, `r/`) cannot be repeated within the same command.
+* If the edited student matches another existing student according to TutorRoster duplicate rules, the command is rejected with `This student already exists in TutorRoster.`.
+* After a successful edit, the roster resets to show the complete student list.
+
+Examples:
+
+* `edit 3 p/+6591234567 l/Secondary 5`
+* `edit 1 n/Ryan Tan s/Mathematics s/Physics`
+* `edit 2 r/Prefers worked examples`
+
+**Success feedback:** `Edited student: NAME`, for example `Edited student: Ryan Tan`.
+
+| Problem | Feedback |
+| --- | --- |
+| Missing, zero, negative, decimal, or nonnumeric index; extra preamble | `Invalid command format!` followed by usage guide |
+| No fields specified | `At least one field to edit must be provided.` |
+| Positive index outside the displayed list, including an empty list | `The student index provided is invalid.` |
+| An existing student matches the duplicate rule | `This student already exists in TutorRoster.` |
+| Repeated single-use prefix | `Multiple values specified for the following single-valued field(s): ...` |
+| Repeated subject | `Duplicate subject: SUBJECT` |
+| Invalid field value | Message explaining the applicable rule (e.g. `Invalid phone number. ...`) |
 
 <br>
 
@@ -504,8 +530,8 @@ then the replacement. If you only want to remove the replacement temporarily, us
 
 **How do I update a student?**
 
-Use `edit INDEX` with the fields to replace. See
-[Updating student information](#updating-student-information-edit).
+Use the `edit` command to update the student's details, e.g. `edit 3 p/+6591234567 l/Secondary 5`. See
+[Editing a student: edit](#editing-a-student-edit).
 
 **Why does `delete 1` remove a different student after a search?**
 
@@ -554,3 +580,21 @@ Copy the saved `data/addressbook.json` while the app is closed. See [Backups and
 Command history is kept for the current session. Recalling a command does not execute it; press Enter
 when you are ready. Check any displayed index before repeating a delete command because the roster
 may have changed since the command was first entered.
+
+## Command summary
+
+| Action | Format | Example |
+| --- | --- | --- |
+| Add student | `add n/NAME p/PHONE [e/EMAIL] s/SUBJECT [s/SUBJECT]... l/LEVEL [/t TAG]... [r/NOTES]` | `add n/Ryan Tan p/81234567 s/Mathematics l/Secondary 4 r/Prefers worked examples` |
+| List students | `list` | `list` |
+| Find students | `find [--any] [n/NAME]... [p/PHONE]... [e/EMAIL]... [s/SUBJECT]... [l/LEVEL]... [t/TAG]...` | `find n/Ryan` or `find --any n/Ryan s/Physics` |
+| Show student details | `show INDEX` | `show 2` |
+| Edit student | `edit INDEX [n/NAME] [p/PHONE] [e/EMAIL] [s/SUBJECT]... [l/LEVEL] [r/NOTES] [t/TAG]...` | `edit 3 p/+6591234567 l/Secondary 5` |
+| Delete student | `delete INDEX` | `delete 2` |
+| Undo last change | `undo` | `undo` |
+| Redo undone change | `redo` | `redo` |
+| Add a tag | `tag INDEX TAG` | `tag 2 exam-prep` |
+| Remove a tag | `untag INDEX TAG` | `untag 2 exam-prep` |
+| Clear tags | `untag --all INDEX` | `untag --all 2` |
+| Open help | `help` | `help` |
+| Exit | `exit` | `exit` |
