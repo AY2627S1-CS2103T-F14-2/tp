@@ -18,6 +18,7 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
 
+import seedu.address.logic.commands.ClearCommand;
 import seedu.address.logic.commands.CommandResult;
 import seedu.address.logic.commands.HelpCommand;
 import seedu.address.logic.commands.ListCommand;
@@ -190,6 +191,47 @@ public class LogicManagerTest {
         assertCommandException("undo", UndoCommand.MESSAGE_FAILURE);
         logic.execute("redo");
         assertStoredRoster(List.of(ryan));
+    }
+
+    @Test
+    public void execute_clear_removesAllRecordsAndSupportsUndoRedo() throws Exception {
+        logic.execute("add n/Ryan Tan p/81234567 s/Physics l/JC 1");
+        logic.execute("add n/Alicia Lim p/91234567 s/English l/Secondary 4");
+        logic.execute("find n/Ryan");
+
+        assertEquals(ClearCommand.MESSAGE_SUCCESS, logic.execute("clear").getFeedbackToUser());
+        assertStoredRoster(List.of());
+
+        assertEquals(UndoCommand.MESSAGE_SUCCESS, logic.execute("undo").getFeedbackToUser());
+        assertEquals(2, model.getFilteredPersonList().size());
+        assertStoredRoster(List.of(model.getAddressBook().getPersonList().get(0),
+                model.getAddressBook().getPersonList().get(1)));
+
+        assertEquals(RedoCommand.MESSAGE_SUCCESS, logic.execute("redo").getFeedbackToUser());
+        assertStoredRoster(List.of());
+    }
+
+    @Test
+    public void execute_clearSaveFailure_preservesRosterAndStoredFile() throws Exception {
+        logic.execute("add n/Ryan Tan p/81234567 s/Physics l/JC 1");
+        Path dataPath = temporaryFolder.resolve("addressBook.json");
+        String storedBefore = Files.readString(dataPath);
+        AddressBook rosterBefore = new AddressBook(model.getAddressBook());
+
+        JsonAddressBookStorage failingStorage = new JsonAddressBookStorage(dataPath) {
+            @Override
+            public void saveAddressBookAtomically(ReadOnlyAddressBook addressBook) throws IOException {
+                throw DUMMY_IO_EXCEPTION;
+            }
+        };
+        logic = new LogicManager(model, new StorageManager(failingStorage,
+                new JsonUserPrefsStorage(temporaryFolder.resolve("userPrefs.json"))));
+
+        assertCommandException("clear",
+                String.format(LogicManager.FILE_OPS_ERROR_FORMAT, DUMMY_IO_EXCEPTION.getMessage()));
+        assertEquals(rosterBefore, model.getAddressBook());
+        assertEquals(List.of(rosterBefore.getPersonList().getFirst()), model.getFilteredPersonList());
+        assertEquals(storedBefore, Files.readString(dataPath));
     }
 
     @Test

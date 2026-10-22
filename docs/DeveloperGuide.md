@@ -244,7 +244,7 @@ save error. See the shared [recording and publishing flow](#recording-and-publis
 ### Undo and redo
 
 TutorRoster restores complete roster states so tutors can recover from accidental changes. The enabled
-roster-changing commands are currently `add`, `edit`, `delete`, `tag`, and `untag`. Tag commands that only
+roster-changing commands are currently `add`, `edit`, `delete`, `clear`, `tag`, and `untag`. Tag commands that only
 report a warning leave history unchanged. The history mechanism also supports record replacements at the model level.
 
 #### State and responsibilities
