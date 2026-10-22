@@ -183,7 +183,7 @@ Categorise students with labels such as `exam-prep`, `group-class`, and `needs-f
 | `untag --all INDEX` | Removes every tag from that student. |
 
 `INDEX` is a positive integer identifying a student in the **currently displayed list**.
-For example, after `find Ryan`, `tag 1 exam-prep` labels the first displayed Ryan.
+For example, after `find n/Ryan`, `tag 1 exam-prep` labels the first displayed Ryan.
 These commands keep the current filter. Each command targets one student; `--all` refers to that
 student's tags, not all students. Extra arguments and `untag INDEX --all` are invalid.
 
@@ -235,7 +235,7 @@ Shows students matching the given fields.
 
 * You must specify at least one field.
 * By default, every given field must match. Use `--any` to find students matching at least one given field.
-* Matching is case-insensitive: `find RYAN` and `find ryan` return the same results.
+* Matching is case-insensitive: `find n/RYAN` and `find n/ryan` return the same results.
 * A keyword may match part of a field: `find n/Ann` can match `Anna Lee` and `Annie Tan`.
 * Every field may be repeated. For example, `find s/Math s/English` matches students who take both Math and English.
 * The order of the fields does not matter.
