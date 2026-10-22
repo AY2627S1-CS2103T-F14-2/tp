@@ -2,14 +2,16 @@ package seedu.address.logic.commands;
 
 import static java.util.Objects.requireNonNull;
 
+import java.util.function.Predicate;
+
 import seedu.address.commons.util.ToStringBuilder;
 import seedu.address.logic.Messages;
 import seedu.address.model.Model;
-import seedu.address.model.person.NameContainsKeywordsPredicate;
+import seedu.address.model.person.Person;
 
 /**
- * Finds and lists all students whose name matches the argument keywords.
- * Keyword matching is case insensitive and allows partial names.
+ * Finds and lists all students matching the supplied field-specific search terms.
+ * Keyword matching is case insensitive and allows partial matches.
  */
 public class FindCommand extends Command {
 
@@ -17,24 +19,27 @@ public class FindCommand extends Command {
     public static final String ANY_KEYWORD_OPTION = "--any";
 
     public static final String MESSAGE_USAGE = COMMAND_WORD + " [" + ANY_KEYWORD_OPTION + "] "
-            + "KEYWORD [MORE_KEYWORDS]...\n\n"
-            + "By default, find shows students whose names match all specified keywords "
-            + "(case-insensitive, partial matches allowed).\n"
-            + "Use `--any` to show students whose names match at least one specified keyword.\n\n"
+            + "[n/NAME]... [p/PHONE]... [e/EMAIL]... [s/SUBJECT]... [l/LEVEL]... [t/TAG]...\n\n"
+            + "Supply at least one field. Fields may appear in any order.\n\n"
+            + "By default, find shows students matching every supplied field. Use `--any` to show students "
+            + "matching at least one. All field searches are case-insensitive and support partial matching.\n\n"
             + "Examples:\n"
-            + "- \"find alice bob\" returns students whose names contain both “alice” and “bob”.\n"
-            + "- \"find --any alice bob\" returns students whose names contain “alice”, “bob”, or both.";
+            + "- \"find n/Alex A s/Mathematics\" returns students whose name contains both “Alex A” and study "
+            + "Mathematics.\n"
+            + "- \"find --any n/Alex A s/Mathematics\" returns students whose name contains “Alex A” or study "
+            + "Mathematics."
+            + "- \"find --any t/exam-prep t/group-class\" returns students with either tag.";
 
     public static final String MESSAGE_INVALID_COMMAND_FORMAT =
             "Invalid command format!\n\nUsage: " + MESSAGE_USAGE;
 
-    private final NameContainsKeywordsPredicate predicate;
+    private final Predicate<Person> predicate;
 
     /**
-     * Creates a command that lists students matching the given name predicate.
+     * Creates a command that lists students matching the given predicate.
      */
-    public FindCommand(NameContainsKeywordsPredicate predicate) {
-        this.predicate = predicate;
+    public FindCommand(Predicate<Person> predicate) {
+        this.predicate = requireNonNull(predicate);
     }
 
     @Override

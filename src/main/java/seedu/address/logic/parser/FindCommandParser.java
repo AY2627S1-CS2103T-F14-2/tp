@@ -1,43 +1,122 @@
 package seedu.address.logic.parser;
 
-import java.util.Arrays;
+import static java.util.Objects.requireNonNull;
+import static seedu.address.logic.parser.CliSyntax.PREFIX_EMAIL;
+import static seedu.address.logic.parser.CliSyntax.PREFIX_LEVEL;
+import static seedu.address.logic.parser.CliSyntax.PREFIX_NAME;
+import static seedu.address.logic.parser.CliSyntax.PREFIX_PHONE;
+import static seedu.address.logic.parser.CliSyntax.PREFIX_SUBJECT;
+import static seedu.address.logic.parser.CliSyntax.PREFIX_TAG;
+
+import java.util.ArrayList;
+import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.Map;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 import seedu.address.logic.commands.FindCommand;
 import seedu.address.logic.parser.exceptions.ParseException;
-import seedu.address.model.person.NameContainsKeywordsPredicate;
-import seedu.address.model.person.NameContainsKeywordsPredicate.MatchMode;
+import seedu.address.model.person.PersonMatchesFieldsPredicate;
+import seedu.address.model.person.PersonMatchesFieldsPredicate.MatchMode;
+import seedu.address.model.person.PersonMatchesFieldsPredicate.SearchField;
+import seedu.address.model.person.PersonMatchesFieldsPredicate.SearchTerm;
+import seedu.address.model.person.StudentFields;
 
-/**
- * Parses input arguments and creates a new FindCommand object.
- */
+/** Parses field-specific search terms into a {@link FindCommand}. */
 public class FindCommandParser implements Parser<FindCommand> {
+    private static final Pattern PREFIX_PATTERN = Pattern.compile("(?U)(?<!\\S)([a-z])/");
+    private static final Map<String, SearchField> SEARCH_FIELDS = Map.of(
+            PREFIX_NAME.getPrefix(), SearchField.NAME,
+            PREFIX_PHONE.getPrefix(), SearchField.PHONE,
+            PREFIX_SUBJECT.getPrefix(), SearchField.SUBJECT,
+            PREFIX_LEVEL.getPrefix(), SearchField.LEVEL,
+            PREFIX_EMAIL.getPrefix(), SearchField.EMAIL,
+            PREFIX_TAG.getPrefix(), SearchField.TAG);
 
-    /**
-     * Parses the given {@code String} of arguments in the context of the FindCommand
-     * and returns a FindCommand object for execution.
-     *
-     * @throws ParseException if the arguments contain no search keywords.
-     */
+    @Override
     public FindCommand parse(String args) throws ParseException {
-        String trimmedArgs = args.trim();
+        requireNonNull(args);
+        String trimmedArgs = StudentFields.trim(args);
         if (trimmedArgs.isEmpty()) {
-            throw new ParseException(FindCommand.MESSAGE_INVALID_COMMAND_FORMAT);
+            throw invalidFormat();
         }
 
-        String[] arguments = trimmedArgs.split("\\s+");
-        boolean isAnyKeywordSearch = arguments[0].equals(FindCommand.ANY_KEYWORD_OPTION);
-        int firstKeywordIndex = isAnyKeywordSearch ? 1 : 0;
-        if (arguments.length == firstKeywordIndex) {
-            throw new ParseException(FindCommand.MESSAGE_INVALID_COMMAND_FORMAT);
+        boolean isAnySearch = hasAnyOption(trimmedArgs);
+        String searchArguments = isAnySearch
+                ? StudentFields.trim(trimmedArgs.substring(FindCommand.ANY_KEYWORD_OPTION.length()))
+                : trimmedArgs;
+        if (searchArguments.isEmpty()) {
+            throw invalidFormat();
         }
 
-        List<String> nameKeywords = Arrays.stream(arguments)
-                .skip(firstKeywordIndex)
-                .toList();
-        MatchMode matchMode = isAnyKeywordSearch ? MatchMode.ANY : MatchMode.ALL;
-
-        return new FindCommand(new NameContainsKeywordsPredicate(nameKeywords, matchMode));
+        Map<String, List<String>> values = parseSearchValues(searchArguments);
+        validateSearchValues(values);
+        List<SearchTerm> searchTerms = createSearchTerms(values);
+        MatchMode matchMode = isAnySearch ? MatchMode.ANY : MatchMode.ALL;
+        return new FindCommand(new PersonMatchesFieldsPredicate(searchTerms, matchMode));
     }
 
+    private Map<String, List<String>> parseSearchValues(String searchArguments) throws ParseException {
+        Map<String, List<String>> values = new LinkedHashMap<>();
+        Matcher matcher = PREFIX_PATTERN.matcher(searchArguments);
+        String previousPrefix = null;
+        int previousValueStart = 0;
+        int firstPrefixStart = -1;
+
+        while (matcher.find()) {
+            String prefix = matcher.group(1) + "/";
+            if (!SEARCH_FIELDS.containsKey(prefix)) {
+                throw new ParseException("Unknown parameter prefix: " + prefix);
+            }
+            if (firstPrefixStart < 0) {
+                firstPrefixStart = matcher.start(1);
+            }
+            if (previousPrefix != null) {
+                addValue(values, previousPrefix, searchArguments.substring(previousValueStart, matcher.start(1)));
+            }
+            previousPrefix = prefix;
+            previousValueStart = matcher.end();
+        }
+
+        if (firstPrefixStart != 0 || previousPrefix == null) {
+            throw invalidFormat();
+        }
+        addValue(values, previousPrefix, searchArguments.substring(previousValueStart));
+        return values;
+    }
+
+    private boolean hasAnyOption(String arguments) {
+        int optionLength = FindCommand.ANY_KEYWORD_OPTION.length();
+        return arguments.equals(FindCommand.ANY_KEYWORD_OPTION)
+                || (arguments.length() > optionLength && arguments.startsWith(FindCommand.ANY_KEYWORD_OPTION)
+                && Character.isWhitespace(arguments.charAt(optionLength)));
+    }
+
+    private void addValue(Map<String, List<String>> values, String prefix, String value) {
+        values.computeIfAbsent(prefix, ignored -> new ArrayList<>()).add(StudentFields.trim(value));
+    }
+
+    private void validateSearchValues(Map<String, List<String>> values) throws ParseException {
+        for (Map.Entry<String, List<String>> entry : values.entrySet()) {
+            if (entry.getValue().stream().anyMatch(String::isEmpty)) {
+                throw invalidFormat();
+            }
+        }
+    }
+
+    private List<SearchTerm> createSearchTerms(Map<String, List<String>> values) {
+        List<SearchTerm> searchTerms = new ArrayList<>();
+        for (Map.Entry<String, List<String>> entry : values.entrySet()) {
+            SearchField field = SEARCH_FIELDS.get(entry.getKey());
+            for (String value : entry.getValue()) {
+                searchTerms.add(new SearchTerm(field, value));
+            }
+        }
+        return searchTerms;
+    }
+
+    private static ParseException invalidFormat() {
+        return new ParseException(FindCommand.MESSAGE_INVALID_COMMAND_FORMAT);
+    }
 }

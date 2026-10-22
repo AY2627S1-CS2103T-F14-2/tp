@@ -24,8 +24,8 @@ public class AddCommand extends Command {
     public static final String MESSAGE_PARAMETER_GUIDE = "Required: " + COMMAND_WORD + " "
             + PREFIX_NAME + "NAME " + PREFIX_PHONE + "PHONE "
             + PREFIX_SUBJECT + "SUBJECT " + PREFIX_LEVEL + "LEVEL\n"
-            + "Optional: " + PREFIX_EMAIL + "EMAIL " + PREFIX_NOTES + "NOTES; repeat "
-            + PREFIX_SUBJECT + "SUBJECT for additional subjects.\n"
+            + "Optional: " + PREFIX_EMAIL + "EMAIL; " + PREFIX_NOTES + "NOTES; /t TAG; repeat " + PREFIX_SUBJECT
+            + "SUBJECT for additional subjects or /t TAG for additional tags.\n"
             + "Parameters may appear in any order.";
     public static final String MESSAGE_USAGE = "Invalid command format for add.\n" + MESSAGE_PARAMETER_GUIDE;
 
@@ -33,13 +33,20 @@ public class AddCommand extends Command {
     public static final String MESSAGE_DUPLICATE_PERSON = "This student already exists in TutorRoster.";
 
     private final Person toAdd;
+    private final boolean duplicateTagsIgnored;
 
     /**
      * Creates an AddCommand to add the specified {@code Person}
      */
     public AddCommand(Person person) {
+        this(person, false);
+    }
+
+    /** Creates an add command, optionally reporting repeated equivalent tags as a warning. */
+    public AddCommand(Person person, boolean duplicateTagsIgnored) {
         requireNonNull(person);
         toAdd = person;
+        this.duplicateTagsIgnored = duplicateTagsIgnored;
     }
 
     public static String missingRequiredParameter(String parameter) {
@@ -64,7 +71,11 @@ public class AddCommand extends Command {
 
         model.addPerson(toAdd);
         String displayedDetails = toAdd.isNewFormat() ? toAdd.getName().fullName : Messages.format(toAdd);
-        return new CommandResult(String.format(MESSAGE_SUCCESS, displayedDetails));
+        String feedback = String.format(MESSAGE_SUCCESS, displayedDetails);
+        if (duplicateTagsIgnored) {
+            feedback += "\nWarning: Duplicate tags were ignored.";
+        }
+        return new CommandResult(feedback);
     }
 
     @Override
@@ -78,7 +89,7 @@ public class AddCommand extends Command {
             return false;
         }
 
-        return toAdd.equals(otherAddCommand.toAdd);
+        return toAdd.equals(otherAddCommand.toAdd) && duplicateTagsIgnored == otherAddCommand.duplicateTagsIgnored;
     }
 
     @Override

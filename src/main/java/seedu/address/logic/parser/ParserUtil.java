@@ -13,6 +13,7 @@ import seedu.address.model.person.Address;
 import seedu.address.model.person.Email;
 import seedu.address.model.person.Name;
 import seedu.address.model.person.Phone;
+import seedu.address.model.person.StudentFields;
 import seedu.address.model.tag.Tag;
 
 /**
@@ -119,6 +120,69 @@ public class ParserUtil {
         for (String tagName : tags) {
             tagSet.add(parseTag(tagName));
         }
+        if (tagSet.size() > Tag.MAX_TAGS_PER_STUDENT) {
+            throw new ParseException(Tag.MESSAGE_TAG_LIMIT);
+        }
         return tagSet;
+    }
+
+    /** Parses a name using the new student validation rules. */
+    public static Name parseStudentName(String name) throws ParseException {
+        requireNonNull(name);
+        String normalizedName = StudentFields.normalizeName(name);
+        if (!StudentFields.isValidName(normalizedName)) {
+            throw new ParseException(Name.MESSAGE_CONSTRAINTS);
+        }
+        return Name.fromStoredValue(normalizedName);
+    }
+
+    /** Parses a phone number using the new student validation rules. */
+    public static Phone parseStudentPhone(String phone) throws ParseException {
+        requireNonNull(phone);
+        String trimmedPhone = StudentFields.trim(phone);
+        if (!StudentFields.isValidPhone(trimmedPhone)) {
+            throw new ParseException(Phone.MESSAGE_CONSTRAINTS);
+        }
+        return Phone.fromStoredValue(trimmedPhone);
+    }
+
+    /** Parses an email using the new student validation rules. */
+    public static Email parseStudentEmail(String email) throws ParseException {
+        requireNonNull(email);
+        String trimmedEmail = StudentFields.trim(email);
+        if (!StudentFields.isValidEmail(trimmedEmail)) {
+            throw new ParseException(Email.MESSAGE_CONSTRAINTS);
+        }
+        return Email.fromStoredValue(trimmedEmail);
+    }
+
+    /** Parses and normalises one subject value. */
+    public static String parseSubject(String subject) throws ParseException {
+        requireNonNull(subject);
+        String normalisedSubject = StudentFields.normalizeWhitespace(subject);
+        if (!StudentFields.isValidSubject(normalisedSubject)) {
+            throw new ParseException(StudentFields.INVALID_SUBJECT);
+        }
+        return normalisedSubject;
+    }
+
+    /** Parses and normalises one education-level value. */
+    public static String parseLevel(String level) throws ParseException {
+        requireNonNull(level);
+        String normalisedLevel = StudentFields.normalizeWhitespace(level);
+        if (!StudentFields.isValidLevel(normalisedLevel)) {
+            throw new ParseException(StudentFields.INVALID_LEVEL);
+        }
+        return normalisedLevel;
+    }
+
+    /** Parses one non-empty notes value and trims only its surrounding whitespace. */
+    public static String parseNotes(String notes) throws ParseException {
+        requireNonNull(notes);
+        String trimmedNotes = StudentFields.trim(notes);
+        if (!StudentFields.isValidNotes(trimmedNotes)) {
+            throw new ParseException(StudentFields.INVALID_NOTES);
+        }
+        return trimmedNotes;
     }
 }

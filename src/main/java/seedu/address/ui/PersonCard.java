@@ -2,6 +2,7 @@ package seedu.address.ui;
 
 import javafx.fxml.FXML;
 import javafx.scene.control.Label;
+import javafx.scene.layout.FlowPane;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.Region;
 import seedu.address.model.person.Person;
@@ -42,6 +43,8 @@ public class PersonCard extends UiPart<Region> {
     private Label level;
     @FXML
     private Label notes;
+    @FXML
+    private FlowPane tags;
 
     /**
      * Creates a {@code PersonCard} with the given {@code Person} and index to display.
@@ -58,6 +61,15 @@ public class PersonCard extends UiPart<Region> {
         setOptionalText(subjects, content.subjects());
         setOptionalText(level, content.level());
         setOptionalText(notes, content.notes());
+        person.getTags().stream().map(tag -> tag.tagName).sorted().forEach(tagName -> {
+            Label badge = new Label(tagName);
+            badge.getStyleClass().add("student-tag");
+            badge.setWrapText(true);
+            badge.maxWidthProperty().bind(tags.widthProperty());
+            tags.getChildren().add(badge);
+        });
+        tags.setVisible(!person.getTags().isEmpty());
+        tags.setManaged(!person.getTags().isEmpty());
     }
 
     /** Text shown on a student card; absent optional values are hidden when applied to labels. */

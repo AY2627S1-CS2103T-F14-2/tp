@@ -33,6 +33,41 @@ public interface Model {
      */
     void setAddressBook(ReadOnlyAddressBook addressBook);
 
+    /**
+     * Returns a checkpoint of roster data, history, and the current filter.
+     */
+    ModelSnapshot createSnapshot();
+
+    /**
+     * Restores a checkpoint without replacing the observable roster list.
+     */
+    void restoreSnapshot(ModelSnapshot snapshot);
+
+    /**
+     * Records a successful roster change; unchanged data does not create an undo step.
+     */
+    void commitAddressBook();
+
+    /**
+     * Returns whether there is a roster change to undo.
+     */
+    boolean canUndoAddressBook();
+
+    /**
+     * Returns whether there is an undone roster change to redo.
+     */
+    boolean canRedoAddressBook();
+
+    /**
+     * Restores the previous roster and shows the full list.
+     */
+    void undoAddressBook();
+
+    /**
+     * Restores the next roster and shows the full list.
+     */
+    void redoAddressBook();
+
     /** Returns the AddressBook */
     ReadOnlyAddressBook getAddressBook();
 

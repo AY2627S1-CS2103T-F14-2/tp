@@ -129,7 +129,7 @@ How the parsing works:
 The `Model` component,
 
 * stores student records as `Person` objects in a `UniquePersonList`, together with session history in
-  `VersionedAddressBook`, which extends `AddressBook`.
+  `VersionedTutorRoster`, which extends `AddressBook`.
 * stores the `Person` objects selected by the current filter, such as search results, in a separate _filtered_ list. It exposes this list as an unmodifiable `ObservableList<Person>` that the UI can observe and bind to, so the UI updates when the list changes.
 * stores a `UserPrefs` object that represents the user’s preferences (currently, just the GUI settings). This is exposed to the outside as a `ReadOnlyUserPrefs` object.
 * does not depend on any of the other three components (as the `Model` represents data entities of the domain, they should make sense on their own without depending on other components)
@@ -166,7 +166,9 @@ This section describes some noteworthy details on how certain features are imple
 
 ### Add student
 
-`AddCommandParser` recognizes `n/`, `p/`, `e/`, `s/`, `l/`, and optional `r/` notes at parameter boundaries.
+`AddCommandParser` recognizes `n/`, `p/`, `e/`, `s/`, `l/`, optional `r/` notes, and `/t` at parameter boundaries.
+Each repeated `/t TAG` supplies one tag. Equivalent tags are deduplicated with warning feedback,
+and invalid tags or more than 20 distinct tags reject the entire command.
 It rejects unknown prefixes and repeated single-use prefixes first. For a missing required prefix or an empty
 required value, it reports the affected field and shows separate required and optional parameter lists. Invalid
 field values are checked before constructing a student. `StudentFields` defines normalization and field validation.
@@ -185,6 +187,40 @@ restored without reapplying add-time duplicate checks.
 records the changed roster in that model's history, saves it atomically, and then publishes its checkpoint
 (roster, history, and filter) to the live model. A save failure leaves the live model and data file unchanged.
 This is the shared [recording and publishing flow](#recording-and-publishing-a-change) used for roster changes.
+
+### Student tags
+
+`TagCommandParser` parses `tag INDEX TAG`, `untag INDEX TAG`, and `untag --all INDEX`.
+The two command words share `TagCommand`, whose operation is ADD, REMOVE, or CLEAR.
+It validates the index against the displayed list and replaces the selected immutable student using
+`Person.withTags`. That copy preserves all other fields, optional-field presence, and legacy format.
+The model's tag sets are unmodifiable and copied defensively.
+
+`Tag` stores canonical lowercase names. New names contain at most 30 English letters/digits with
+single hyphens between nonempty segments. `Tag.fromStoredName` validates the same grammar without
+the new length limit, allowing old tags to remain readable and removable. Commands enforce the
+20-tag addition limit; removals remain possible when legacy data exceeds it.
+
+`LogicManager` executes tag commands through the shared snapshot flow, copying the roster, current
+filter, and undo/redo history into the working model. Unchanged outcomes return warning feedback
+without saving or altering history. Changed outcomes create one undo step and are saved atomically
+before the complete snapshot is published. Tag commands retain the current filter; undo/redo show
+the full roster. An I/O failure raises a command exception and leaves the live roster, filter, and
+history unchanged. The observable list instance remains stable.
+Input validation uses exceptions; assertions check internal identity invariants. Logs record operation
+and save outcomes without adding tag values to the new log messages.
+
+Storage keeps the existing per-student JSON `tags` array, sorted when written. On load,
+`JsonAdaptedPerson` detects spelling changes and duplicate tags. `JsonAddressBookStorage` atomically
+saves normalized data only when migration is needed and exposes whether migration occurred.
+`MainApp` passes the completed-migration notice to the UI. `TagMigrationException` distinguishes a
+failed migration save from other load errors, so it stops startup with an error dialog instead of
+falling back to an empty editable roster. Existing tag lengths and counts above the new limits are
+retained. Migration is idempotent and preserves unrelated model fields.
+
+Student cards display sorted, wrapping badges and hide the tag area for an empty set. First-launch
+sample students include example tags. Tag changes use the undo/redo implementation below;
+field-targeted searches can also filter by subjects, level, notes, contact details, and tags.
 
 ### Delete student
 
@@ -208,22 +244,21 @@ save error. See the shared [recording and publishing flow](#recording-and-publis
 ### Undo and redo
 
 TutorRoster restores complete roster states so tutors can recover from accidental changes. The enabled
-roster-changing commands are currently `add` and `delete`; a delete-and-add replacement creates two steps.
-`edit` and `clear` remain disabled in the command parser. The history mechanism also supports record replacements
-at the model level.
+roster-changing commands are currently `add`, `edit`, `delete`, `tag`, and `untag`. Tag commands that only
+report a warning leave history unchanged. The history mechanism also supports record replacements at the model level.
 
 #### State and responsibilities
 
 | Class | Responsibility |
 | --- | --- |
-| `VersionedAddressBook` | Extends `AddressBook` with a private `states` list of roster snapshots and a `currentStatePointer`. Implements `commit()`, `canUndo()`, `canRedo()`, `undo()`, and `redo()`. |
+| `VersionedTutorRoster` | Extends `AddressBook` with a private `states` list of roster snapshots and a `currentStatePointer`. Implements `commit()`, `canUndo()`, `canRedo()`, `undo()`, and `redo()`. |
 | `ModelManager` | Owns the versioned roster and filtered list. Exposes history operations through `Model`, and shows the full roster after undo/redo. |
 | `ModelSnapshot` | Checkpoints the working roster, its entire undo/redo history, and its current filter for isolated execution and later publication. |
 | `UndoCommandParser` / `RedoCommandParser` | Reject arguments and create the corresponding command. `AddressBookParser` dispatches to them. |
 | `UndoCommand` / `RedoCommand` | Check history availability, restore the previous/next roster through `Model`, and return feedback. |
 | `LogicManager` | Coordinates command execution, history commits, atomic persistence, and publication to the live model. |
 
-`VersionedAddressBook` starts with one snapshot of the loaded or sample roster and a pointer of `0`.
+`VersionedTutorRoster` starts with one snapshot of the loaded or sample roster and a pointer of `0`.
 `canUndo()` is true when the pointer is greater than `0`; `canRedo()` is true when the pointer is less than
 `states.size() - 1`. Each roster snapshot preserves the complete student records and their order. The private
 roster copies can share immutable `Person` values without exposing a mutable historical list.
@@ -250,7 +285,7 @@ The filter is not restored from an older undo step: a successful undo or redo de
    Restoring the checkpoint transfers the roster, pointer, history, and filter while retaining the observable
    list instance used by the UI. Return the command's `CommandResult`.
 
-Display-only commands such as `find` and `list` publish their updated filter without committing history or
+Display-only commands such as `find`, `list`, and `show` publish their updated filter without committing history or
 writing the roster file. Undo and redo move within the existing history; they do not append a new state.
 The same save-before-publication rule applies to them, so a failed save cannot consume an undo or redo step.
 
@@ -269,15 +304,17 @@ is not returned to the UI until the restored roster has been saved and published
 
 The next diagram expands `undoAddressBook()` inside the working model:
 
-<puml src="diagrams/UndoSequenceDiagram-Model.puml" alt="Working ModelManager restores the previous VersionedAddressBook state and clears the display filter" />
+<puml src="diagrams/UndoSequenceDiagram-Model.puml" alt="Working ModelManager restores the previous VersionedTutorRoster state and clears the display filter" />
 
-`VersionedAddressBook.undo()` checks availability, asserts that there are no uncommitted roster changes,
-decrements `currentStatePointer`, and calls `resetData` with that historical state. `ModelManager` then calls
+`VersionedTutorRoster.undo()` checks availability, asserts that there are no uncommitted roster changes,
+calls `resetData` with `states.get(currentStatePointer - 1)`, and decrements the pointer only after restoration
+succeeds. A restoration exception leaves the pointer unchanged. `ModelManager` then calls
 `updateFilteredPersonList(PREDICATE_SHOW_ALL_PERSONS)`. These steps affect only the working model until
 `LogicManager` completes persistence and publication.
 
 Redo follows the same flow using `RedoCommandParser`, `RedoCommand`, `canRedoAddressBook()`, and
-`redoAddressBook()`. `VersionedAddressBook.redo()` increments the pointer and restores that next state.
+`redoAddressBook()`. `VersionedTutorRoster.redo()` restores `states.get(currentStatePointer + 1)` before
+incrementing the pointer, so the same failure protection applies.
 
 #### History example
 
@@ -308,7 +345,7 @@ filter. Loading the saved roster into a new `ModelManager` starts a fresh one-st
   or `There are no changes to redo.`. It does not restore a state or clear the live search filter.
 * An `IOException` or `AccessDeniedException` during atomic saving becomes a `CommandException`. The live
   roster, filter, history, and previously saved file remain unchanged. The proposed pointer movement is discarded.
-* Java `assert` statements in `VersionedAddressBook` check that the history contains a valid current pointer,
+* Java `assert` statements in `VersionedTutorRoster` check that the history contains a valid current pointer,
   new commits end the redo branch, and undo/redo starts from a committed roster. These diagnose programmer errors.
   History availability and command syntax also have runtime checks, so user-input validation works when Java
   assertions are disabled.
@@ -327,9 +364,10 @@ for command execution. Updating the live model first would require restoring all
 `LogicManager` detects the changed roster and records it centrally. Avoid independently committing a second
 history step, preserve `Person` immutability when adding fields, and cover undo/redo and save failures in tests.
 
-Existing coverage includes `VersionedAddressBookTest`, `ModelHistoryTest`, `UndoCommandTest`, `RedoCommandTest`,
+Existing coverage includes `VersionedTutorRosterTest`, `ModelHistoryTest`, `UndoCommandTest`, `RedoCommandTest`,
 `HistoryCommandParserTest`, and `LogicManagerTest`. Together they cover bounds, record replacements, ordering,
-redo-branch replacement, filtered deletion, persistence, save failures, and fresh history after restart.
+redo-branch replacement, filtered deletion, persistence, save failures, failed restorations with retry,
+notes preservation, read-only detail viewing, and fresh history after restart.
 
 ### \[Proposed\] Data archiving
 
@@ -371,7 +409,7 @@ Priorities: High (must have) - `* * *`, Medium (nice to have) - `* *`, Low (unli
 | `* * *`  | new user                                   | see usage instructions       | refer to instructions when I forget how to use the App                 |
 | `* * *`  | user                                       | add a new person             |                                                                        |
 | `* * *`  | user                                       | delete a person              | remove entries that I no longer need                                   |
-| `* * *`  | user                                       | find a person by name        | locate details of persons without having to go through the entire list |
+| `* * *`  | user                                       | find students by their fields | locate details of students without going through the entire list |
 | `* *`    | user                                       | hide private contact details | minimize chance of someone else seeing them by accident                |
 | `*`      | user with many persons in the address book | sort persons by name         | locate a person easily                                                 |
 
@@ -468,12 +506,12 @@ Priorities: High (must have) - `* * *`, Medium (nice to have) - `* *`, Low (unli
 
 ---
 
-**Use case: Find a student by name**
+**Use case: Find students by field**
 
 **MSS**
 
-1. User enters one or more name keywords
-2. TutorRoster searches student names using case-insensitive partial matching
+1. User enters one or more field-prefixed search values
+2. TutorRoster searches the specified fields using case-insensitive partial matching
 3. TutorRoster displays the matching students in roster order
 4. TutorRoster displays the number of students found
 
@@ -584,7 +622,7 @@ Priorities: High (must have) - `* * *`, Medium (nice to have) - `* *`, Low (unli
 | **Subject** | An academic subject the tutor teaches a student, such as Mathematics or Physics. A student may have multiple subjects. |
 | **Education level** | The academic stage at which a student is taught, such as Primary 6, Secondary 4, or JC 1. |
 | **School** | The educational institution a student attends. A planned field beyond the strict MVP. |
-| **Tag** | A tutor-defined label used to categorize students, such as `exam-prep`. A planned feature beyond the strict MVP. |
+| **Tag** | A lowercase label such as `exam-prep`, attached with `tag INDEX TAG` or `/t TAG` during add, and removed with `untag`. |
 | **Student notes** | Optional free-text information about a student, such as learning difficulties, goals, preferred explanations, or parent requests. |
 | **Preferred contact person** | The student or guardian whom the tutor should contact first. A planned feature beyond the strict MVP. |
 | **Command** | A typed instruction that performs an operation, such as `list` or `delete 1`. |
@@ -592,7 +630,6 @@ Priorities: High (must have) - `* * *`, Medium (nice to have) - `* *`, Low (unli
 | **Parameter** | A value supplied to a command, such as a student’s name or the index of a record to delete. |
 | **Prefix** | A marker identifying a parameter’s type, such as `n/` for name or `s/` for subject. |
 | **Student index (`INDEX`)** | A student’s position in the currently displayed numbered list, starting from 1. After a search, it refers to the search results. |
-| **Search keyword** | Text used to find matching records. Keywords match parts of student names. By default, every supplied keyword must match; `--any` returns records matching at least one keyword. |
 | **Filtered list** | A displayed subset of the roster containing only students who match the current search or filter criteria. |
 | **Case-insensitive matching** | Comparing text without distinguishing uppercase from lowercase letters. For example, `Ryan` and `ryan` match. |
 | **Whitespace normalization** | Removing surrounding whitespace and treating consecutive internal whitespace as one space in names, subjects, and education levels. |

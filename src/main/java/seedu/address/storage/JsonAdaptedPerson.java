@@ -78,7 +78,26 @@ class JsonAdaptedPerson {
         notes = source.getNotes().isEmpty() ? null : source.getNotes();
         address = source.getAddress() == null ? null : source.getAddress().value;
         tags = source.getAddress() == null && source.getTags().isEmpty() ? null : source.getTags().stream()
+                .sorted(java.util.Comparator.comparing(tag -> tag.tagName))
                 .map(JsonAdaptedTag::new).collect(Collectors.toList());
+    }
+
+    /** Checks whether loading this record normalizes spelling or merges repeated tags. */
+    boolean requiresTagMigration() throws IllegalValueException {
+        if (tags == null) {
+            return false;
+        }
+        Set<Tag> uniqueTags = new HashSet<>();
+        boolean changed = false;
+        for (JsonAdaptedTag storedTag : tags) {
+            if (storedTag == null) {
+                throw new IllegalValueException(Tag.MESSAGE_CONSTRAINTS);
+            }
+            Tag normalized = storedTag.toModelType();
+            changed |= !normalized.tagName.equals(storedTag.getTagName());
+            changed |= !uniqueTags.add(normalized);
+        }
+        return changed;
     }
 
     /**
@@ -91,6 +110,9 @@ class JsonAdaptedPerson {
         String storedNotes = notes == null ? "" : notes;
         if (tags != null) {
             for (JsonAdaptedTag tag : tags) {
+                if (tag == null) {
+                    throw new IllegalValueException(Tag.MESSAGE_CONSTRAINTS);
+                }
                 personTags.add(tag.toModelType());
             }
         }
