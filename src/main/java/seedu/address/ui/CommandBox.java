@@ -30,7 +30,7 @@ public class CommandBox extends UiPart<Region> {
 
     public static final String ERROR_STYLE_CLASS = "error";
     private static final String FXML = "CommandBox.fxml";
-    private static final double SUGGESTION_POPUP_GAP = 4;
+    private static final double SUGGESTION_POPUP_GAP = 8;
 
     private final CommandBoxLogic commandBoxLogic;
     private final Popup suggestionPopup;
