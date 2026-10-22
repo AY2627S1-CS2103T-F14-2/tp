@@ -28,6 +28,7 @@ public class CommandBox extends UiPart<Region> {
 
     public static final String ERROR_STYLE_CLASS = "error";
     private static final String FXML = "CommandBox.fxml";
+    private static final double SUGGESTION_POPUP_GAP = 4;
 
     private final CommandBoxLogic commandBoxLogic;
     private final Popup suggestionPopup;
@@ -234,9 +235,10 @@ public class CommandBox extends UiPart<Region> {
         }
 
         double x = bounds.getMinX();
-        double y = bounds.getMaxY() + 4;
         suggestionContainer.setMinWidth(bounds.getWidth());
         suggestionContainer.setMaxWidth(bounds.getWidth());
+        double popupHeight = suggestionContainer.prefHeight(bounds.getWidth());
+        double y = bounds.getMinY() - popupHeight - SUGGESTION_POPUP_GAP;
 
         if (!suggestionPopup.isShowing()) {
             suggestionPopup.show(scene.getWindow(), x, y);
