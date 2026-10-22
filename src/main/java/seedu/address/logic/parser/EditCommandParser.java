@@ -14,6 +14,7 @@ import static seedu.address.logic.parser.CliSyntax.PREFIX_TAG;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Optional;
 import java.util.Set;
@@ -32,6 +33,7 @@ import seedu.address.model.tag.Tag;
  * Parses input arguments and creates a new EditCommand object
  */
 public class EditCommandParser implements Parser<EditCommand> {
+    private static final Prefix PREFIX_LEGACY_TAG = new Prefix("/t");
 
     /**
      * Parses the given {@code String} of arguments in the context of the EditCommand
@@ -41,8 +43,8 @@ public class EditCommandParser implements Parser<EditCommand> {
     public EditCommand parse(String args) throws ParseException {
         requireNonNull(args);
         ArgumentMultimap argMultimap =
-                ArgumentTokenizer.tokenize(args, PREFIX_NAME, PREFIX_PHONE, PREFIX_EMAIL,
-                        PREFIX_SUBJECT, PREFIX_LEVEL, PREFIX_NOTES, PREFIX_ADDRESS, PREFIX_TAG);
+                ArgumentTokenizer.tokenize(args, PREFIX_NAME, PREFIX_PHONE, PREFIX_EMAIL, PREFIX_ADDRESS,
+                        PREFIX_TAG, PREFIX_LEGACY_TAG, PREFIX_SUBJECT, PREFIX_LEVEL, PREFIX_NOTES);
 
         Index index;
 
@@ -52,14 +54,13 @@ public class EditCommandParser implements Parser<EditCommand> {
             throw new ParseException(String.format(MESSAGE_INVALID_COMMAND_FORMAT, EditCommand.MESSAGE_USAGE), pe);
         }
 
-        argMultimap.verifyNoDuplicatePrefixesFor(PREFIX_NAME, PREFIX_PHONE, PREFIX_EMAIL,
-                PREFIX_LEVEL, PREFIX_NOTES, PREFIX_ADDRESS);
+        argMultimap.verifyNoDuplicatePrefixesFor(PREFIX_NAME, PREFIX_PHONE, PREFIX_EMAIL, PREFIX_ADDRESS,
+                PREFIX_LEVEL, PREFIX_NOTES);
 
         EditPersonDescriptor editPersonDescriptor = new EditPersonDescriptor();
 
         if (argMultimap.getValue(PREFIX_NAME).isPresent()) {
-            String name = argMultimap.getValue(PREFIX_NAME).get();
-            String normalizedName = StudentFields.normalizeName(name);
+            String normalizedName = StudentFields.normalizeName(argMultimap.getValue(PREFIX_NAME).get());
             if (!StudentFields.isValidName(normalizedName)) {
                 throw new ParseException(StudentFields.INVALID_NAME);
             }
@@ -79,59 +80,26 @@ public class EditCommandParser implements Parser<EditCommand> {
             }
             editPersonDescriptor.setEmail(Email.fromStoredValue(email));
         }
-        parseSubjectsForEdit(argMultimap.getAllValues(PREFIX_SUBJECT)).ifPresent(editPersonDescriptor::setSubjects);
-        if (argMultimap.getValue(PREFIX_LEVEL).isPresent()) {
-            String level = argMultimap.getValue(PREFIX_LEVEL).get();
-            String normalizedLevel = StudentFields.normalizeWhitespace(level);
-            if (!StudentFields.isValidLevel(normalizedLevel)) {
-                throw new ParseException(StudentFields.INVALID_LEVEL);
-            }
-            editPersonDescriptor.setLevel(normalizedLevel);
-        }
-        if (argMultimap.getValue(PREFIX_NOTES).isPresent()) {
-            String notes = argMultimap.getValue(PREFIX_NOTES).get();
-            String trimmedNotes = StudentFields.trim(notes);
-            if (!StudentFields.isValidNotes(trimmedNotes)) {
-                throw new ParseException(StudentFields.INVALID_NOTES);
-            }
-            editPersonDescriptor.setNotes(trimmedNotes);
-        }
         if (argMultimap.getValue(PREFIX_ADDRESS).isPresent()) {
             editPersonDescriptor.setAddress(ParserUtil.parseAddress(argMultimap.getValue(PREFIX_ADDRESS).get()));
         }
-        parseTagsForEdit(argMultimap.getAllValues(PREFIX_TAG)).ifPresent(editPersonDescriptor::setTags);
+        List<String> tagValues = new ArrayList<>(argMultimap.getAllValues(PREFIX_TAG));
+        tagValues.addAll(argMultimap.getAllValues(PREFIX_LEGACY_TAG));
+        parseTagsForEdit(tagValues).ifPresent(editPersonDescriptor::setTags);
+        parseSubjectsForEdit(argMultimap.getAllValues(PREFIX_SUBJECT)).ifPresent(editPersonDescriptor::setSubjects);
+        if (argMultimap.getValue(PREFIX_LEVEL).isPresent()) {
+            editPersonDescriptor.setLevel(ParserUtil.parseLevel(argMultimap.getValue(PREFIX_LEVEL).get()));
+        }
+        if (argMultimap.getValue(PREFIX_NOTES).isPresent()) {
+            String notes = argMultimap.getValue(PREFIX_NOTES).get();
+            editPersonDescriptor.setNotes(notes.isEmpty() ? "" : ParserUtil.parseNotes(notes));
+        }
 
         if (!editPersonDescriptor.isAnyFieldEdited()) {
             throw new ParseException(EditCommand.MESSAGE_NOT_EDITED);
         }
 
         return new EditCommand(index, editPersonDescriptor);
-    }
-
-    /**
-     * Parses {@code Collection<String> subjects} into a {@code List<String>} if {@code subjects} is non-empty.
-     */
-    private Optional<List<String>> parseSubjectsForEdit(Collection<String> subjects) throws ParseException {
-        assert subjects != null;
-
-        if (subjects.isEmpty()) {
-            return Optional.empty();
-        }
-        List<String> normalizedSubjects = new ArrayList<>();
-        List<String> subjectKeys = new ArrayList<>();
-        for (String subject : subjects) {
-            String normalized = StudentFields.normalizeWhitespace(subject);
-            if (!StudentFields.isValidSubject(normalized)) {
-                throw new ParseException(StudentFields.INVALID_SUBJECT);
-            }
-            String key = StudentFields.subjectKey(normalized);
-            if (subjectKeys.contains(key)) {
-                throw new ParseException("Duplicate subject: " + normalized);
-            }
-            normalizedSubjects.add(normalized);
-            subjectKeys.add(key);
-        }
-        return Optional.of(Collections.unmodifiableList(normalizedSubjects));
     }
 
     /**
@@ -147,6 +115,24 @@ public class EditCommandParser implements Parser<EditCommand> {
         }
         Collection<String> tagSet = tags.size() == 1 && tags.contains("") ? Collections.emptySet() : tags;
         return Optional.of(ParserUtil.parseTags(tagSet));
+    }
+
+    /** Parses repeated subjects, rejecting empty and equivalent values. */
+    private Optional<List<String>> parseSubjectsForEdit(Collection<String> subjects) throws ParseException {
+        requireNonNull(subjects);
+        if (subjects.isEmpty()) {
+            return Optional.empty();
+        }
+        List<String> parsedSubjects = new ArrayList<>();
+        Set<String> subjectKeys = new HashSet<>();
+        for (String subject : subjects) {
+            String parsedSubject = ParserUtil.parseSubject(subject);
+            if (!subjectKeys.add(StudentFields.subjectKey(parsedSubject))) {
+                throw new ParseException("Duplicate subject: " + parsedSubject);
+            }
+            parsedSubjects.add(parsedSubject);
+        }
+        return Optional.of(parsedSubjects);
     }
 
 }

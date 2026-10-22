@@ -26,20 +26,21 @@ checkstyle {
 
 test {
     useJUnitPlatform()
+    enableAssertions = true
+    // Keep the automated suite independent of a display server or desktop session.
+    systemProperty 'java.awt.headless', 'true'
     finalizedBy jacocoTestReport
 }
 
 def coverageExclusions = [
-        '**/*.jar', '**/ui/**', '**/Main.class', '**/MainApp.class', '**/commons/util/AppUtil.class'
+        '**/*.jar', '**/ui/**', '**/Main.class', '**/MainApp*.class', '**/commons/util/AppUtil.class'
 ]
 
-jacocoTestReport {
-    // JavaFX UI and application-entry code is excluded because the test suite is headless.
-    afterEvaluate {
-        classDirectories.setFrom(files(classDirectories.files.collect {
-            fileTree(dir: it, exclude: coverageExclusions)
-        }))
-    }
+// Keep JavaFX and application-entry code out of every JaCoCo report, regardless of test mode.
+tasks.withType(JacocoReport).configureEach {
+    classDirectories.setFrom(files(classDirectories.files.collect {
+        fileTree(dir: it, exclude: coverageExclusions)
+    }))
 }
 
 task coverage(type: JacocoReport) {

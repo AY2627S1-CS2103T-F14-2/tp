@@ -101,6 +101,10 @@ public class Person {
     private Person(String name, String phone, String email, List<String> subjects, String level, String notes,
             Address address, Set<Tag> tags, boolean newFormat) {
         requireAllNonNull(name, phone, tags);
+        requireAllNonNull(tags);
+        if (subjects != null) {
+            requireAllNonNull(subjects);
+        }
         this.name = Name.fromStoredValue(name);
         this.phone = Phone.fromStoredValue(phone);
         this.email = email == null ? null : Email.fromStoredValue(email);
@@ -179,6 +183,28 @@ public class Person {
      */
     public Set<Tag> getTags() {
         return Collections.unmodifiableSet(tags);
+    }
+
+    /** Copies this record with new tags, preserving every other field and the original record format. */
+    public Person withTags(Set<Tag> replacementTags) {
+        requireAllNonNull(replacementTags);
+        return new Person(name.fullName, phone.value, email == null ? null : email.value,
+                subjectsPresent ? subjects : null, level, notes, address, replacementTags, newFormat);
+    }
+
+    /**
+     * Copies a new-format student with replacement student fields and tags.
+     * The public student constructor performs the complete validation before the copy is returned.
+     */
+    public Person withStudentDetails(String replacementName, String replacementPhone, String replacementEmail,
+            List<String> replacementSubjects, String replacementLevel, String replacementNotes,
+            Set<Tag> replacementTags) {
+        requireAllNonNull(replacementName, replacementPhone, replacementSubjects, replacementLevel, replacementTags);
+        if (!newFormat) {
+            throw new IllegalStateException("Legacy records cannot be given student fields without migration data.");
+        }
+        return new Person(replacementName, replacementPhone, replacementEmail, replacementSubjects,
+                replacementLevel, replacementNotes).withTags(replacementTags);
     }
 
     /**

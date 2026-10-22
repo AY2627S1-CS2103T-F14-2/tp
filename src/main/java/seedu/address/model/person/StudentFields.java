@@ -1,6 +1,7 @@
 package seedu.address.model.person;
 
 import java.util.Locale;
+import java.util.Objects;
 
 /** Validation and comparison rules for students created with the new add command. */
 public final class StudentFields {
@@ -21,6 +22,7 @@ public final class StudentFields {
 
     /** Removes surrounding Unicode whitespace and collapses every internal run to one ordinary space. */
     public static String normalizeWhitespace(String value) {
+        Objects.requireNonNull(value, "value");
         StringBuilder result = new StringBuilder();
         boolean pendingSpace = false;
         for (int offset = 0; offset < value.length();) {
@@ -45,6 +47,7 @@ public final class StudentFields {
 
     /** Removes surrounding Unicode whitespace without changing internal whitespace. */
     public static String trim(String value) {
+        Objects.requireNonNull(value, "value");
         int start = 0;
         int end = value.length();
         while (start < end && isWhitespace(value.codePointAt(start))) {
@@ -58,6 +61,7 @@ public final class StudentFields {
 
     /** Returns whether the normalized name follows the new-student rule. */
     public static boolean isValidName(String name) {
+        Objects.requireNonNull(name, "name");
         String normalized = normalizeName(name);
         return hasLength(normalized, 1, 100) && hasLetterOrNumber(normalized)
                 && normalized.codePoints().allMatch(codePoint -> isLetterOrNumber(codePoint)
@@ -67,11 +71,13 @@ public final class StudentFields {
 
     /** Returns whether the phone follows the new-student rule. */
     public static boolean isValidPhone(String phone) {
+        Objects.requireNonNull(phone, "phone");
         return phone.matches("\\+?[0-9]{3,15}");
     }
 
     /** Returns whether the email follows the new-student rule. */
     public static boolean isValidEmail(String email) {
+        Objects.requireNonNull(email, "email");
         if (email.isEmpty() || email.codePoints().anyMatch(StudentFields::isWhitespace)) {
             return false;
         }
@@ -94,6 +100,7 @@ public final class StudentFields {
 
     /** Returns whether the subject follows the new-student rule. */
     public static boolean isValidSubject(String subject) {
+        Objects.requireNonNull(subject, "subject");
         String normalized = normalizeWhitespace(subject);
         return hasLength(normalized, 1, 50) && hasLetterOrNumber(normalized)
                 && normalized.codePoints().allMatch(codePoint -> isLetterOrNumber(codePoint)
@@ -104,6 +111,7 @@ public final class StudentFields {
 
     /** Returns whether the education level follows the new-student rule. */
     public static boolean isValidLevel(String level) {
+        Objects.requireNonNull(level, "level");
         String normalized = normalizeWhitespace(level);
         return hasLength(normalized, 1, 30) && hasLetterOrNumber(normalized)
                 && normalized.codePoints().allMatch(codePoint -> isLetterOrNumber(codePoint)
@@ -112,24 +120,33 @@ public final class StudentFields {
 
     /** Returns whether notes are suitable for storage after trimming surrounding whitespace. */
     public static boolean isValidNotes(String notes) {
+        Objects.requireNonNull(notes, "notes");
         String trimmed = trim(notes);
         return hasLength(trimmed, 1, 500)
                 && trimmed.codePoints().noneMatch(Character::isISOControl);
     }
 
+    /** Returns the case-insensitive comparison key for a name. */
     public static String nameKey(String name) {
+        Objects.requireNonNull(name, "name");
         return normalizeName(name).toLowerCase(Locale.ROOT);
     }
 
+    /** Returns the case-insensitive comparison key for a subject. */
     public static String subjectKey(String subject) {
+        Objects.requireNonNull(subject, "subject");
         return normalizeWhitespace(subject).toLowerCase(Locale.ROOT);
     }
 
+    /** Returns the case-insensitive comparison key for an email. */
     public static String emailKey(String email) {
+        Objects.requireNonNull(email, "email");
         return email.toLowerCase(Locale.ROOT);
     }
 
+    /** Returns the comparison key for a phone number without its optional leading plus sign. */
     public static String phoneKey(String phone) {
+        Objects.requireNonNull(phone, "phone");
         return phone.startsWith("+") ? phone.substring(1) : phone;
     }
 

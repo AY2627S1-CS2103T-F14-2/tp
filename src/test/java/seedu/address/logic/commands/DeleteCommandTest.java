@@ -20,8 +20,11 @@ import seedu.address.model.AddressBook;
 import seedu.address.model.Model;
 import seedu.address.model.ModelManager;
 import seedu.address.model.UserPrefs;
-import seedu.address.model.person.NameContainsKeywordsPredicate;
 import seedu.address.model.person.Person;
+import seedu.address.model.person.PersonMatchesFieldsPredicate;
+import seedu.address.model.person.PersonMatchesFieldsPredicate.MatchMode;
+import seedu.address.model.person.PersonMatchesFieldsPredicate.SearchField;
+import seedu.address.model.person.PersonMatchesFieldsPredicate.SearchTerm;
 import seedu.address.testutil.PersonBuilder;
 
 /**
@@ -83,7 +86,8 @@ public class DeleteCommandTest {
 
     @Test
     public void execute_multipleFilteredStudents_preservesRemainingRosterOrder() {
-        model.updateFilteredPersonList(new NameContainsKeywordsPredicate(List.of("Meier")));
+        model.updateFilteredPersonList(new PersonMatchesFieldsPredicate(
+                List.of(new SearchTerm(SearchField.NAME, "Meier")), MatchMode.ALL));
         assertEquals(2, model.getFilteredPersonList().size());
         assertEquals(DANIEL, model.getFilteredPersonList().get(INDEX_SECOND_PERSON.getZeroBased()));
 

@@ -134,10 +134,14 @@ public class MainWindow extends UiPart<Stage> {
                 commandBox.focus();
                 event.consume();
             } else if (event.getCode() == KeyCode.ESCAPE && commandBox != null && commandBox.isFocused()) {
-                if (personListPanel != null) {
+                if (commandBox.hasSuggestionsVisible()) {
+                    commandBox.hideSuggestions();
+                    event.consume();
+                } else if (personListPanel != null) {
                     personListPanel.focus();
+                    event.consume();
+
                 }
-                event.consume();
             }
         });
 
@@ -240,6 +244,11 @@ public class MainWindow extends UiPart<Stage> {
 
     public PersonListPanel getPersonListPanel() {
         return personListPanel;
+    }
+
+    /** Shows startup information after the result area has been initialized. */
+    void showStartupFeedback(String message) {
+        resultDisplay.setFeedbackToUser(message);
     }
 
     public CommandBox getCommandBox() {

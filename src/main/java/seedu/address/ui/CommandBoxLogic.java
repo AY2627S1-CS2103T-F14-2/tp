@@ -2,6 +2,9 @@ package seedu.address.ui;
 
 import static java.util.Objects.requireNonNull;
 
+import java.util.List;
+import java.util.Optional;
+
 import seedu.address.logic.commands.CommandResult;
 import seedu.address.logic.commands.exceptions.CommandException;
 import seedu.address.logic.parser.exceptions.ParseException;
@@ -13,6 +16,7 @@ final class CommandBoxLogic {
 
     private final CommandExecutor commandExecutor;
     private final CommandHistory commandHistory = new CommandHistory();
+    private final CommandCompletionLogic completionLogic = new CommandCompletionLogic();
 
     /**
      * Creates command-box logic with the executor used by the application.
@@ -40,6 +44,20 @@ final class CommandBoxLogic {
         commandHistory.add(commandText);
         commandExecutor.execute(commandText);
         return true;
+    }
+
+    /**
+     * Returns matching completion suggestions for the given input.
+     */
+    List<CommandCompletionLogic.Suggestion> getSuggestions(String currentText) {
+        return completionLogic.getSuggestions(currentText);
+    }
+
+    /**
+     * Computes the autocompleted command text when Tab is pressed.
+     */
+    Optional<String> autocomplete(String currentText) {
+        return completionLogic.autocomplete(currentText);
     }
 
     /**

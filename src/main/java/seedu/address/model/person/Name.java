@@ -37,6 +37,7 @@ public class Name {
         fullName = name;
     }
 
+    /** Creates a name from validated student data or compatible stored data. */
     public static Name fromStoredValue(String name) {
         return new Name(name, false);
     }

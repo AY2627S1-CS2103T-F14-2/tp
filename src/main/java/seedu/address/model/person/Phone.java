@@ -32,6 +32,7 @@ public class Phone {
         value = phone;
     }
 
+    /** Creates a phone from validated student data or compatible stored data. */
     public static Phone fromStoredValue(String phone) {
         return new Phone(phone, false);
     }

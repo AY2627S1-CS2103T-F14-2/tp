@@ -54,7 +54,7 @@ public interface Storage {
      */
     void saveAddressBook(ReadOnlyAddressBook addressBook) throws IOException;
 
-    /** Saves a proposed add without replacing the current file unless writing succeeds. */
+    /** Saves a proposed roster change without replacing the current file unless writing succeeds. */
     void saveAddressBookAtomically(ReadOnlyAddressBook addressBook) throws IOException;
 
 }

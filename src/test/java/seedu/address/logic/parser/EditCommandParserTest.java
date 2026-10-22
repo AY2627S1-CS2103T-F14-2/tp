@@ -93,7 +93,6 @@ public class EditCommandParserTest {
         assertParseFailure(parser, "1 s/---", StudentFields.INVALID_SUBJECT); // invalid subject
         assertParseFailure(parser, "1 s/Math s/math", "Duplicate subject: math"); // duplicate subject
         assertParseFailure(parser, "1 l/---", StudentFields.INVALID_LEVEL); // invalid level
-        assertParseFailure(parser, "1 r/", StudentFields.INVALID_NOTES); // empty notes
 
         // invalid phone followed by valid email
         assertParseFailure(parser, "1" + INVALID_PHONE_DESC + EMAIL_DESC_AMY, StudentFields.INVALID_PHONE);
@@ -188,6 +187,12 @@ public class EditCommandParserTest {
         // notes
         userInput = targetIndex.getOneBased() + " r/Good progress";
         descriptor = new EditPersonDescriptorBuilder().withNotes("Good progress").build();
+        expectedCommand = new EditCommand(targetIndex, descriptor);
+        assertParseSuccess(parser, userInput, expectedCommand);
+
+        // empty notes clears existing notes
+        userInput = targetIndex.getOneBased() + " r/";
+        descriptor = new EditPersonDescriptorBuilder().withNotes("").build();
         expectedCommand = new EditCommand(targetIndex, descriptor);
         assertParseSuccess(parser, userInput, expectedCommand);
 
