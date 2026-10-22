@@ -6,6 +6,8 @@ import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
+import java.util.List;
+import java.util.Optional;
 import java.util.concurrent.atomic.AtomicReference;
 
 import org.junit.jupiter.api.Test;
@@ -118,5 +120,23 @@ public class CommandBoxLogicTest {
         assertFalse(logic.shouldNavigateHistory(true, false, false));
         assertFalse(logic.shouldNavigateHistory(false, true, false));
         assertFalse(logic.shouldNavigateHistory(false, false, true));
+    }
+
+    @Test
+    public void getSuggestions_delegatesToCompletionLogic() {
+        CommandBoxLogic logic = new CommandBoxLogic(commandText -> new CommandResult("success"));
+
+        List<CommandCompletionLogic.Suggestion> suggestions = logic.getSuggestions("sh");
+        assertEquals(1, suggestions.size());
+        assertEquals("show ", suggestions.get(0).completionText());
+    }
+
+    @Test
+    public void autocomplete_delegatesToCompletionLogic() {
+        CommandBoxLogic logic = new CommandBoxLogic(commandText -> new CommandResult("success"));
+
+        Optional<String> completed = logic.autocomplete("sh");
+        assertTrue(completed.isPresent());
+        assertEquals("show ", completed.get());
     }
 }
