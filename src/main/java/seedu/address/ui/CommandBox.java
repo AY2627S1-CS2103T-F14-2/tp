@@ -250,13 +250,6 @@ public class CommandBox extends UiPart<Region> {
             suggestionPopup.setX(x);
             suggestionPopup.setY(y);
         }
-
-        suggestionContainer.applyCss();
-        suggestionContainer.layout();
-        double renderedHeight = suggestionContainer.getBoundsInLocal().getHeight();
-        if (Double.isFinite(renderedHeight) && renderedHeight > 0) {
-            suggestionPopup.setY(calculateSuggestionPopupY(window, bounds, renderedHeight));
-        }
     }
 
     /**
