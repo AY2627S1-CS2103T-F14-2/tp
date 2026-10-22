@@ -203,8 +203,8 @@ public class CommandBox extends UiPart<Region> {
             return;
         }
 
-        Bounds bounds = commandTextField.localToScreen(commandTextField.getBoundsInLocal());
-        if (bounds == null) {
+        Bounds inputBarBounds = getRoot().localToScreen(getRoot().getBoundsInLocal());
+        if (inputBarBounds == null) {
             return;
         }
 
@@ -240,13 +240,13 @@ public class CommandBox extends UiPart<Region> {
         }
 
         Window window = scene.getWindow();
-        double x = bounds.getMinX();
-        suggestionContainer.setMinWidth(bounds.getWidth());
-        suggestionContainer.setMaxWidth(bounds.getWidth());
+        double x = inputBarBounds.getMinX();
+        suggestionContainer.setMinWidth(inputBarBounds.getWidth());
+        suggestionContainer.setMaxWidth(inputBarBounds.getWidth());
         suggestionContainer.applyCss();
         suggestionContainer.layout();
-        double popupHeight = suggestionContainer.prefHeight(bounds.getWidth());
-        double y = calculateSuggestionPopupY(window, bounds, popupHeight);
+        double popupHeight = suggestionContainer.prefHeight(inputBarBounds.getWidth());
+        double y = calculateSuggestionPopupY(window, inputBarBounds, popupHeight);
 
         if (!suggestionPopup.isShowing()) {
             suggestionPopup.show(window, x, y);
@@ -256,7 +256,7 @@ public class CommandBox extends UiPart<Region> {
         }
 
         Platform.runLater(() -> repositionSuggestionPopup(
-                window, bounds, currentUpdateVersion));
+                window, inputBarBounds, currentUpdateVersion));
     }
 
     /**
@@ -270,12 +270,12 @@ public class CommandBox extends UiPart<Region> {
 
         suggestionContainer.applyCss();
         suggestionContainer.layout();
-        double renderedHeight = suggestionContainer.getLayoutBounds().getHeight();
-        if (!Double.isFinite(renderedHeight) || renderedHeight <= 0) {
+        double currentHeight = suggestionContainer.prefHeight(fieldBounds.getWidth());
+        if (!Double.isFinite(currentHeight) || currentHeight <= 0) {
             return;
         }
 
-        suggestionPopup.setY(calculateSuggestionPopupY(window, fieldBounds, renderedHeight));
+        suggestionPopup.setY(calculateSuggestionPopupY(window, fieldBounds, currentHeight));
     }
 
     /**
