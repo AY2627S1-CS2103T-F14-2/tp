@@ -107,6 +107,7 @@ If you are using a PDF version of this user guide, be careful when copying comma
 | Find students | `find [--any] [n/NAME]... [p/PHONE]... [e/EMAIL]... [s/SUBJECT]... [l/LEVEL]... [t/TAG]...` where at least one field is required | `find n/Ryan` |
 | Show student details | `show INDEX` | `show 2` |
 | Delete student | `delete INDEX` | `delete 2` |
+| Clear all students | `clear` | `clear` |
 | Add tag | `tag INDEX TAG` | `tag 3 exam-prep` |
 | Remove tag | `untag INDEX TAG` | `untag 3 exam-prep` |
 | Clear a student's tags | `untag --all INDEX` | `untag --all 3` |
@@ -322,6 +323,20 @@ Examples:
 For example, `delete 0`, `delete abc`, and `delete 1 n/Ryan` are invalid. Invalid input leaves the
 records and displayed list unchanged. A save failure also leaves the roster unchanged; see [Save errors](#save-errors).
 
+### Clearing all students: `clear`
+
+Removes every student from the roster and saves the empty roster.
+
+**Format:** `clear`
+
+The command shows an empty roster after it succeeds. Use `undo` to restore the removed students during the
+same application session.
+
+| Problem | Feedback |
+| --- | --- |
+| Extra arguments | `Invalid command format. Usage: clear` |
+
+
 ### Editing a student: `edit`
 
 Edits the details of an existing student identified by their index in the currently displayed roster.
@@ -374,7 +389,7 @@ Examples:
 
 The following behaviour applies to both `undo` and `redo`:
 
-* In this version, the available roster changes are `add`, `edit`, `delete`, `tag`, and `untag`.
+* In this version, the available roster changes are `add`, `edit`, `delete`, `clear`, `tag`, and `untag`.
   Each successful edit creates one undo step.
 * Restoring a roster restores the students' complete saved details and their original order.
   Both commands show the full roster afterward, even if you were viewing search results.
