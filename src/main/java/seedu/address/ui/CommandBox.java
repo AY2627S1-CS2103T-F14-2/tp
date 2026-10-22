@@ -17,6 +17,7 @@ import javafx.scene.layout.HBox;
 import javafx.scene.layout.Region;
 import javafx.scene.layout.VBox;
 import javafx.stage.Popup;
+import javafx.stage.Window;
 import seedu.address.logic.commands.CommandResult;
 import seedu.address.logic.commands.exceptions.CommandException;
 import seedu.address.logic.parser.exceptions.ParseException;
@@ -47,7 +48,7 @@ public class CommandBox extends UiPart<Region> {
 
         suggestionPopup = new Popup();
         suggestionPopup.setAutoHide(true);
-        suggestionPopup.setAutoFix(false);
+        suggestionPopup.setAutoFix(true);
 
         suggestionContainer = new VBox();
         suggestionContainer.getStyleClass().add("suggestion-box");
@@ -234,18 +235,50 @@ public class CommandBox extends UiPart<Region> {
             suggestionContainer.getChildren().add(itemRow);
         }
 
+        Window window = scene.getWindow();
         double x = bounds.getMinX();
         suggestionContainer.setMinWidth(bounds.getWidth());
         suggestionContainer.setMaxWidth(bounds.getWidth());
+        suggestionContainer.applyCss();
+        suggestionContainer.layout();
         double popupHeight = suggestionContainer.prefHeight(bounds.getWidth());
-        double y = bounds.getMinY() - popupHeight - SUGGESTION_POPUP_GAP;
+        double y = calculateSuggestionPopupY(window, bounds, popupHeight);
 
         if (!suggestionPopup.isShowing()) {
-            suggestionPopup.show(scene.getWindow(), x, y);
+            suggestionPopup.show(window, x, y);
         } else {
             suggestionPopup.setX(x);
             suggestionPopup.setY(y);
         }
+
+        suggestionContainer.applyCss();
+        suggestionContainer.layout();
+        double renderedHeight = suggestionContainer.getBoundsInLocal().getHeight();
+        if (Double.isFinite(renderedHeight) && renderedHeight > 0) {
+            suggestionPopup.setY(calculateSuggestionPopupY(window, bounds, renderedHeight));
+        }
+    }
+
+    /**
+     * Calculates a popup Y coordinate above the command field and inside the application window where possible.
+     */
+    private double calculateSuggestionPopupY(Window window, Bounds fieldBounds, double popupHeight) {
+        if (window == null || fieldBounds == null || !Double.isFinite(popupHeight) || popupHeight < 0) {
+            return fieldBounds == null ? 0 : fieldBounds.getMinY() - SUGGESTION_POPUP_GAP;
+        }
+
+        double preferredY = fieldBounds.getMinY() - popupHeight - SUGGESTION_POPUP_GAP;
+        double windowTop = window.getY();
+        double windowBottom = windowTop + window.getHeight();
+        if (!Double.isFinite(windowTop) || !Double.isFinite(windowBottom) || windowBottom <= windowTop) {
+            return preferredY;
+        }
+
+        double lowestAllowedY = windowBottom - popupHeight;
+        if (lowestAllowedY < windowTop) {
+            return windowTop;
+        }
+        return Math.max(windowTop, Math.min(preferredY, lowestAllowedY));
     }
 
     /**
