@@ -5,6 +5,7 @@ import static java.util.Objects.requireNonNull;
 import java.util.List;
 import java.util.Optional;
 
+import javafx.application.Platform;
 import javafx.collections.ObservableList;
 import javafx.fxml.FXML;
 import javafx.geometry.Bounds;
@@ -35,6 +36,7 @@ public class CommandBox extends UiPart<Region> {
     private final Popup suggestionPopup;
     private final VBox suggestionContainer;
     private boolean isUpdatingCommandField;
+    private long suggestionUpdateVersion;
 
     @FXML
     private TextField commandTextField;
@@ -119,6 +121,7 @@ public class CommandBox extends UiPart<Region> {
      * Hides the floating suggestion popup.
      */
     public void hideSuggestions() {
+        suggestionUpdateVersion++;
         if (suggestionPopup.isShowing()) {
             suggestionPopup.hide();
         }
@@ -181,6 +184,7 @@ public class CommandBox extends UiPart<Region> {
      * Updates and displays matching completion suggestions in the floating popup.
      */
     private void updateSuggestions() {
+        long currentUpdateVersion = ++suggestionUpdateVersion;
         if (!commandTextField.isFocused()) {
             hideSuggestions();
             return;
@@ -250,6 +254,28 @@ public class CommandBox extends UiPart<Region> {
             suggestionPopup.setX(x);
             suggestionPopup.setY(y);
         }
+
+        Platform.runLater(() -> repositionSuggestionPopup(
+                window, bounds, currentUpdateVersion));
+    }
+
+    /**
+     * Repositions the visible popup after JavaFX has laid out its current contents.
+     */
+    private void repositionSuggestionPopup(Window window, Bounds fieldBounds, long updateVersion) {
+        if (updateVersion != suggestionUpdateVersion || window == null || !window.isShowing()
+                || !suggestionPopup.isShowing()) {
+            return;
+        }
+
+        suggestionContainer.applyCss();
+        suggestionContainer.layout();
+        double renderedHeight = suggestionContainer.getLayoutBounds().getHeight();
+        if (!Double.isFinite(renderedHeight) || renderedHeight <= 0) {
+            return;
+        }
+
+        suggestionPopup.setY(calculateSuggestionPopupY(window, fieldBounds, renderedHeight));
     }
 
     /**
