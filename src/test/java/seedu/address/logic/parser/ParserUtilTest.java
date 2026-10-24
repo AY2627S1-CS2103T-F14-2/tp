@@ -40,6 +40,11 @@ public class ParserUtilTest {
     }
 
     @Test
+    public void parseIndex_null_throwsNullPointerException() {
+        assertThrows(NullPointerException.class, () -> ParserUtil.parseIndex(null));
+    }
+
+    @Test
     public void parseIndex_outOfRangeInput_throwsParseException() {
         assertThrows(ParseException.class, MESSAGE_INVALID_INDEX, ()
             -> ParserUtil.parseIndex(Long.toString(Integer.MAX_VALUE + 1)));
@@ -190,5 +195,35 @@ public class ParserUtilTest {
         Set<Tag> expectedTagSet = Set.of(new Tag(VALID_TAG_1), new Tag(VALID_TAG_2));
 
         assertEquals(expectedTagSet, actualTagSet);
+    }
+
+    @Test
+    public void parseStudentFields_validValues_returnNormalisedValues() throws Exception {
+        assertEquals("Rachel Walker", ParserUtil.parseStudentName("  Rachel   Walker ").fullName);
+        assertEquals("123456", ParserUtil.parseStudentPhone("123456").value);
+        assertEquals("rachel@example.com", ParserUtil.parseStudentEmail("rachel@example.com").value);
+        assertEquals("English Language", ParserUtil.parseSubject("English   Language"));
+        assertEquals("Secondary 4", ParserUtil.parseLevel("Secondary   4"));
+        assertEquals("Needs help", ParserUtil.parseNotes("  Needs help  "));
+    }
+
+    @Test
+    public void parseStudentFields_invalidValues_throwParseException() {
+        assertThrows(ParseException.class, () -> ParserUtil.parseStudentName("---"));
+        assertThrows(ParseException.class, () -> ParserUtil.parseStudentPhone("12"));
+        assertThrows(ParseException.class, () -> ParserUtil.parseStudentEmail("invalid"));
+        assertThrows(ParseException.class, () -> ParserUtil.parseSubject("---"));
+        assertThrows(ParseException.class, () -> ParserUtil.parseLevel("---"));
+        assertThrows(ParseException.class, () -> ParserUtil.parseNotes(" "));
+    }
+
+    @Test
+    public void parseStudentFields_nullValues_throwNullPointerException() {
+        assertThrows(NullPointerException.class, () -> ParserUtil.parseStudentName(null));
+        assertThrows(NullPointerException.class, () -> ParserUtil.parseStudentPhone(null));
+        assertThrows(NullPointerException.class, () -> ParserUtil.parseStudentEmail(null));
+        assertThrows(NullPointerException.class, () -> ParserUtil.parseSubject(null));
+        assertThrows(NullPointerException.class, () -> ParserUtil.parseLevel(null));
+        assertThrows(NullPointerException.class, () -> ParserUtil.parseNotes(null));
     }
 }

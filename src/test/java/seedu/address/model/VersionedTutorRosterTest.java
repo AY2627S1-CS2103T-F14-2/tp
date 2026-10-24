@@ -86,6 +86,21 @@ public class VersionedTutorRosterTest {
     }
 
     @Test
+    public void restoreFrom_selfAndDifferentSource_preservesHistory() {
+        VersionedTutorRoster roster = new VersionedTutorRoster(new AddressBook());
+        roster.restoreFrom(roster);
+
+        VersionedTutorRoster source = new VersionedTutorRoster(new AddressBook());
+        source.addPerson(ALICE);
+        source.commit();
+        roster.restoreFrom(source);
+
+        assertEquals(List.of(ALICE), roster.getPersonList());
+        assertTrue(roster.canUndo());
+        assertThrows(NullPointerException.class, () -> roster.restoreFrom(null));
+    }
+
+    @Test
     public void undo_uncommittedChange_detectsMissingCommit() {
         VersionedTutorRoster roster = new VersionedTutorRoster(new AddressBook());
         roster.addPerson(ALICE);

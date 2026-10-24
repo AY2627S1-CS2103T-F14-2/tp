@@ -34,6 +34,9 @@ import static seedu.address.testutil.TypicalIndexes.INDEX_FIRST_PERSON;
 import static seedu.address.testutil.TypicalIndexes.INDEX_SECOND_PERSON;
 import static seedu.address.testutil.TypicalIndexes.INDEX_THIRD_PERSON;
 
+import java.util.List;
+import java.util.Set;
+
 import org.junit.jupiter.api.Test;
 
 import seedu.address.commons.core.index.Index;
@@ -258,5 +261,20 @@ public class EditCommandParserTest {
         EditCommand expectedCommand = new EditCommand(targetIndex, descriptor);
 
         assertParseSuccess(parser, userInput, expectedCommand);
+    }
+
+    @Test
+    public void parse_multiValueOperations_success() {
+        String userInput = "1 s/Mathematics +s/Physics -s/Chemistry t/exam-prep"
+                + " +t/group-class -t/old-tag";
+        EditPersonDescriptor descriptor = new EditPersonDescriptor();
+        descriptor.setSubjects(List.of("Mathematics"));
+        descriptor.setSubjectsToAdd(List.of("Physics"));
+        descriptor.setSubjectsToRemove(List.of("Chemistry"));
+        descriptor.setTags(Set.of(new Tag("exam-prep")));
+        descriptor.setTagsToAdd(Set.of(new Tag("group-class")));
+        descriptor.setTagsToRemove(Set.of(new Tag("old-tag")));
+
+        assertParseSuccess(parser, userInput, new EditCommand(INDEX_FIRST_PERSON, descriptor));
     }
 }

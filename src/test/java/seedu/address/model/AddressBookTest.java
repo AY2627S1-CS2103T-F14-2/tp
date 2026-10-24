@@ -53,6 +53,24 @@ public class AddressBookTest {
     }
 
     @Test
+    public void listOperations_validLists_replaceAndRestoreData() {
+        addressBook.setPersons(List.of(ALICE));
+        assertEquals(List.of(ALICE), addressBook.getPersonList());
+        addressBook.restorePersons(List.of(ALICE, new PersonBuilder().withName("Bob").build()));
+        assertEquals(2, addressBook.getPersonList().size());
+    }
+
+    @Test
+    public void objectMethods_compareAddressBooksSafely() {
+        AddressBook copy = new AddressBook(addressBook);
+        assertEquals(addressBook, addressBook);
+        assertEquals(addressBook, copy);
+        assertEquals(addressBook.hashCode(), copy.hashCode());
+        assertFalse(addressBook.equals(null));
+        assertFalse(addressBook.equals("not an address book"));
+    }
+
+    @Test
     public void hasPerson_nullPerson_throwsNullPointerException() {
         assertThrows(NullPointerException.class, () -> addressBook.hasPerson(null));
     }

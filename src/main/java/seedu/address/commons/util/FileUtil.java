@@ -1,5 +1,7 @@
 package seedu.address.commons.util;
 
+import static java.util.Objects.requireNonNull;
+
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -16,6 +18,7 @@ public class FileUtil {
      * @throws IOException if the file or directory cannot be created.
      */
     public static void createIfMissing(Path file) throws IOException {
+        requireNonNull(file);
         if (Files.exists(file)) {
             return;
         }
@@ -40,6 +43,7 @@ public class FileUtil {
      * Assumes file exists
      */
     public static String readFromFile(Path file) throws IOException {
+        requireNonNull(file);
         return new String(Files.readAllBytes(file), CHARSET);
     }
 
@@ -48,6 +52,8 @@ public class FileUtil {
      * Will create the file if it does not exist yet.
      */
     public static void writeToFile(Path file, String content) throws IOException {
+        requireNonNull(file);
+        requireNonNull(content);
         Files.write(file, content.getBytes(CHARSET));
     }
 

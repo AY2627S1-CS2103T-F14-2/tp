@@ -41,7 +41,34 @@ tasks.withType(JacocoReport).configureEach {
     classDirectories.setFrom(files(classDirectories.files.collect {
         fileTree(dir: it, exclude: coverageExclusions)
     }))
+    reports {
+        xml.required = true
+        html.required = true
+    }
 }
+
+tasks.named('jacocoTestCoverageVerification') {
+    dependsOn test
+    classDirectories.setFrom(files(classDirectories.files.collect {
+        fileTree(dir: it, exclude: coverageExclusions)
+    }))
+    violationRules {
+        rule {
+            limit {
+                counter = 'LINE'
+                value = 'COVEREDRATIO'
+                minimum = 0.95
+            }
+            limit {
+                counter = 'BRANCH'
+                value = 'COVEREDRATIO'
+                minimum = 0.90
+            }
+        }
+    }
+}
+
+check.dependsOn jacocoTestCoverageVerification
 
 task coverage(type: JacocoReport) {
     dependsOn test

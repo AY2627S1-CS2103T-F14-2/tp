@@ -3,11 +3,15 @@ package seedu.address.logic.parser;
 import static java.util.Objects.requireNonNull;
 import static seedu.address.logic.Messages.MESSAGE_INVALID_COMMAND_FORMAT;
 import static seedu.address.logic.parser.CliSyntax.PREFIX_ADDRESS;
+import static seedu.address.logic.parser.CliSyntax.PREFIX_APPEND_SUBJECT;
+import static seedu.address.logic.parser.CliSyntax.PREFIX_APPEND_TAG;
 import static seedu.address.logic.parser.CliSyntax.PREFIX_EMAIL;
 import static seedu.address.logic.parser.CliSyntax.PREFIX_LEVEL;
 import static seedu.address.logic.parser.CliSyntax.PREFIX_NAME;
 import static seedu.address.logic.parser.CliSyntax.PREFIX_NOTES;
 import static seedu.address.logic.parser.CliSyntax.PREFIX_PHONE;
+import static seedu.address.logic.parser.CliSyntax.PREFIX_REMOVE_SUBJECT;
+import static seedu.address.logic.parser.CliSyntax.PREFIX_REMOVE_TAG;
 import static seedu.address.logic.parser.CliSyntax.PREFIX_SUBJECT;
 import static seedu.address.logic.parser.CliSyntax.PREFIX_TAG;
 
@@ -44,7 +48,8 @@ public class EditCommandParser implements Parser<EditCommand> {
         requireNonNull(args);
         ArgumentMultimap argMultimap =
                 ArgumentTokenizer.tokenize(args, PREFIX_NAME, PREFIX_PHONE, PREFIX_EMAIL, PREFIX_ADDRESS,
-                        PREFIX_TAG, PREFIX_LEGACY_TAG, PREFIX_SUBJECT, PREFIX_LEVEL, PREFIX_NOTES);
+                        PREFIX_TAG, PREFIX_APPEND_TAG, PREFIX_REMOVE_TAG, PREFIX_LEGACY_TAG, PREFIX_SUBJECT,
+                        PREFIX_APPEND_SUBJECT, PREFIX_REMOVE_SUBJECT, PREFIX_LEVEL, PREFIX_NOTES);
 
         Index index;
 
@@ -85,8 +90,16 @@ public class EditCommandParser implements Parser<EditCommand> {
         }
         List<String> tagValues = new ArrayList<>(argMultimap.getAllValues(PREFIX_TAG));
         tagValues.addAll(argMultimap.getAllValues(PREFIX_LEGACY_TAG));
-        parseTagsForEdit(tagValues).ifPresent(editPersonDescriptor::setTags);
+        parseTagsForEdit(tagValues, true).ifPresent(editPersonDescriptor::setTags);
+        parseTagsForEdit(argMultimap.getAllValues(PREFIX_APPEND_TAG), false)
+                .ifPresent(editPersonDescriptor::setTagsToAdd);
+        parseTagsForEdit(argMultimap.getAllValues(PREFIX_REMOVE_TAG), false)
+                .ifPresent(editPersonDescriptor::setTagsToRemove);
         parseSubjectsForEdit(argMultimap.getAllValues(PREFIX_SUBJECT)).ifPresent(editPersonDescriptor::setSubjects);
+        parseSubjectsForEdit(argMultimap.getAllValues(PREFIX_APPEND_SUBJECT))
+                .ifPresent(editPersonDescriptor::setSubjectsToAdd);
+        parseSubjectsForEdit(argMultimap.getAllValues(PREFIX_REMOVE_SUBJECT))
+                .ifPresent(editPersonDescriptor::setSubjectsToRemove);
         if (argMultimap.getValue(PREFIX_LEVEL).isPresent()) {
             editPersonDescriptor.setLevel(ParserUtil.parseLevel(argMultimap.getValue(PREFIX_LEVEL).get()));
         }
@@ -107,11 +120,14 @@ public class EditCommandParser implements Parser<EditCommand> {
      * If {@code tags} contains only one element which is an empty string, it will be parsed into a
      * {@code Set<Tag>} containing zero tags.
      */
-    private Optional<Set<Tag>> parseTagsForEdit(Collection<String> tags) throws ParseException {
-        assert tags != null;
+    private Optional<Set<Tag>> parseTagsForEdit(Collection<String> tags, boolean allowEmpty) throws ParseException {
+        requireNonNull(tags);
 
         if (tags.isEmpty()) {
             return Optional.empty();
+        }
+        if (!allowEmpty && tags.stream().anyMatch(String::isEmpty)) {
+            return Optional.of(ParserUtil.parseTags(tags));
         }
         Collection<String> tagSet = tags.size() == 1 && tags.contains("") ? Collections.emptySet() : tags;
         return Optional.of(ParserUtil.parseTags(tagSet));

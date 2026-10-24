@@ -1,5 +1,7 @@
 package seedu.address.logic;
 
+import static java.util.Objects.requireNonNull;
+
 import java.util.Set;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
@@ -23,6 +25,10 @@ public class Messages {
      * Returns an error message indicating the duplicate prefixes.
      */
     public static String getErrorMessageForDuplicatePrefixes(Prefix... duplicatePrefixes) {
+        requireNonNull(duplicatePrefixes);
+        for (Prefix prefix : duplicatePrefixes) {
+            requireNonNull(prefix);
+        }
         assert duplicatePrefixes.length > 0;
 
         Set<String> duplicateFields =
@@ -35,6 +41,7 @@ public class Messages {
      * Formats the {@code person} for display to the user.
      */
     public static String format(Person person) {
+        requireNonNull(person);
         final StringBuilder builder = new StringBuilder();
         builder.append(person.getName())
                 .append("; Phone: ")
