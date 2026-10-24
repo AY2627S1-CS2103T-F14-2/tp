@@ -70,9 +70,6 @@ public class EditCommand extends Command {
     public static final String MESSAGE_DUPLICATE_PERSON = "This student already exists in TutorRoster.";
     public static final String MESSAGE_LEGACY_STUDENT_FIELDS =
             "Subjects, education level, and notes cannot be edited on a legacy record without student data.";
-    public static final String MESSAGE_STUDENT_ADDRESS =
-            "Address is only available on legacy records; student records use subjects, level, and notes.";
-
     private final Index index;
     private final EditPersonDescriptor editPersonDescriptor;
 
@@ -133,15 +130,12 @@ public class EditCommand extends Command {
         Set<Tag> updatedTags = updateTags(personToEdit, editPersonDescriptor);
 
         if (personToEdit.isNewFormat()) {
-            if (editPersonDescriptor.getAddress().isPresent()) {
-                throw new CommandException(MESSAGE_STUDENT_ADDRESS);
-            }
             List<String> updatedSubjects = updateSubjects(personToEdit, editPersonDescriptor);
             String updatedLevel = editPersonDescriptor.getLevel().orElse(personToEdit.getLevel());
             String updatedNotes = editPersonDescriptor.getNotes().orElse(personToEdit.getNotes());
             return personToEdit.withStudentDetails(updatedName.fullName, updatedPhone.value,
                     updatedEmail == null ? null : updatedEmail.value, updatedSubjects, updatedLevel,
-                    updatedNotes, updatedTags);
+                    updatedNotes, updatedAddress, updatedTags);
         }
 
         if (editPersonDescriptor.hasStudentFields()) {

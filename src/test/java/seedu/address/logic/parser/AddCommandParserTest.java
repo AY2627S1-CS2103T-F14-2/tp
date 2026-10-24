@@ -12,13 +12,14 @@ import java.util.stream.IntStream;
 import org.junit.jupiter.api.Test;
 
 import seedu.address.logic.commands.AddCommand;
+import seedu.address.model.person.Address;
 import seedu.address.model.person.Person;
 import seedu.address.model.person.StudentFields;
 import seedu.address.model.tag.Tag;
 
 public class AddCommandParserTest {
     private static final String PARAMETER_GUIDE = "Required: add n/NAME p/PHONE s/SUBJECT l/LEVEL\n"
-            + "Optional: e/EMAIL; r/NOTES; /t TAG; repeat s/SUBJECT for additional subjects"
+            + "Optional: e/EMAIL; a/ADDRESS; r/NOTES; /t TAG; repeat s/SUBJECT for additional subjects"
             + " or /t TAG for additional tags.\n"
             + "Parameters may appear in any order.";
 
@@ -67,9 +68,9 @@ public class AddCommandParserTest {
     @Test
     public void parse_allFieldsInAnyOrder_success() {
         Person expected = new Person("Ryan Tan", "+6591234567", "Ryan@Example.com",
-                List.of("Mathematics", "Physics"), "Secondary 4");
+                List.of("Mathematics", "Physics"), "Secondary 4", "", new Address("1 Main Street"));
         assertParseSuccess(parser,
-                " l/Secondary 4 s/Mathematics e/Ryan@Example.com p/+6591234567 n/Ryan Tan s/Physics",
+                " l/Secondary 4 s/Mathematics e/Ryan@Example.com a/1 Main Street p/+6591234567 n/Ryan Tan s/Physics",
                 new AddCommand(expected));
     }
 
@@ -181,8 +182,6 @@ public class AddCommandParserTest {
     public void parse_unknownPrefix_failure() {
         assertParseFailure(parser, " n/A p/123 s/Math l/JC 1 x/Test",
                 "Unknown parameter prefix: x/");
-        assertParseFailure(parser, " n/A p/123 s/Math l/JC 1 a/Old",
-                "Unknown parameter prefix: a/");
         assertParseFailure(parser, " n/A p/123 s/Math l/JC 1 t/Old",
                 "Unknown parameter prefix: t/");
     }
@@ -193,6 +192,8 @@ public class AddCommandParserTest {
                 "Parameter n/ must not be specified more than once.");
         assertParseFailure(parser, " n/A p/123 e/a@b.c e/b@b.c s/Math l/JC 1",
                 "Parameter e/ must not be specified more than once.");
+        assertParseFailure(parser, " n/A p/123 a/One a/Two s/Math l/JC 1",
+                "Parameter a/ must not be specified more than once.");
     }
 
     @Test
@@ -247,6 +248,12 @@ public class AddCommandParserTest {
         assertParseFailure(parser, " n/A p/123 s/Math l/JC 1 r/", StudentFields.INVALID_NOTES);
         assertParseFailure(parser, " n/A p/123 s/Math l/JC 1 r/" + "N".repeat(501),
                 StudentFields.INVALID_NOTES);
+    }
+
+    @Test
+    public void parse_invalidAddress_failure() {
+        assertParseFailure(parser, " n/A p/123 a/ s/Math l/JC 1", Address.MESSAGE_CONSTRAINTS);
+        assertParseFailure(parser, " n/A p/123 a/   s/Math l/JC 1", Address.MESSAGE_CONSTRAINTS);
     }
 
     @Test

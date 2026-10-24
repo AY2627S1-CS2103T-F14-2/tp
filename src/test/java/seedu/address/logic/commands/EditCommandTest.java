@@ -27,6 +27,7 @@ import seedu.address.model.AddressBook;
 import seedu.address.model.Model;
 import seedu.address.model.ModelManager;
 import seedu.address.model.UserPrefs;
+import seedu.address.model.person.Address;
 import seedu.address.model.person.Person;
 import seedu.address.model.tag.Tag;
 import seedu.address.testutil.EditPersonDescriptorBuilder;
@@ -252,6 +253,27 @@ public class EditCommandTest {
 
         Model expectedModel = new ModelManager(new AddressBook(model.getAddressBook()), new UserPrefs());
         expectedModel.setPerson(student, expectedStudent);
+
+        assertCommandSuccess(editCommand, model, expectedMessage, expectedModel);
+    }
+
+    @Test
+    public void execute_editStudentAddress_success() {
+        Person student = new Person("Alice Wong", "+6581234567", null,
+                List.of("English"), "Secondary 1", "", new Address("12 Main Street"));
+        model.addPerson(student);
+        Index studentIndex = Index.fromOneBased(model.getFilteredPersonList().size());
+
+        EditPersonDescriptor descriptor = new EditPersonDescriptor();
+        descriptor.setAddress(new Address("34 River Road"));
+        EditCommand editCommand = new EditCommand(studentIndex, descriptor);
+
+        Person expectedStudent = new Person("Alice Wong", "+6581234567", null,
+                List.of("English"), "Secondary 1", "", new Address("34 River Road"));
+        Model expectedModel = new ModelManager(new AddressBook(model.getAddressBook()), new UserPrefs());
+        expectedModel.setPerson(student, expectedStudent);
+        String expectedMessage = String.format(EditCommand.MESSAGE_EDIT_PERSON_SUCCESS,
+                expectedStudent.getName().fullName);
 
         assertCommandSuccess(editCommand, model, expectedMessage, expectedModel);
     }

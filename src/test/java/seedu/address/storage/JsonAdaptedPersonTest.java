@@ -48,6 +48,14 @@ public class JsonAdaptedPersonTest {
     }
 
     @Test
+    public void toModelType_studentAddress_preservesAddress() throws Exception {
+        Person student = new Person("Ryan Tan", "+6591234567", null,
+                List.of("Mathematics"), "Secondary 4", "", new Address("12 Main Street"));
+
+        assertEquals(student, new JsonAdaptedPerson(student).toModelType());
+    }
+
+    @Test
     public void toModelType_invalidName_throwsIllegalValueException() {
         JsonAdaptedPerson person =
                 new JsonAdaptedPerson(INVALID_NAME, VALID_PHONE, VALID_EMAIL, VALID_ADDRESS, VALID_TAGS);

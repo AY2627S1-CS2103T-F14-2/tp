@@ -102,9 +102,9 @@ If you are using a PDF version of this user guide, be careful when copying comma
 | Action | Format | Example |
 | --- | --- | --- |
 | Open help | `help` | `help` |
-| Add student | `add n/NAME p/PHONE [e/EMAIL] s/SUBJECT [s/SUBJECT]... l/LEVEL [/t TAG]... [r/NOTES]` | `add n/Ryan Tan p/81234567 s/Mathematics l/Secondary 4 r/Prefers worked examples` |
+| Add student | `add n/NAME p/PHONE [e/EMAIL] [a/ADDRESS] s/SUBJECT [s/SUBJECT]... l/LEVEL [/t TAG]... [r/NOTES]` | `add n/Ryan Tan p/81234567 a/12 Main Street s/Mathematics l/Secondary 4 r/Prefers worked examples` |
 | List students | `list` | `list` |
-| Find students | `find [--any] [n/NAME]... [p/PHONE]... [e/EMAIL]... [s/SUBJECT]... [l/LEVEL]... [t/TAG]...` where at least one field is required | `find n/Ryan` |
+| Find students | `find [--any] [n/NAME]... [p/PHONE]... [e/EMAIL]... [a/ADDRESS]... [s/SUBJECT]... [l/LEVEL]... [t/TAG]...` where at least one field is required | `find n/Ryan` |
 | Show student details | `show INDEX` | `show 2` |
 | Delete student | `delete INDEX` | `delete 2` |
 | Clear all students | `clear` | `clear` |
@@ -132,7 +132,7 @@ Opens a help window containing a link to this User Guide.
 
 Adds a student and shows the complete roster, including the new student at the end.
 
-**Format:** `add n/NAME p/PHONE [e/EMAIL] s/SUBJECT [s/SUBJECT]... l/LEVEL [/t TAG].. [r/NOTES]`
+**Format:** `add n/NAME p/PHONE [e/EMAIL] [a/ADDRESS] s/SUBJECT [s/SUBJECT]... l/LEVEL [/t TAG].. [r/NOTES]`
 
 * `/t exam-prep group-class`, empty `/t`, and `t/exam-prep` are invalid.
 * Repeated equivalent tags are stored once and produce `Warning: Duplicate tags were ignored.`
@@ -142,6 +142,7 @@ Adds a student and shows the complete roster, including the new student at the e
 | `NAME` | 1–100 characters after whitespace normalization. Unicode letters and numbers, spaces, apostrophes, hyphens, and full stops; at least one letter or number. | `Ryan Tan`, `Anne-Marie Lee`, `O'Connor`, `李明` |
 | `PHONE` | 3–15 digits, optionally beginning with one `+`. No spaces or hyphens. | `81234567`, `+6591234567` |
 | `EMAIL` | Exactly one `@`, a non-empty local part, and a domain containing a full stop with non-empty text between full stops. No whitespace. | `ryan@example.com`, `parent.tan@example.sg` |
+| `ADDRESS` | Optional non-blank text. | `12 Main Street`, `45 Orchard Road, Singapore` |
 | `SUBJECT` | 1–50 characters after whitespace normalization. Letters, numbers, spaces, `&`, `+`, `/`, apostrophes, hyphens, and full stops; at least one letter or number. | `Mathematics`, `C++`, `Physics/Chemistry` |
 | `LEVEL` | 1–30 characters after whitespace normalization. Letters, numbers, spaces, and hyphens; at least one letter or number. | `Secondary 4`, `JC 1`, `Grade 8`, `Year-10` |
 | `NOTES` | Optional free text of 1–500 characters after trimming. Control characters are not allowed. | `Prefers worked examples; parent requests weekly updates` |
@@ -152,6 +153,7 @@ as `Secondary 4`. An empty `e/` or `r/` is invalid; omit the prefix entirely whe
 Examples:
 
 * `add n/Ryan Tan p/+6591234567 e/ryan@example.com s/Mathematics l/Secondary 4`
+* `add n/Ryan Tan p/+6591234567 a/12 Main Street s/Mathematics l/Secondary 4`
 * `add n/Alicia Lim p/81234567 s/Mathematics s/Physics l/JC 1`
 * `add n/Sarah Lee p/+821012345678 s/English l/Grade 8 r/Needs visual explanations; goal is to improve essay writing`
 * `add l/Grade 8 s/English n/Sarah Lee p/+821012345678`
@@ -258,12 +260,13 @@ Usage: list
 
 Shows students matching the given fields.
 
-**Format:** `find [--any] [n/NAME]... [p/PHONE]... [e/EMAIL]... [s/SUBJECT]... [l/LEVEL]... [t/TAG]...`
+**Format:** `find [--any] [n/NAME]... [p/PHONE]... [e/EMAIL]... [a/ADDRESS]... [s/SUBJECT]... [l/LEVEL]... [t/TAG]...`
 
 * You must specify at least one field.
 * By default, every given field must match. Use `--any` to find students matching at least one given field.
 * Matching is case-insensitive: `find n/RYAN` and `find n/ryan` return the same results.
 * A keyword may match part of a field: `find n/Ann` can match `Anna Lee` and `Annie Tan`.
+* Addresses are searchable with `a/ADDRESS`, including for student records added with an address and older records.
 * Every field may be repeated. For example, `find s/Math s/English` matches students who take both Math and English.
 * The order of the fields does not matter.
 
@@ -343,13 +346,13 @@ Edits the details of an existing student identified by their index in the curren
 Existing values are overwritten by the input values, while omitted fields remain unchanged. For multi-value fields,
 use `+` to append values and `-` to remove values.
 
-**Format:** `edit INDEX [n/NAME] [p/PHONE] [e/EMAIL] [s/SUBJECT]... [+s/SUBJECT]... [-s/SUBJECT]... [l/LEVEL] [r/NOTES] [t/TAG]... [+t/TAG]... [-t/TAG]...`
+**Format:** `edit INDEX [n/NAME] [p/PHONE] [e/EMAIL] [a/ADDRESS] [s/SUBJECT]... [+s/SUBJECT]... [-s/SUBJECT]... [l/LEVEL] [r/NOTES] [t/TAG]... [+t/TAG]... [-t/TAG]...`
 
 * `INDEX` is a positive integer starting from 1 and refers to the **currently displayed list**.
 * At least one field to edit must be provided.
 * When editing subjects using `s/`, the existing subjects of the student are replaced by the newly supplied subjects. Use `+s/` to append and `-s/` to remove subjects. At least one subject must remain, and duplicate subjects are not allowed.
 * Supplying `t/` replaces the complete tag set; `+t/` appends tags and `-t/` removes tags. `t/` alone clears the tags. Supplying `r/` alone clears notes.
-* The legacy `a/ADDRESS` field is available only for older records. Student-only fields cannot be edited on a legacy record.
+* `a/ADDRESS` overwrites the address for both student and legacy records. Omit it to preserve the current address.
 * Single-use prefixes (`n/`, `p/`, `e/`, `l/`, `r/`) cannot be repeated within the same command.
 * If the edited student matches another existing student according to TutorRoster duplicate rules, the command is rejected with `This student already exists in TutorRoster.`.
 * After a successful edit, the roster resets to show the complete student list.
@@ -360,6 +363,7 @@ Examples:
 * `edit 1 n/Ryan Tan s/Mathematics s/Physics`
 * `edit 2 +s/Physics -s/English +t/exam-prep -t/old-tag`
 * `edit 2 r/Prefers worked examples`
+* `edit 2 a/34 River Road`
 
 **Success feedback:** `Edited student: NAME`, for example `Edited student: Ryan Tan`.
 
@@ -602,11 +606,11 @@ may have changed since the command was first entered.
 
 | Action | Format | Example |
 | --- | --- | --- |
-| Add student | `add n/NAME p/PHONE [e/EMAIL] s/SUBJECT [s/SUBJECT]... l/LEVEL [/t TAG]... [r/NOTES]` | `add n/Ryan Tan p/81234567 s/Mathematics l/Secondary 4 r/Prefers worked examples` |
+| Add student | `add n/NAME p/PHONE [e/EMAIL] [a/ADDRESS] s/SUBJECT [s/SUBJECT]... l/LEVEL [/t TAG]... [r/NOTES]` | `add n/Ryan Tan p/81234567 a/12 Main Street s/Mathematics l/Secondary 4 r/Prefers worked examples` |
 | List students | `list` | `list` |
-| Find students | `find [--any] [n/NAME]... [p/PHONE]... [e/EMAIL]... [s/SUBJECT]... [l/LEVEL]... [t/TAG]...` | `find n/Ryan` or `find --any n/Ryan s/Physics` |
+| Find students | `find [--any] [n/NAME]... [p/PHONE]... [e/EMAIL]... [a/ADDRESS]... [s/SUBJECT]... [l/LEVEL]... [t/TAG]...` | `find n/Ryan` or `find --any n/Ryan s/Physics` |
 | Show student details | `show INDEX` | `show 2` |
-| Edit student | `edit INDEX [n/NAME] [p/PHONE] [e/EMAIL] [s/SUBJECT]... [+s/SUBJECT]... [-s/SUBJECT]... [l/LEVEL] [r/NOTES] [t/TAG]... [+t/TAG]... [-t/TAG]...` | `edit 3 p/+6591234567 l/Secondary 5` |
+| Edit student | `edit INDEX [n/NAME] [p/PHONE] [e/EMAIL] [a/ADDRESS] [s/SUBJECT]... [+s/SUBJECT]... [-s/SUBJECT]... [l/LEVEL] [r/NOTES] [t/TAG]... [+t/TAG]... [-t/TAG]...` | `edit 3 p/+6591234567 l/Secondary 5` |
 | Delete student | `delete INDEX` | `delete 2` |
 | Undo last change | `undo` | `undo` |
 | Redo undone change | `redo` | `redo` |
