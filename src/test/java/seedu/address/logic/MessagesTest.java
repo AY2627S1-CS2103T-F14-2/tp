@@ -1,5 +1,6 @@
 package seedu.address.logic;
 
+import static org.junit.jupiter.api.Assertions.assertEquals;
 import static seedu.address.testutil.Assert.assertThrows;
 
 import org.junit.jupiter.api.Test;
@@ -15,5 +16,13 @@ public class MessagesTest {
         assertThrows(NullPointerException.class, ()
                 -> Messages.getErrorMessageForDuplicatePrefixes(new Prefix[] {null}));
         assertThrows(NullPointerException.class, () -> Messages.format(null));
+    }
+
+    @Test
+    public void formatError_standardisesPrefixAndWhitespace() {
+        assertEquals("Error: Invalid command format.", Messages.formatError("  Invalid command format.  "));
+        assertEquals("Error: Already formatted.", Messages.formatError("Error: Already formatted."));
+        assertEquals("Error: Details\nAction: retry.", Messages.formatError("Details\r\nAction: retry."));
+        assertEquals("Error: An unexpected error occurred.", Messages.formatError(null));
     }
 }

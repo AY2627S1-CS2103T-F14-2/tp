@@ -150,7 +150,7 @@ public class AddCommandParserTest {
 
     @Test
     public void usage_separatesRequiredAndOptionalParameters() {
-        assertEquals("Invalid command format for add.\n" + PARAMETER_GUIDE, AddCommand.MESSAGE_USAGE);
+        assertEquals("Invalid command format.\n" + PARAMETER_GUIDE, AddCommand.MESSAGE_USAGE);
     }
 
     @Test

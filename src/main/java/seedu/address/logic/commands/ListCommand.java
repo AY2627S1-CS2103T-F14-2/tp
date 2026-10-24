@@ -14,7 +14,7 @@ public class ListCommand extends Command {
 
     public static final String MESSAGE_SUCCESS = "Listed all students.";
 
-    public static final String MESSAGE_USAGE = "Usage: list";
+    public static final String MESSAGE_USAGE = "list";
 
 
     @Override

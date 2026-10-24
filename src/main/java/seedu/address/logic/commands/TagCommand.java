@@ -18,9 +18,9 @@ import seedu.address.model.tag.Tag;
 public class TagCommand extends Command {
     public static final String COMMAND_WORD = "tag";
     public static final String UNTAG_COMMAND_WORD = "untag";
-    public static final String MESSAGE_USAGE = "Invalid command format. Usage: tag INDEX TAG";
+    public static final String MESSAGE_USAGE = "Invalid command format.\nUsage: tag INDEX TAG";
     public static final String MESSAGE_UNTAG_USAGE =
-            "Invalid command format. Usage: untag INDEX TAG or untag --all INDEX";
+            "Invalid command format.\nUsage: untag INDEX TAG or untag --all INDEX";
     private static final Logger logger = LogsCenter.getLogger(TagCommand.class);
 
     /** The supported changes to a student's tags. */

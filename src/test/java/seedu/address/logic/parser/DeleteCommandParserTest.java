@@ -29,7 +29,7 @@ public class DeleteCommandParserTest {
     public void parse_invalidArgs_throwsParseException() {
         String[] invalidArguments = {"", " ", "0", "-1", "1.5", "abc", "1 n/Ryan", "1 2", "+1", "2147483648"};
         for (String arguments : invalidArguments) {
-            assertParseFailure(parser, arguments, "Invalid command format. Usage: delete INDEX");
+            assertParseFailure(parser, arguments, DeleteCommand.MESSAGE_INVALID_COMMAND_FORMAT);
         }
     }
 }

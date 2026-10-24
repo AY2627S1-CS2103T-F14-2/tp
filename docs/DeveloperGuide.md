@@ -225,7 +225,7 @@ field-targeted searches can also filter by address, subjects, level, notes, cont
 ### Delete student
 
 `DeleteCommandParser` accepts a single positive displayed index through `ParserUtil.parseIndex`.
-Malformed arguments produce `Invalid command format. Usage: delete INDEX`.
+Malformed arguments produce `Error: Invalid command format.` followed by `Usage: delete INDEX`.
 
 `DeleteCommand.execute` reads the currently filtered list and validates the index against its size.
 An out-of-range index produces `The student index provided is invalid.` without changing the model or filter.
@@ -340,7 +340,7 @@ filter. Loading the saved roster into a new `ModelManager` starts a fresh one-st
 #### Errors and invariants
 
 * Arguments such as `undo 1` and `redo all` produce `ParseException` with
-  `Invalid command format. Usage: undo` or `Invalid command format. Usage: redo`.
+  `Error: Invalid command format.` followed by `Usage: undo` or `Usage: redo` in the UI.
 * When history is unavailable, the command throws `CommandException` with `There are no changes to undo.`
   or `There are no changes to redo.`. It does not restore a state or clear the live search filter.
 * An `IOException` or `AccessDeniedException` during atomic saving becomes a `CommandException`. The live
@@ -682,11 +682,12 @@ testers are expected to do more *exploratory* testing.
 
    1. Test case: `delete 0`<br>
       Expected: No student is removed, the displayed list is unchanged, and the result area shows
-      `Invalid command format. Usage: delete INDEX`.
+      `Error: Invalid command format.` followed by `Usage: delete INDEX`.
 
    1. Other incorrect delete commands to try: `delete`, `delete x`, `...` (where x is larger than the list size)<br>
-      Expected: Missing or malformed indices show `Invalid command format. Usage: delete INDEX`.
-      Positive indices outside the displayed list show `The student index provided is invalid.`.
+      Expected: Missing or malformed indices show `Error: Invalid command format.` followed by
+      `Usage: delete INDEX`. Positive indices outside the displayed list show
+      `Error: The student index provided is invalid.`.
       No student is removed and the displayed list remains unchanged.
 
 1. _{ more test cases … }_

@@ -19,7 +19,7 @@ public class DeleteCommand extends Command {
     public static final String COMMAND_WORD = "delete";
 
     public static final String MESSAGE_USAGE = COMMAND_WORD + " INDEX";
-    public static final String MESSAGE_INVALID_COMMAND_FORMAT = "Invalid command format. Usage: " + MESSAGE_USAGE;
+    public static final String MESSAGE_INVALID_COMMAND_FORMAT = "Invalid command format.\nUsage: " + MESSAGE_USAGE;
     public static final String MESSAGE_DELETE_STUDENT_SUCCESS = "Student removed: %1$s";
     public static final String MESSAGE_INVALID_STUDENT_DISPLAYED_INDEX = "The student index provided is invalid.";
 

@@ -19,7 +19,7 @@ public class FindCommand extends Command {
     public static final String ANY_KEYWORD_OPTION = "--any";
 
     public static final String MESSAGE_USAGE = COMMAND_WORD + " [" + ANY_KEYWORD_OPTION + "] "
-            + "[n/NAME]... [p/PHONE]... [e/EMAIL]... [s/SUBJECT]... [l/LEVEL]... [t/TAG]...\n\n"
+            + "[n/NAME]... [p/PHONE]... [e/EMAIL]... [a/ADDRESS]... [s/SUBJECT]... [l/LEVEL]... [t/TAG]...\n\n"
             + "Supply at least one field. Fields may appear in any order.\n\n"
             + "By default, find shows students matching every supplied field. Use `--any` to show students "
             + "matching at least one. All field searches are case-insensitive and support partial matching.\n\n"
@@ -31,7 +31,7 @@ public class FindCommand extends Command {
             + "- \"find --any t/exam-prep t/group-class\" returns students with either tag.";
 
     public static final String MESSAGE_INVALID_COMMAND_FORMAT =
-            "Invalid command format!\n\nUsage: " + MESSAGE_USAGE;
+            "Invalid command format.\nUsage: " + MESSAGE_USAGE;
 
     private final Predicate<Person> predicate;
 

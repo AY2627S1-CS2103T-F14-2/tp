@@ -15,7 +15,7 @@ public class ShowCommand extends Command {
 
     public static final String COMMAND_WORD = "show";
     public static final String MESSAGE_USAGE = COMMAND_WORD + " INDEX";
-    public static final String MESSAGE_INVALID_COMMAND_FORMAT = "Invalid command format. Usage: " + MESSAGE_USAGE;
+    public static final String MESSAGE_INVALID_COMMAND_FORMAT = "Invalid command format.\nUsage: " + MESSAGE_USAGE;
     public static final String MESSAGE_INVALID_STUDENT_DISPLAYED_INDEX =
             "The student index provided is invalid. Choose an index from the currently displayed list.";
     public static final String MESSAGE_SHOW_STUDENT_SUCCESS = "Showing student details.";
