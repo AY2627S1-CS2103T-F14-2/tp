@@ -166,7 +166,7 @@ This section describes some noteworthy details on how certain features are imple
 
 ### Add student
 
-`AddCommandParser` recognizes `n/`, `p/`, `e/`, `s/`, `l/`, optional `r/` notes, and `/t` at parameter boundaries.
+`AddCommandParser` recognises `n/`, `p/`, `e/`, optional `a/` address, `s/`, `l/`, optional `r/` notes, and `/t` at parameter boundaries.
 Each repeated `/t TAG` supplies one tag. Equivalent tags are deduplicated with warning feedback,
 and invalid tags or more than 20 distinct tags reject the entire command.
 It rejects unknown prefixes and repeated single-use prefixes first. For a missing required prefix or an empty
@@ -177,7 +177,7 @@ before validation.
 Subject duplicate comparison uses that normalized value without case; storage retains the normalized value and
 entered capitalization. Subjects remain in input order.
 
-New student records have subjects, a level, and optional notes. Notes are trimmed, limited to 500 Unicode characters,
+New student records have subjects, a level, optional address, and optional notes. Notes are trimmed, limited to 500 Unicode characters,
 and cannot contain control characters. `Person.isSamePerson` compares two new-format records by normalized
 name and either normalized phone or case-insensitive email. Legacy records retain their original address and tags
 for storage compatibility, but do not participate in new-student duplicate checks. Existing stored records are
@@ -220,7 +220,7 @@ retained. Migration is idempotent and preserves unrelated model fields.
 
 Student cards display sorted, wrapping badges and hide the tag area for an empty set. First-launch
 sample students include example tags. Tag changes use the undo/redo implementation below;
-field-targeted searches can also filter by subjects, level, notes, contact details, and tags.
+field-targeted searches can also filter by address, subjects, level, notes, contact details, and tags.
 
 ### Delete student
 
@@ -450,7 +450,7 @@ Priorities: High (must have) - `* * *`, Medium (nice to have) - `* *`, Low (unli
 
 **MSS**
 
-1. User enters a command to add a student with their name, phone number, subject(s), education level and optional email address
+1. User enters a command to add a student with their name, phone number, subject(s), education level, and optional email address, address, and notes
 2. TutorRoster validates the command and student details
 3. TutorRoster checks that the student is not a duplicate
 4. TutorRoster stores the new student record
@@ -614,7 +614,7 @@ Priorities: High (must have) - `* * *`, Medium (nice to have) - `* *`, Low (unli
 | **TutorRoster** | A keyboard-driven application for private tutors to store, retrieve, and manage students’ contact and tutoring information. |
 | **Private tutor** | A person who independently teaches students individually or in small groups. The intended user of TutorRoster. |
 | **Student** | A person taught by the tutor whose information is stored in TutorRoster. |
-| **Student record** | A stored entry representing one student. In the strict MVP, it contains a name, contact phone number, optional email address, one or more subjects, and an education level. |
+| **Student record** | A stored entry representing one student. It contains a name, contact phone number, optional email address, optional address, one or more subjects, and an education level. |
 | **Roster / Student list** | The collection of student records managed by the tutor. |
 | **Contact information** | Details used to reach a student or their parent or guardian, such as a phone number or email address. |
 | **Main contact number** | The phone number stored in a student record. It may belong to the student or a parent or guardian. |

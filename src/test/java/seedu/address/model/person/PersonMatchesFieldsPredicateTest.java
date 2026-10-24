@@ -94,6 +94,17 @@ public class PersonMatchesFieldsPredicateTest {
     }
 
     @Test
+    public void test_addressMatchesAndMissingAddress_returnsExpectedResult() {
+        Person studentWithAddress = new Person("Alex Alexander", "91234567", null,
+                List.of("Mathematics"), "Secondary 4", "", new Address("12 Main Street"));
+        PersonMatchesFieldsPredicate predicate = new PersonMatchesFieldsPredicate(
+                List.of(new SearchTerm(SearchField.ADDRESS, "main street")), MatchMode.ALL);
+
+        assertTrue(predicate.test(studentWithAddress));
+        assertFalse(predicate.test(ALEX_ALEXANDER));
+    }
+
+    @Test
     public void test_missingAndNonMatchingFields_returnsFalse() {
         Person legacyPersonWithoutLevel = new Person(new Name("Alex Alexander"), new Phone("91234567"),
                 new Email("alex@example.com"), new Address("1 Main Street"), Set.of());

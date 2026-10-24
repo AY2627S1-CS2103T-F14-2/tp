@@ -1,6 +1,7 @@
 package seedu.address.logic.parser;
 
 import static java.util.Objects.requireNonNull;
+import static seedu.address.logic.parser.CliSyntax.PREFIX_ADDRESS;
 import static seedu.address.logic.parser.CliSyntax.PREFIX_EMAIL;
 import static seedu.address.logic.parser.CliSyntax.PREFIX_LEVEL;
 import static seedu.address.logic.parser.CliSyntax.PREFIX_NAME;
@@ -32,6 +33,7 @@ public class FindCommandParser implements Parser<FindCommand> {
             PREFIX_SUBJECT.getPrefix(), SearchField.SUBJECT,
             PREFIX_LEVEL.getPrefix(), SearchField.LEVEL,
             PREFIX_EMAIL.getPrefix(), SearchField.EMAIL,
+            PREFIX_ADDRESS.getPrefix(), SearchField.ADDRESS,
             PREFIX_TAG.getPrefix(), SearchField.TAG);
 
     @Override

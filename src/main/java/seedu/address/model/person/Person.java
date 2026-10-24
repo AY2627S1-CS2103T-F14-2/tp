@@ -50,6 +50,12 @@ public class Person {
 
     /** Creates a new student after validating all fields. Email and notes may be absent. */
     public Person(String name, String phone, String email, List<String> subjects, String level, String notes) {
+        this(name, phone, email, subjects, level, notes, null);
+    }
+
+    /** Creates a new student after validating all fields. Optional fields may be absent. */
+    public Person(String name, String phone, String email, List<String> subjects, String level, String notes,
+            Address address) {
         requireAllNonNull(name, phone, subjects, level);
         String normalizedName = StudentFields.normalizeName(name);
         if (!StudentFields.isValidName(normalizedName)) {
@@ -94,7 +100,7 @@ public class Person {
         this.subjectsPresent = true;
         this.level = normalizedLevel;
         this.notes = normalizedNotes;
-        this.address = null;
+        this.address = address;
         this.newFormat = true;
     }
 
@@ -199,12 +205,20 @@ public class Person {
     public Person withStudentDetails(String replacementName, String replacementPhone, String replacementEmail,
             List<String> replacementSubjects, String replacementLevel, String replacementNotes,
             Set<Tag> replacementTags) {
+        return withStudentDetails(replacementName, replacementPhone, replacementEmail, replacementSubjects,
+                replacementLevel, replacementNotes, address, replacementTags);
+    }
+
+    /** Copies a new-format student with replacement student fields, address, and tags. */
+    public Person withStudentDetails(String replacementName, String replacementPhone, String replacementEmail,
+            List<String> replacementSubjects, String replacementLevel, String replacementNotes,
+            Address replacementAddress, Set<Tag> replacementTags) {
         requireAllNonNull(replacementName, replacementPhone, replacementSubjects, replacementLevel, replacementTags);
         if (!newFormat) {
             throw new IllegalStateException("Legacy records cannot be given student fields without migration data.");
         }
         return new Person(replacementName, replacementPhone, replacementEmail, replacementSubjects,
-                replacementLevel, replacementNotes).withTags(replacementTags);
+                replacementLevel, replacementNotes, replacementAddress).withTags(replacementTags);
     }
 
     /**
@@ -271,7 +285,7 @@ public class Person {
                 .add("phone", phone)
                 .add("email", email);
         if (newFormat) {
-            builder.add("subjects", subjects).add("level", level);
+            builder.add("subjects", subjects).add("level", level).add("address", address);
             if (!notes.isEmpty()) {
                 builder.add("notes", notes);
             }

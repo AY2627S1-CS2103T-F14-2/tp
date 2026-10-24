@@ -13,6 +13,7 @@ import java.util.regex.Pattern;
 
 import seedu.address.logic.commands.AddCommand;
 import seedu.address.logic.parser.exceptions.ParseException;
+import seedu.address.model.person.Address;
 import seedu.address.model.person.Person;
 import seedu.address.model.person.StudentFields;
 import seedu.address.model.tag.Tag;
@@ -58,7 +59,7 @@ public class AddCommandParser implements Parser<AddCommand> {
             throw new ParseException(AddCommand.MESSAGE_USAGE);
         }
 
-        for (String prefix : List.of("n/", "p/", "e/", "l/", "r/")) {
+        for (String prefix : List.of("n/", "p/", "e/", "a/", "l/", "r/")) {
             if (values.getOrDefault(prefix, List.of()).size() > 1) {
                 throw new ParseException("Parameter " + prefix + " must not be specified more than once.");
             }
@@ -75,6 +76,7 @@ public class AddCommandParser implements Parser<AddCommand> {
         String name = StudentFields.normalizeName(values.get("n/").getFirst());
         String phone = values.get("p/").getFirst();
         String email = values.containsKey("e/") ? values.get("e/").getFirst() : null;
+        String address = values.containsKey("a/") ? values.get("a/").getFirst() : null;
         List<String> subjects = values.get("s/");
         String level = StudentFields.normalizeWhitespace(values.get("l/").getFirst());
         String notes = values.containsKey("r/") ? values.get("r/").getFirst() : "";
@@ -87,6 +89,9 @@ public class AddCommandParser implements Parser<AddCommand> {
         }
         if (email != null && !StudentFields.isValidEmail(email)) {
             throw new ParseException(StudentFields.INVALID_EMAIL);
+        }
+        if (address != null && !Address.isValidAddress(address)) {
+            throw new ParseException(Address.MESSAGE_CONSTRAINTS);
         }
         List<String> normalizedSubjects = new ArrayList<>();
         List<String> subjectKeys = new ArrayList<>();
@@ -113,7 +118,9 @@ public class AddCommandParser implements Parser<AddCommand> {
         if (tags.size() > Tag.MAX_TAGS_PER_STUDENT) {
             throw new ParseException(Tag.MESSAGE_TAG_LIMIT);
         }
-        Person student = new Person(name, phone, email, normalizedSubjects, level, notes).withTags(tags);
+        Address parsedAddress = address == null ? null : new Address(address);
+        Person student = new Person(name, phone, email, normalizedSubjects, level, notes, parsedAddress)
+                .withTags(tags);
         return new AddCommand(student, tags.size() < tagValues.size());
     }
 
@@ -130,7 +137,7 @@ public class AddCommandParser implements Parser<AddCommand> {
 
     private static boolean isKnownPrefix(String prefix) {
         return prefix.equals("n/") || prefix.equals("p/") || prefix.equals("e/")
-                || prefix.equals("s/") || prefix.equals("l/") || prefix.equals("r/")
+                || prefix.equals("a/") || prefix.equals("s/") || prefix.equals("l/") || prefix.equals("r/")
                 || prefix.equals("/t");
     }
 }

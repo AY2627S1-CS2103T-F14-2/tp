@@ -21,7 +21,7 @@ public class CommandCompletionLogic {
     private static final Pattern PREFIX_PATTERN = Pattern.compile("(?U)(?<!\\S)([a-z])/");
 
     private static final List<CommandSpec> COMMANDS = List.of(
-            new CommandSpec("add", "add n/NAME p/PHONE s/SUBJECT l/LEVEL [e/EMAIL] [r/NOTES]",
+            new CommandSpec("add", "add n/NAME p/PHONE s/SUBJECT l/LEVEL [e/EMAIL] [a/ADDRESS] [r/NOTES]",
                     "Add a new student to the roster"),
             new CommandSpec("delete", "delete INDEX",
                     "Delete student by displayed list index"),
@@ -43,6 +43,7 @@ public class CommandCompletionLogic {
             new PrefixSpec("s/", "SUBJECT", "Subject taught (required, repeatable)", true, true),
             new PrefixSpec("l/", "LEVEL", "Education level (required)", true, false),
             new PrefixSpec("e/", "EMAIL", "Email address (optional)", false, false),
+            new PrefixSpec("a/", "ADDRESS", "Home address (optional)", false, false),
             new PrefixSpec("r/", "NOTES", "Tutoring notes (optional)", false, false)
     );
 

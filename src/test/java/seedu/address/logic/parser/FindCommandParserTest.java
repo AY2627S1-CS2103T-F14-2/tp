@@ -58,13 +58,14 @@ public class FindCommandParserTest {
                 new SearchTerm(SearchField.SUBJECT, "English"),
                 new SearchTerm(SearchField.LEVEL, "Secondary"),
                 new SearchTerm(SearchField.LEVEL, "4"),
+                new SearchTerm(SearchField.ADDRESS, "Main Street"),
                 new SearchTerm(SearchField.TAG, "exam-prep"),
                 new SearchTerm(SearchField.TAG, "group-class"));
         FindCommand expectedFindCommand = new FindCommand(
                 new PersonMatchesFieldsPredicate(searchTerms, MatchMode.ALL));
 
         assertParseSuccess(parser, "n/Alex n/Alexander p/9123 p/4567 e/alex e/example.com "
-                + "s/Math s/English l/Secondary l/4 t/exam-prep t/group-class", expectedFindCommand);
+                + "s/Math s/English l/Secondary l/4 a/Main Street t/exam-prep t/group-class", expectedFindCommand);
     }
 
     @Test
@@ -99,6 +100,14 @@ public class FindCommandParserTest {
                 new PersonMatchesFieldsPredicate(searchTerms, MatchMode.ALL));
 
         assertParseSuccess(parser, "t/exam-prep", expectedFindCommand);
+    }
+
+    @Test
+    public void parse_addressOnly_returnsFindCommand() {
+        FindCommand expectedFindCommand = new FindCommand(new PersonMatchesFieldsPredicate(
+                List.of(new SearchTerm(SearchField.ADDRESS, "Main Street")), MatchMode.ALL));
+
+        assertParseSuccess(parser, "a/Main Street", expectedFindCommand);
     }
 
     @Test
