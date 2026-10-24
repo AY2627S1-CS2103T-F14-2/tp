@@ -30,7 +30,7 @@ public class AddCommand extends Command {
             + PREFIX_SUBJECT
             + "SUBJECT for additional subjects or /t TAG for additional tags.\n"
             + "Parameters may appear in any order.";
-    public static final String MESSAGE_USAGE = "Invalid command format for add.\n" + MESSAGE_PARAMETER_GUIDE;
+    public static final String MESSAGE_USAGE = "Invalid command format.\n" + MESSAGE_PARAMETER_GUIDE;
 
     public static final String MESSAGE_SUCCESS = "New student added: %1$s";
     public static final String MESSAGE_DUPLICATE_PERSON = "This student already exists in TutorRoster.";

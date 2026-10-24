@@ -12,6 +12,7 @@ import seedu.address.MainApp;
 import seedu.address.commons.core.LogsCenter;
 import seedu.address.commons.util.StringUtil;
 import seedu.address.logic.Logic;
+import seedu.address.logic.Messages;
 
 /**
  * The manager of the UI component.
@@ -60,7 +61,7 @@ public class UiManager implements Ui {
 
         } catch (Throwable e) {
             logger.severe(StringUtil.getDetails(e));
-            showFatalErrorDialogAndShutdown("Fatal error during initializing", e);
+            showFatalErrorDialogAndShutdown("TutorRoster could not start", e);
         }
     }
 
@@ -93,8 +94,9 @@ public class UiManager implements Ui {
      * and exits the application after the user has closed the alert dialog.
      */
     private void showFatalErrorDialogAndShutdown(String title, Throwable e) {
-        logger.severe(title + " " + e.getMessage() + StringUtil.getDetails(e));
-        showAlertDialogAndWait(Alert.AlertType.ERROR, title, e.getMessage(), e.toString());
+        String message = e == null ? "An unexpected error occurred." : e.getMessage();
+        logger.severe(title + " " + message + (e == null ? "" : StringUtil.getDetails(e)));
+        showAlertDialogAndWait(Alert.AlertType.ERROR, "TutorRoster error", title, Messages.formatError(message));
         Platform.exit();
         System.exit(1);
     }

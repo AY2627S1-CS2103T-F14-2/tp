@@ -10,7 +10,7 @@ import seedu.address.model.Model;
  */
 public class RedoCommand extends Command {
     public static final String COMMAND_WORD = "redo";
-    public static final String MESSAGE_USAGE = "Invalid command format. Usage: redo";
+    public static final String MESSAGE_USAGE = "Invalid command format.\nUsage: redo";
     public static final String MESSAGE_SUCCESS = "Redo successful.";
     public static final String MESSAGE_FAILURE = "There are no changes to redo.";
 

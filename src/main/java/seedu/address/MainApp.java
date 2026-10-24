@@ -16,6 +16,7 @@ import seedu.address.commons.exceptions.TagMigrationException;
 import seedu.address.commons.util.StringUtil;
 import seedu.address.logic.Logic;
 import seedu.address.logic.LogicManager;
+import seedu.address.logic.Messages;
 import seedu.address.model.AddressBook;
 import seedu.address.model.Model;
 import seedu.address.model.ModelManager;
@@ -73,8 +74,8 @@ public class MainApp extends Application {
         try {
             model = initModelManager(storage, userPrefs);
         } catch (TagMigrationException e) {
-            startupError = "Unable to save updated tags. Your roster file was not changed.\n"
-                    + "Check that the data folder is writable, then restart TutorRoster.";
+            startupError = Messages.formatError("Unable to save updated tags. Your roster file was not changed.\n"
+                    + "Action: Check that the data folder is writable, then restart TutorRoster.");
             logger.severe("Stopping startup because the tag migration could not be saved: " + e.getMessage());
             return;
         }
@@ -151,8 +152,8 @@ public class MainApp extends Application {
         logger.info("Starting TutorRoster " + MainApp.VERSION);
         if (startupError != null) {
             Alert alert = new Alert(Alert.AlertType.ERROR, startupError);
-            alert.setTitle("Unable to load student roster");
-            alert.setHeaderText("Tag migration could not be saved");
+            alert.setTitle("TutorRoster error");
+            alert.setHeaderText("Unable to start TutorRoster");
             alert.showAndWait();
             Platform.exit();
             return;

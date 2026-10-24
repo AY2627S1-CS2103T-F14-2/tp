@@ -20,6 +20,7 @@ import org.junit.jupiter.api.io.TempDir;
 
 import seedu.address.logic.commands.ClearCommand;
 import seedu.address.logic.commands.CommandResult;
+import seedu.address.logic.commands.DeleteCommand;
 import seedu.address.logic.commands.HelpCommand;
 import seedu.address.logic.commands.ListCommand;
 import seedu.address.logic.commands.RedoCommand;
@@ -143,7 +144,7 @@ public class LogicManagerTest {
         expectedModel.updateFilteredPersonList(person -> person.equals(TypicalPersons.BENSON));
 
         assertCommandFailure("delete 1 n/Ryan", ParseException.class,
-                "Invalid command format. Usage: delete INDEX", expectedModel);
+                DeleteCommand.MESSAGE_INVALID_COMMAND_FORMAT, expectedModel);
     }
 
     @Test

@@ -250,7 +250,7 @@ there are no cards in that case. The current version does not include a student 
 Additional arguments, such as `list students`, are rejected with:
 
 ```text
-Invalid command format!
+Error: Invalid command format.
 Usage: list
 ```
 
@@ -292,7 +292,7 @@ Opens a complete student record that shows the full details.
 
 | Problem | Feedback |
 | --- | --- |
-| Missing, zero, negative, decimal, or nonnumeric index; extra arguments | `Invalid command format. Usage: show INDEX` |
+| Missing, zero, negative, decimal, or nonnumeric index; extra arguments | `Error: Invalid command format.` followed by `Usage: show INDEX` |
 | Positive index outside the displayed list, including an empty list | `The student index provided is invalid. Choose an index from the currently displayed list.` |
 
 <br>
@@ -320,7 +320,7 @@ Examples:
 
 | Problem | Feedback |
 | --- | --- |
-| Missing, zero, negative, decimal, or nonnumeric index; extra arguments | `Invalid command format. Usage: delete INDEX` |
+| Missing, zero, negative, decimal, or nonnumeric index; extra arguments | `Error: Invalid command format.` followed by `Usage: delete INDEX` |
 | Positive index outside the displayed list, including an empty list | `The student index provided is invalid.` |
 
 For example, `delete 0`, `delete abc`, and `delete 1 n/Ryan` are invalid. Invalid input leaves the
@@ -337,7 +337,7 @@ same application session.
 
 | Problem | Feedback |
 | --- | --- |
-| Extra arguments | `Invalid command format. Usage: clear` |
+| Extra arguments | `Error: Invalid command format.` followed by `Usage: clear` |
 
 
 ### Editing a student: `edit`
@@ -369,7 +369,7 @@ Examples:
 
 | Problem | Feedback |
 | --- | --- |
-| Missing, zero, negative, decimal, or nonnumeric index; extra preamble | `Invalid command format!` followed by usage guide |
+| Missing, zero, negative, decimal, or nonnumeric index; extra preamble | `Error: Invalid command format.` followed by the usage guide |
 | No fields specified | `At least one field to edit must be provided.` |
 | Positive index outside the displayed list, including an empty list | `The student index provided is invalid.` |
 | An existing student matches the duplicate rule | `This student already exists in TutorRoster.` |
@@ -413,8 +413,8 @@ The following behaviour applies to both `undo` and `redo`:
 | Successful redo | `Redo successful.` |
 | No earlier change | `There are no changes to undo.` |
 | No undone change | `There are no changes to redo.` |
-| Extra arguments to undo, such as `undo 1` | `Invalid command format. Usage: undo` |
-| Extra arguments to redo, such as `redo all` | `Invalid command format. Usage: redo` |
+| Extra arguments to undo, such as `undo 1` | `Error: Invalid command format.` followed by `Usage: undo` |
+| Extra arguments to redo, such as `redo all` | `Error: Invalid command format.` followed by `Usage: redo` |
 
 An unavailable or invalid command preserves the currently displayed list and records.
 
