@@ -1,5 +1,7 @@
 package seedu.address.model.util;
 
+import static java.util.Objects.requireNonNull;
+
 import java.util.Arrays;
 import java.util.List;
 import java.util.Set;
@@ -43,6 +45,10 @@ public class SampleDataUtil {
      * Returns a tag set containing the list of strings given.
      */
     public static Set<Tag> getTagSet(String... strings) {
+        requireNonNull(strings);
+        for (String string : strings) {
+            requireNonNull(string);
+        }
         return Arrays.stream(strings)
                 .map(Tag::new)
                 .collect(Collectors.toSet());

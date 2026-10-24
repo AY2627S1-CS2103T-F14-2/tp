@@ -257,6 +257,32 @@ public class EditCommandTest {
     }
 
     @Test
+    public void execute_appendAndRemoveMultiValueFields_success() {
+        Person student = new Person("Alice Wong", "+6581234567", null,
+                List.of("English", "Mathematics"), "Secondary 1", "")
+                .withTags(Set.of(new Tag("old-tag"), new Tag("keep-tag")));
+        model.addPerson(student);
+        Index studentIndex = Index.fromOneBased(model.getFilteredPersonList().size());
+
+        EditPersonDescriptor descriptor = new EditPersonDescriptor();
+        descriptor.setSubjectsToAdd(List.of("Physics"));
+        descriptor.setSubjectsToRemove(List.of("English"));
+        descriptor.setTagsToAdd(Set.of(new Tag("new-tag")));
+        descriptor.setTagsToRemove(Set.of(new Tag("old-tag")));
+        EditCommand editCommand = new EditCommand(studentIndex, descriptor);
+
+        Person expectedStudent = new Person("Alice Wong", "+6581234567", null,
+                List.of("Mathematics", "Physics"), "Secondary 1", "")
+                .withTags(Set.of(new Tag("keep-tag"), new Tag("new-tag")));
+        String expectedMessage = String.format(EditCommand.MESSAGE_EDIT_PERSON_SUCCESS,
+                expectedStudent.getName().fullName);
+        Model expectedModel = new ModelManager(new AddressBook(model.getAddressBook()), new UserPrefs());
+        expectedModel.setPerson(student, expectedStudent);
+
+        assertCommandSuccess(editCommand, model, expectedMessage, expectedModel);
+    }
+
+    @Test
     public void execute_duplicateStudentPhone_failure() {
         Person student1 = new Person("Ryan Tan", "+6591234567", null,
                 java.util.List.of("Mathematics"), "Secondary 4");

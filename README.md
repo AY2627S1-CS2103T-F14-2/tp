@@ -23,6 +23,12 @@ Optimized for tutors who type fast and prefer a **Command Line Interface (CLI)**
 
 > **Note**: TutorRoster focuses on student contact and profile management. It intentionally does not handle lesson scheduling, attendance tracking, billing/payments, or teaching materials.
 
+## Testing and coverage
+
+Run `./gradlew test` for the automated tests, or `./gradlew coverage` to generate the JaCoCo HTML and XML reports.
+The coverage report includes non-FXUI code only: `seedu/address/ui/**`, `Main`, and `MainApp` are excluded. The
+`check` task enforces at least 95% line coverage and 90% branch coverage for the included code.
+
 ---
 
 ## Documentation

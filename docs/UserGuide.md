@@ -340,14 +340,15 @@ same application session.
 ### Editing a student: `edit`
 
 Edits the details of an existing student identified by their index in the currently displayed roster.
-Existing values are overwritten by the input values, while omitted fields remain unchanged.
+Existing values are overwritten by the input values, while omitted fields remain unchanged. For multi-value fields,
+use `+` to append values and `-` to remove values.
 
-**Format:** `edit INDEX [n/NAME] [p/PHONE] [e/EMAIL] [s/SUBJECT]... [l/LEVEL] [r/NOTES] [t/TAG]...`
+**Format:** `edit INDEX [n/NAME] [p/PHONE] [e/EMAIL] [s/SUBJECT]... [+s/SUBJECT]... [-s/SUBJECT]... [l/LEVEL] [r/NOTES] [t/TAG]... [+t/TAG]... [-t/TAG]...`
 
 * `INDEX` is a positive integer starting from 1 and refers to the **currently displayed list**.
 * At least one field to edit must be provided.
-* When editing subjects using `s/`, the existing subjects of the student are replaced by the newly supplied subjects. At least one subject must be provided, and duplicate subjects are not allowed.
-* Supplying `t/` replaces the complete tag set; `t/` alone clears the tags. Supplying `r/` alone clears notes.
+* When editing subjects using `s/`, the existing subjects of the student are replaced by the newly supplied subjects. Use `+s/` to append and `-s/` to remove subjects. At least one subject must remain, and duplicate subjects are not allowed.
+* Supplying `t/` replaces the complete tag set; `+t/` appends tags and `-t/` removes tags. `t/` alone clears the tags. Supplying `r/` alone clears notes.
 * The legacy `a/ADDRESS` field is available only for older records. Student-only fields cannot be edited on a legacy record.
 * Single-use prefixes (`n/`, `p/`, `e/`, `l/`, `r/`) cannot be repeated within the same command.
 * If the edited student matches another existing student according to TutorRoster duplicate rules, the command is rejected with `This student already exists in TutorRoster.`.
@@ -357,6 +358,7 @@ Examples:
 
 * `edit 3 p/+6591234567 l/Secondary 5`
 * `edit 1 n/Ryan Tan s/Mathematics s/Physics`
+* `edit 2 +s/Physics -s/English +t/exam-prep -t/old-tag`
 * `edit 2 r/Prefers worked examples`
 
 **Success feedback:** `Edited student: NAME`, for example `Edited student: Ryan Tan`.
@@ -604,7 +606,7 @@ may have changed since the command was first entered.
 | List students | `list` | `list` |
 | Find students | `find [--any] [n/NAME]... [p/PHONE]... [e/EMAIL]... [s/SUBJECT]... [l/LEVEL]... [t/TAG]...` | `find n/Ryan` or `find --any n/Ryan s/Physics` |
 | Show student details | `show INDEX` | `show 2` |
-| Edit student | `edit INDEX [n/NAME] [p/PHONE] [e/EMAIL] [s/SUBJECT]... [l/LEVEL] [r/NOTES] [t/TAG]...` | `edit 3 p/+6591234567 l/Secondary 5` |
+| Edit student | `edit INDEX [n/NAME] [p/PHONE] [e/EMAIL] [s/SUBJECT]... [+s/SUBJECT]... [-s/SUBJECT]... [l/LEVEL] [r/NOTES] [t/TAG]... [+t/TAG]... [-t/TAG]...` | `edit 3 p/+6591234567 l/Secondary 5` |
 | Delete student | `delete INDEX` | `delete 2` |
 | Undo last change | `undo` | `undo` |
 | Redo undone change | `redo` | `redo` |

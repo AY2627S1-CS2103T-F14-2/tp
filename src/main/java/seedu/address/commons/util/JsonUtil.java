@@ -90,6 +90,8 @@ public class JsonUtil {
      * @return The instance of T with the specified values in the JSON string
      */
     public static <T> T fromJsonString(String json, Class<T> instanceClass) throws IOException {
+        requireNonNull(json);
+        requireNonNull(instanceClass);
         return objectMapper.readValue(json, instanceClass);
     }
 
@@ -100,6 +102,7 @@ public class JsonUtil {
      * @return JSON data representation of the given class instance, in string
      */
     public static <T> String toJsonString(T instance) throws JsonProcessingException {
+        requireNonNull(instance);
         return objectMapper.writerWithDefaultPrettyPrinter().writeValueAsString(instance);
     }
 

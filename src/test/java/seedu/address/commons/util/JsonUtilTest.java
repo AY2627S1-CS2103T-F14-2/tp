@@ -1,6 +1,7 @@
 package seedu.address.commons.util;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static seedu.address.testutil.Assert.assertThrows;
 
 import java.io.IOException;
 import java.nio.file.Path;
@@ -37,6 +38,13 @@ public class JsonUtilTest {
         assertEquals(serializableTestClass.getName(), SerializableTestClass.getNameTestValue());
         assertEquals(serializableTestClass.getListOfLocalDateTimes(), SerializableTestClass.getListTestValues());
         assertEquals(serializableTestClass.getMapOfIntegerToString(), SerializableTestClass.getHashMapTestValues());
+    }
+
+    @Test
+    public void stringConversion_nullArguments_throwNullPointerException() {
+        assertThrows(NullPointerException.class, () -> JsonUtil.fromJsonString(null, SerializableTestClass.class));
+        assertThrows(NullPointerException.class, () -> JsonUtil.fromJsonString("{}", null));
+        assertThrows(NullPointerException.class, () -> JsonUtil.toJsonString(null));
     }
 
     //TODO: @Test jsonUtil_readJsonStringToObjectInstance_correctObject()
