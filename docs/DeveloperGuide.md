@@ -177,11 +177,9 @@ before validation.
 Subject duplicate comparison uses that normalized value without case; storage retains the normalized value and
 entered capitalization. Subjects remain in input order.
 
-New student records have subjects, a level, optional address, and optional notes. Notes are trimmed, limited to 500 Unicode characters,
-and cannot contain control characters. `Person.isSamePerson` compares two new-format records by normalized
-name and either normalized phone or case-insensitive email. Legacy records retain their original address and tags
-for storage compatibility, but do not participate in new-student duplicate checks. Existing stored records are
-restored without reapplying add-time duplicate checks.
+Student records have subjects, a level, optional address, and optional notes. Notes are trimmed, limited to 500 Unicode characters,
+and cannot contain control characters. `Person.isSamePerson` compares two records by normalized
+name and either normalized phone or case-insensitive email.
 
 `AddCommand` changes an isolated working model and resets its filter to the full roster. `LogicManager`
 records the changed roster in that model's history, saves it atomically, and then publishes its checkpoint
@@ -193,13 +191,13 @@ This is the shared [recording and publishing flow](#recording-and-publishing-a-c
 `TagCommandParser` parses `tag INDEX TAG`, `untag INDEX TAG`, and `untag --all INDEX`.
 The two command words share `TagCommand`, whose operation is ADD, REMOVE, or CLEAR.
 It validates the index against the displayed list and replaces the selected immutable student using
-`Person.withTags`. That copy preserves all other fields, optional-field presence, and legacy format.
+`Person.withTags`. That copy preserves all other fields and optional-field presence.
 The model's tag sets are unmodifiable and copied defensively.
 
 `Tag` stores canonical lowercase names. New names contain at most 30 English letters/digits with
 single hyphens between nonempty segments. `Tag.fromStoredName` validates the same grammar without
 the new length limit, allowing old tags to remain readable and removable. Commands enforce the
-20-tag addition limit; removals remain possible when legacy data exceeds it.
+20-tag addition limit.
 
 `LogicManager` executes tag commands through the shared snapshot flow, copying the roster, current
 filter, and undo/redo history into the working model. Unchanged outcomes return warning feedback

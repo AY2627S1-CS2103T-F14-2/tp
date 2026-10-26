@@ -58,7 +58,7 @@ number before deleting a student, particularly after a search.
 
 ## Reading the interface
 
-* **Your students:** the numbered roster. Each new student card shows the name, phone number,
+* **Your students:** the numbered roster. Each student card shows the name, phone number,
   subjects, education level, email, and notes when supplied.
 * **Result area:** feedback for the last command, including validation errors.
 * **Command box:** where you enter commands and press Enter to execute them. A successful command
@@ -162,7 +162,7 @@ Examples:
 * `add n/Sarah Lee p/+821012345678 s/English l/Grade 8 r/Needs visual explanations; goal is to improve essay writing`
 * `add l/Grade 8 s/English n/Sarah Lee p/+821012345678`
 
-**Success feedback:** `New student added: NAME`, for example `New student added: Ryan Tan`.
+**Success feedback:** `New student added: NAME`, for example `New student added: Ryan Tan`..
 
 #### Duplicate subjects and students
 
@@ -180,10 +180,6 @@ levels do not distinguish duplicate students. The duplicate is rejected with
 
 Students with different names can share a guardian's phone number or email. Students with the same
 name can be added when their contact details differ.
-
-If you are upgrading from AB3, older records are retained. Those older records do not block additions
-under the new student duplicate rule; their original address remains in the saved file. Tags are
-retained, with spelling and duplicates normalized as described under [Tag migration](#tag-migration).
 
 #### Add errors
 
@@ -270,13 +266,13 @@ Shows students matching the given fields.
 * By default, every given field must match. Use `--any` to find students matching at least one given field.
 * Matching is case-insensitive: `find n/RYAN` and `find n/ryan` return the same results.
 * A keyword may match part of a field: `find n/Ann` can match `Anna Lee` and `Annie Tan`.
-* Addresses are searchable with `a/ADDRESS`, including for student records added with an address and older records.
+* Addresses are searchable with `a/ADDRESS`, including for student records added with an address.
 * Every field may be repeated. For example, `find s/Math s/English` matches students who take both Math and English.
 * The order of the fields does not matter.
 
 Examples:
-* `find n/Ryan` matches `Ryan Tan` and `Ryan Lim`.
-* `find n/Ryan Tan` narrows the results to names containing exactly `Ryan Tan`.
+* `find n/Ryan` matches `Ryan Tan` and `Ryan Lim`
+* `find n/Ryan Tan` narrows the results to names containing exactly `Ryan Tan`
 * `find n/Ryan s/Mathematics` matches students whose name contains `Ryan` AND who study Mathematics.
 * `find --any n/Ryan s/Mathematics` matches students whose name contains `Ryan` OR who study Mathematics.
 
@@ -356,7 +352,7 @@ use `+` to append values and `-` to remove values.
 * At least one field to edit must be provided.
 * When editing subjects using `s/`, the existing subjects of the student are replaced by the newly supplied subjects. Use `+s/` to append and `-s/` to remove subjects. At least one subject must remain, and duplicate subjects are not allowed.
 * Supplying `t/` replaces the complete tag set; `+t/` appends tags and `-t/` removes tags. `t/` alone clears the tags. Supplying `r/` alone clears notes.
-* `a/ADDRESS` overwrites the address for both student and legacy records. Omit it to preserve the current address.
+* `a/ADDRESS` overwrites the address. Omit it to preserve the current address.
 * Single-use prefixes (`n/`, `p/`, `e/`, `l/`, `r/`) cannot be repeated within the same command.
 * If the edited student matches another existing student according to TutorRoster duplicate rules, the command is rejected with `This student already exists in TutorRoster.`.
 * After a successful edit, the roster resets to show the complete student list.
@@ -477,7 +473,7 @@ Existing tags were updated to lowercase and duplicate tags were merged.
 
 Existing tag names longer than 30 characters and students with more than 20 tags are retained.
 You can remove any existing tag or clear the set. New additions must meet the new limits.
-Unrelated student fields and legacy record formats are preserved. Missing tags mean an empty tag set.
+Unrelated student fields are preserved. Missing tags mean an empty tag set.
 Files needing no migration are not rewritten and produce no migration notice.
 
 If the migration cannot be saved, an error dialog appears and startup stops. The original roster
