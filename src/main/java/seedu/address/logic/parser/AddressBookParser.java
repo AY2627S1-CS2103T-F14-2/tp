@@ -72,7 +72,7 @@ public class AddressBookParser {
             case TagCommand.COMMAND_WORD -> new TagCommandParser(false).parse(arguments);
             case TagCommand.UNTAG_COMMAND_WORD -> new TagCommandParser(true).parse(arguments);
             case ExitCommand.COMMAND_WORD -> new ExitCommand();
-            case HelpCommand.COMMAND_WORD -> new HelpCommand();
+            case HelpCommand.COMMAND_WORD -> new HelpCommandParser().parse(arguments);
             default -> {
                 logger.finer("This user input caused a ParseException: " + userInput);
                 throw new ParseException(MESSAGE_UNKNOWN_COMMAND);

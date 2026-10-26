@@ -126,6 +126,10 @@ Tip: While inside the input box, use the Up and Down arrow keys to recall comman
 
 Opens a help window containing a link to this User Guide.
 
+| Problem | Feedback |
+| --- | --- |
+| Extra arguments, such as `help details` | `Error: Invalid command format.` followed by the help usage guide |
+
 <br>
 
 ### Adding a student: `add`
