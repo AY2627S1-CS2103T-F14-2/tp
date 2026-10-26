@@ -377,6 +377,7 @@ Examples:
 | An existing student matches the duplicate rule | `This student already exists in TutorRoster.` |
 | Repeated single-use prefix | `Multiple values specified for the following single-valued field(s): ...` |
 | Repeated subject | `Duplicate subject: SUBJECT` |
+| An unknown prefix, such as `x/` | `Unknown parameter prefix: x/` |
 | Invalid field value | Message explaining the applicable rule (e.g. `Invalid phone number. ...`) |
 
 <br>
