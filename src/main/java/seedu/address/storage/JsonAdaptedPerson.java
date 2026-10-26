@@ -12,7 +12,6 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 
 import seedu.address.commons.exceptions.IllegalValueException;
 import seedu.address.model.person.Address;
-import seedu.address.model.person.Email;
 import seedu.address.model.person.Name;
 import seedu.address.model.person.Person;
 import seedu.address.model.person.Phone;
@@ -55,15 +54,12 @@ class JsonAdaptedPerson {
         this.notes = notes == null ? "" : notes;
     }
 
-    /** Existing callers can still construct an adapted student without notes. */
+    /**
+     * Constructs an adapted student without notes.
+     */
     public JsonAdaptedPerson(String name, String phone, String email, String address, List<JsonAdaptedTag> tags,
             List<String> subjects, String level) {
         this(name, phone, email, address, tags, subjects, level, null);
-    }
-
-    /** Existing tests and callers can still build a legacy adapted record. */
-    public JsonAdaptedPerson(String name, String phone, String email, String address, List<JsonAdaptedTag> tags) {
-        this(name, phone, email, address, tags, null, null, null);
     }
 
     /**
@@ -73,11 +69,11 @@ class JsonAdaptedPerson {
         name = source.getName().fullName;
         phone = source.getPhone().value;
         email = source.getEmail() == null ? null : source.getEmail().value;
-        subjects = source.hasSubjectsField() ? new ArrayList<>(source.getSubjects()) : null;
+        subjects = new ArrayList<>(source.getSubjects());
         level = source.getLevel();
         notes = source.getNotes().isEmpty() ? null : source.getNotes();
         address = source.getAddress() == null ? null : source.getAddress().value;
-        tags = source.getAddress() == null && source.getTags().isEmpty() ? null : source.getTags().stream()
+        tags = source.getTags().isEmpty() ? null : source.getTags().stream()
                 .sorted(java.util.Comparator.comparing(tag -> tag.tagName))
                 .map(JsonAdaptedTag::new).collect(Collectors.toList());
     }
@@ -106,8 +102,69 @@ class JsonAdaptedPerson {
      * @throws IllegalValueException if there were any data constraints violated in the adapted person.
      */
     public Person toModelType() throws IllegalValueException {
+        if (name == null) {
+            throw new IllegalValueException(String.format(MISSING_FIELD_MESSAGE_FORMAT, Name.class.getSimpleName()));
+        }
+        String normalizedName = StudentFields.normalizeName(name);
+        if (!StudentFields.isValidName(normalizedName)) {
+            throw new IllegalValueException(StudentFields.INVALID_NAME);
+        }
+
+        if (phone == null) {
+            throw new IllegalValueException(String.format(MISSING_FIELD_MESSAGE_FORMAT, Phone.class.getSimpleName()));
+        }
+        String trimmedPhone = StudentFields.trim(phone);
+        if (!StudentFields.isValidPhone(trimmedPhone)) {
+            throw new IllegalValueException(StudentFields.INVALID_PHONE);
+        }
+
+        if (email != null) {
+            String trimmedEmail = StudentFields.trim(email);
+            if (!StudentFields.isValidEmail(trimmedEmail)) {
+                throw new IllegalValueException(StudentFields.INVALID_EMAIL);
+            }
+        }
+
+        if (address != null && !Address.isValidAddress(address)) {
+            throw new IllegalValueException(Address.MESSAGE_CONSTRAINTS);
+        }
+
+        if (subjects == null) {
+            throw new IllegalValueException(String.format(MISSING_FIELD_MESSAGE_FORMAT, "subjects"));
+        }
+        if (subjects.isEmpty()) {
+            throw new IllegalValueException(StudentFields.INVALID_SUBJECT);
+        }
+        List<String> normalizedSubjects = new ArrayList<>();
+        Set<String> subjectKeys = new HashSet<>();
+        for (String subject : subjects) {
+            if (subject == null) {
+                throw new IllegalValueException(StudentFields.INVALID_SUBJECT);
+            }
+            String normalizedSubject = StudentFields.normalizeWhitespace(subject);
+            if (!StudentFields.isValidSubject(normalizedSubject)) {
+                throw new IllegalValueException(StudentFields.INVALID_SUBJECT);
+            }
+            if (!subjectKeys.add(StudentFields.subjectKey(normalizedSubject))) {
+                throw new IllegalValueException("Duplicate subject: " + normalizedSubject);
+            }
+            normalizedSubjects.add(normalizedSubject);
+        }
+
+        if (level == null) {
+            throw new IllegalValueException(String.format(MISSING_FIELD_MESSAGE_FORMAT, "level"));
+        }
+        String normalizedLevel = StudentFields.normalizeWhitespace(level);
+        if (!StudentFields.isValidLevel(normalizedLevel)) {
+            throw new IllegalValueException(StudentFields.INVALID_LEVEL);
+        }
+
+        String storedNotes = notes == null ? "" : StudentFields.trim(notes);
+        if (!storedNotes.isEmpty() && !StudentFields.isValidNotes(storedNotes)) {
+            throw new IllegalValueException(StudentFields.INVALID_NOTES);
+        }
+
         final List<Tag> personTags = new ArrayList<>();
-        String storedNotes = notes == null ? "" : notes;
         if (tags != null) {
             for (JsonAdaptedTag tag : tags) {
                 if (tag == null) {
@@ -117,52 +174,9 @@ class JsonAdaptedPerson {
             }
         }
 
-        if (subjects != null || level != null || !storedNotes.isEmpty()) {
-            if (name == null || phone == null) {
-                throw new IllegalValueException("Stored student is missing a name or phone number.");
-            }
-            Address storedAddress = address == null ? null : new Address(address);
-            if (!storedNotes.isEmpty() && !StudentFields.isValidNotes(storedNotes)) {
-                throw new IllegalValueException(StudentFields.INVALID_NOTES);
-            }
-            return Person.fromStoredRecord(name, phone, email, subjects, level,
-                    storedNotes, storedAddress, new HashSet<>(personTags));
-        }
-
-        if (name == null) {
-            throw new IllegalValueException(String.format(MISSING_FIELD_MESSAGE_FORMAT, Name.class.getSimpleName()));
-        }
-        if (!Name.isValidName(name)) {
-            throw new IllegalValueException(Name.MESSAGE_CONSTRAINTS);
-        }
-        final Name modelName = new Name(name);
-
-        if (phone == null) {
-            throw new IllegalValueException(String.format(MISSING_FIELD_MESSAGE_FORMAT, Phone.class.getSimpleName()));
-        }
-        if (!Phone.isValidPhone(phone)) {
-            throw new IllegalValueException(Phone.MESSAGE_CONSTRAINTS);
-        }
-        final Phone modelPhone = new Phone(phone);
-
-        if (email == null) {
-            throw new IllegalValueException(String.format(MISSING_FIELD_MESSAGE_FORMAT, Email.class.getSimpleName()));
-        }
-        if (!Email.isValidEmail(email)) {
-            throw new IllegalValueException(Email.MESSAGE_CONSTRAINTS);
-        }
-        final Email modelEmail = new Email(email);
-
-        if (address == null) {
-            throw new IllegalValueException(String.format(MISSING_FIELD_MESSAGE_FORMAT, Address.class.getSimpleName()));
-        }
-        if (!Address.isValidAddress(address)) {
-            throw new IllegalValueException(Address.MESSAGE_CONSTRAINTS);
-        }
-        final Address modelAddress = new Address(address);
-
-        final Set<Tag> modelTags = new HashSet<>(personTags);
-        return new Person(modelName, modelPhone, modelEmail, modelAddress, modelTags);
+        Address storedAddress = address == null ? null : new Address(address);
+        return Person.fromStoredRecord(normalizedName, trimmedPhone, email, normalizedSubjects, normalizedLevel,
+                storedNotes, storedAddress, new HashSet<>(personTags));
     }
 
 }

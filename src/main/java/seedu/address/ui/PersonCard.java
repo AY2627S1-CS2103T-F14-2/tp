@@ -78,9 +78,8 @@ public class PersonCard extends UiPart<Region> {
         static CardContent from(Person person) {
             String fullName = person.getName().fullName;
             String emailText = person.getEmail() == null ? null : "Email: " + person.getEmail().value;
-            String subjectsText = person.getSubjects().isEmpty()
-                    ? null : "Subjects: " + String.join(", ", person.getSubjects());
-            String levelText = person.getLevel() == null ? null : "Level: " + person.getLevel();
+            String subjectsText = "Subjects: " + String.join(", ", person.getSubjects());
+            String levelText = "Level: " + person.getLevel();
             String notesText = person.getNotes().isEmpty() ? null : "Notes: " + person.getNotes();
             return new CardContent(fullName, getInitials(fullName), "Phone: " + person.getPhone().value,
                     emailText, subjectsText, levelText, notesText);

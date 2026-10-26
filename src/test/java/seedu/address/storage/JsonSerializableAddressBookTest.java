@@ -37,10 +37,11 @@ public class JsonSerializableAddressBookTest {
     }
 
     @Test
-    public void toModelType_duplicatePersons_preservesExistingRecords() throws Exception {
+    public void toModelType_duplicatePersons_throwsIllegalValueException() throws Exception {
         JsonSerializableAddressBook dataFromFile = JsonUtil.readJsonFile(DUPLICATE_PERSON_FILE,
                 JsonSerializableAddressBook.class).get();
-        assertEquals(2, dataFromFile.toModelType().getPersonList().size());
+        assertThrows(IllegalValueException.class, JsonSerializableAddressBook.MESSAGE_DUPLICATE_PERSON,
+                dataFromFile::toModelType);
     }
 
 }

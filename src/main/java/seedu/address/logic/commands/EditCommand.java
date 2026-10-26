@@ -68,8 +68,6 @@ public class EditCommand extends Command {
     public static final String MESSAGE_EDIT_PERSON_SUCCESS = "Edited student: %1$s";
     public static final String MESSAGE_NOT_EDITED = "At least one field to edit must be provided.";
     public static final String MESSAGE_DUPLICATE_PERSON = "This student already exists in TutorRoster.";
-    public static final String MESSAGE_LEGACY_STUDENT_FIELDS =
-            "Subjects, education level, and notes cannot be edited on a legacy record without student data.";
     private final Index index;
     private final EditPersonDescriptor editPersonDescriptor;
 
@@ -108,18 +106,14 @@ public class EditCommand extends Command {
 
         model.setPerson(personToEdit, editedPerson);
         model.updateFilteredPersonList(PREDICATE_SHOW_ALL_PERSONS);
-        String displayedDetails = editedPerson.isNewFormat()
-                ? editedPerson.getName().fullName
-                : Messages.format(editedPerson);
-        return new CommandResult(String.format(MESSAGE_EDIT_PERSON_SUCCESS, displayedDetails));
+        return new CommandResult(String.format(MESSAGE_EDIT_PERSON_SUCCESS, editedPerson.getName().fullName));
     }
 
     /**
      * Creates and returns a {@code Person} with the details of {@code personToEdit}
      * edited with {@code editPersonDescriptor}.
      */
-    private static Person createEditedPerson(Person personToEdit, EditPersonDescriptor editPersonDescriptor)
-            throws CommandException {
+    private static Person createEditedPerson(Person personToEdit, EditPersonDescriptor editPersonDescriptor) {
         requireNonNull(personToEdit);
         requireNonNull(editPersonDescriptor);
 
@@ -128,21 +122,13 @@ public class EditCommand extends Command {
         Email updatedEmail = editPersonDescriptor.getEmail().orElse(personToEdit.getEmail());
         Address updatedAddress = editPersonDescriptor.getAddress().orElse(personToEdit.getAddress());
         Set<Tag> updatedTags = updateTags(personToEdit, editPersonDescriptor);
+        List<String> updatedSubjects = updateSubjects(personToEdit, editPersonDescriptor);
+        String updatedLevel = editPersonDescriptor.getLevel().orElse(personToEdit.getLevel());
+        String updatedNotes = editPersonDescriptor.getNotes().orElse(personToEdit.getNotes());
 
-        if (personToEdit.isNewFormat()) {
-            List<String> updatedSubjects = updateSubjects(personToEdit, editPersonDescriptor);
-            String updatedLevel = editPersonDescriptor.getLevel().orElse(personToEdit.getLevel());
-            String updatedNotes = editPersonDescriptor.getNotes().orElse(personToEdit.getNotes());
-            return personToEdit.withStudentDetails(updatedName.fullName, updatedPhone.value,
-                    updatedEmail == null ? null : updatedEmail.value, updatedSubjects, updatedLevel,
-                    updatedNotes, updatedAddress, updatedTags);
-        }
-
-        if (editPersonDescriptor.hasStudentFields()) {
-            throw new CommandException(MESSAGE_LEGACY_STUDENT_FIELDS);
-        }
-
-        return new Person(updatedName, updatedPhone, updatedEmail, updatedAddress, updatedTags);
+        return personToEdit.withStudentDetails(updatedName.fullName, updatedPhone.value,
+                updatedEmail == null ? null : updatedEmail.value, updatedSubjects, updatedLevel,
+                updatedNotes, updatedAddress, updatedTags);
     }
 
     /** Applies replacement, append, and removal operations to the subject list. */
@@ -176,8 +162,7 @@ public class EditCommand extends Command {
         Set<Tag> tags = new HashSet<>(descriptor.getTags().orElse(personToEdit.getTags()));
         tags.addAll(descriptor.getTagsToAdd().orElse(Set.of()));
         tags.removeAll(descriptor.getTagsToRemove().orElse(Set.of()));
-        if (personToEdit.isNewFormat() && descriptor.getTagsToAdd().isPresent()
-                && tags.size() > Tag.MAX_TAGS_PER_STUDENT) {
+        if (descriptor.getTagsToAdd().isPresent() && tags.size() > Tag.MAX_TAGS_PER_STUDENT) {
             throw new IllegalArgumentException(Tag.MESSAGE_TAG_LIMIT);
         }
         return tags;
@@ -395,11 +380,6 @@ public class EditCommand extends Command {
 
         public Optional<String> getNotes() {
             return Optional.ofNullable(notes);
-        }
-
-        /** Returns whether any student-only field was supplied. */
-        public boolean hasStudentFields() {
-            return CollectionUtil.isAnyNonNull(subjects, subjectsToAdd, subjectsToRemove, level, notes);
         }
 
         @Override

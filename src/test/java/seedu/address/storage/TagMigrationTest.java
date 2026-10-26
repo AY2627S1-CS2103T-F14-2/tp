@@ -2,6 +2,7 @@ package seedu.address.storage;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
@@ -113,17 +114,16 @@ public class TagMigrationTest {
     }
 
     @Test
-    public void read_legacyRecord_preservesFormatAndMissingOptionalFields() throws Exception {
-        Path file = folder.resolve("legacy.json");
+    public void read_minimalStudent_preservesMissingOptionalFields() throws Exception {
+        Path file = folder.resolve("minimal.json");
         Files.writeString(file, """
-                {"persons":[{"name":"Amy","phone":"123","email":"amy@example.com",
-                "address":"10 Test Street","tags":["EXAM-PREP"]}]}
+                {"persons":[{"name":"Amy","phone":"123","subjects":["Math"],"level":"JC 1","tags":["EXAM-PREP"]}]}
                 """);
         var storage = new RecordingStorage(file);
         var student = storage.readAddressBook().orElseThrow().getPersonList().getFirst();
-        assertFalse(student.isNewFormat());
-        assertFalse(student.hasSubjectsField());
-        assertFalse(Files.readString(file).contains("subjects"));
+        assertNull(student.getEmail());
+        assertNull(student.getAddress());
+        assertEquals("", student.getNotes());
         assertEquals(student, storage.readAddressBook().orElseThrow().getPersonList().getFirst());
     }
 
