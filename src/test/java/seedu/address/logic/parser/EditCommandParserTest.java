@@ -43,7 +43,6 @@ import seedu.address.commons.core.index.Index;
 import seedu.address.logic.Messages;
 import seedu.address.logic.commands.EditCommand;
 import seedu.address.logic.commands.EditCommand.EditPersonDescriptor;
-import seedu.address.model.person.Address;
 import seedu.address.model.person.StudentFields;
 import seedu.address.model.tag.Tag;
 import seedu.address.testutil.EditPersonDescriptorBuilder;
@@ -89,7 +88,6 @@ public class EditCommandParserTest {
         assertParseFailure(parser, "1" + INVALID_NAME_DESC, StudentFields.INVALID_NAME); // invalid name
         assertParseFailure(parser, "1" + INVALID_PHONE_DESC, StudentFields.INVALID_PHONE); // invalid phone
         assertParseFailure(parser, "1" + INVALID_EMAIL_DESC, StudentFields.INVALID_EMAIL); // invalid email
-        assertParseFailure(parser, "1" + INVALID_ADDRESS_DESC, Address.MESSAGE_CONSTRAINTS); // invalid address
         assertParseFailure(parser, "1" + INVALID_TAG_DESC, Tag.MESSAGE_CONSTRAINTS); // invalid tag
 
         // invalid student fields
@@ -210,6 +208,17 @@ public class EditCommandParserTest {
         descriptor = new EditPersonDescriptorBuilder().withTags(VALID_TAG_FRIEND).build();
         expectedCommand = new EditCommand(targetIndex, descriptor);
         assertParseSuccess(parser, userInput, expectedCommand);
+    }
+
+    @Test
+    public void parse_clearOptionalFields_success() {
+        EditPersonDescriptor descriptor = new EditPersonDescriptor();
+        descriptor.clearEmail();
+        assertParseSuccess(parser, "1 e/", new EditCommand(INDEX_FIRST_PERSON, descriptor));
+
+        descriptor = new EditPersonDescriptor();
+        descriptor.clearAddress();
+        assertParseSuccess(parser, "1 a/", new EditCommand(INDEX_FIRST_PERSON, descriptor));
     }
 
     @Test

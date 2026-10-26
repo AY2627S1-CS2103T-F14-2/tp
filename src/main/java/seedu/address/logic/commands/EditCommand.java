@@ -48,6 +48,7 @@ public class EditCommand extends Command {
     public static final String MESSAGE_USAGE = COMMAND_WORD + ": Edits the details of the student identified "
             + "by the index number used in the displayed student list. "
             + "Single-value fields are overwritten; use +s/+t to append and -s/-t to remove values.\n"
+            + "Use e/ or a/ without a value to clear the optional email or address field.\n"
             + "Parameters: INDEX (must be a positive integer) "
             + "[" + PREFIX_NAME + "NAME] "
             + "[" + PREFIX_PHONE + "PHONE] "
@@ -125,8 +126,12 @@ public class EditCommand extends Command {
 
         Name updatedName = editPersonDescriptor.getName().orElse(personToEdit.getName());
         Phone updatedPhone = editPersonDescriptor.getPhone().orElse(personToEdit.getPhone());
-        Email updatedEmail = editPersonDescriptor.getEmail().orElse(personToEdit.getEmail());
-        Address updatedAddress = editPersonDescriptor.getAddress().orElse(personToEdit.getAddress());
+        Email updatedEmail = editPersonDescriptor.isEmailCleared()
+                ? null
+                : editPersonDescriptor.getEmail().orElse(personToEdit.getEmail());
+        Address updatedAddress = editPersonDescriptor.isAddressCleared()
+                ? null
+                : editPersonDescriptor.getAddress().orElse(personToEdit.getAddress());
         Set<Tag> updatedTags = updateTags(personToEdit, editPersonDescriptor);
 
         if (personToEdit.isNewFormat()) {
@@ -142,7 +147,8 @@ public class EditCommand extends Command {
             throw new CommandException(MESSAGE_LEGACY_STUDENT_FIELDS);
         }
 
-        return new Person(updatedName, updatedPhone, updatedEmail, updatedAddress, updatedTags);
+        return Person.fromStoredRecord(updatedName.fullName, updatedPhone.value,
+                updatedEmail == null ? null : updatedEmail.value, null, null, updatedAddress, updatedTags);
     }
 
     /** Applies replacement, append, and removal operations to the subject list. */
@@ -214,7 +220,9 @@ public class EditCommand extends Command {
         private Name name;
         private Phone phone;
         private Email email;
+        private boolean emailCleared;
         private Address address;
+        private boolean addressCleared;
         private Set<Tag> tags;
         private Set<Tag> tagsToAdd;
         private Set<Tag> tagsToRemove;
@@ -234,8 +242,16 @@ public class EditCommand extends Command {
             requireNonNull(toCopy);
             setName(toCopy.name);
             setPhone(toCopy.phone);
-            setEmail(toCopy.email);
-            setAddress(toCopy.address);
+            if (toCopy.emailCleared) {
+                clearEmail();
+            } else {
+                setEmail(toCopy.email);
+            }
+            if (toCopy.addressCleared) {
+                clearAddress();
+            } else {
+                setAddress(toCopy.address);
+            }
             setTags(toCopy.tags);
             setTagsToAdd(toCopy.tagsToAdd);
             setTagsToRemove(toCopy.tagsToRemove);
@@ -250,7 +266,8 @@ public class EditCommand extends Command {
          * Returns true if at least one field is edited.
          */
         public boolean isAnyFieldEdited() {
-            return CollectionUtil.isAnyNonNull(name, phone, email, address, tags, tagsToAdd, tagsToRemove,
+            return emailCleared || addressCleared
+                    || CollectionUtil.isAnyNonNull(name, phone, email, address, tags, tagsToAdd, tagsToRemove,
                     subjects, subjectsToAdd, subjectsToRemove, level, notes);
         }
 
@@ -272,18 +289,42 @@ public class EditCommand extends Command {
 
         public void setEmail(Email email) {
             this.email = email;
+            emailCleared = false;
         }
 
         public Optional<Email> getEmail() {
             return Optional.ofNullable(email);
         }
 
+        /** Marks the optional email field for removal. */
+        public void clearEmail() {
+            email = null;
+            emailCleared = true;
+        }
+
+        /** Returns whether the optional email field is marked for removal. */
+        public boolean isEmailCleared() {
+            return emailCleared;
+        }
+
         public void setAddress(Address address) {
             this.address = address;
+            addressCleared = false;
         }
 
         public Optional<Address> getAddress() {
             return Optional.ofNullable(address);
+        }
+
+        /** Marks the optional address field for removal. */
+        public void clearAddress() {
+            address = null;
+            addressCleared = true;
+        }
+
+        /** Returns whether the optional address field is marked for removal. */
+        public boolean isAddressCleared() {
+            return addressCleared;
         }
 
         /**
@@ -416,7 +457,9 @@ public class EditCommand extends Command {
             return Objects.equals(name, otherEditPersonDescriptor.name)
                     && Objects.equals(phone, otherEditPersonDescriptor.phone)
                     && Objects.equals(email, otherEditPersonDescriptor.email)
+                    && emailCleared == otherEditPersonDescriptor.emailCleared
                     && Objects.equals(address, otherEditPersonDescriptor.address)
+                    && addressCleared == otherEditPersonDescriptor.addressCleared
                     && Objects.equals(tags, otherEditPersonDescriptor.tags)
                     && Objects.equals(tagsToAdd, otherEditPersonDescriptor.tagsToAdd)
                     && Objects.equals(tagsToRemove, otherEditPersonDescriptor.tagsToRemove)
@@ -440,6 +483,12 @@ public class EditCommand extends Command {
                     .add("notes", notes);
             if (tagsToAdd != null) {
                 builder.add("tagsToAdd", tagsToAdd);
+            }
+            if (emailCleared) {
+                builder.add("emailCleared", true);
+            }
+            if (addressCleared) {
+                builder.add("addressCleared", true);
             }
             if (tagsToRemove != null) {
                 builder.add("tagsToRemove", tagsToRemove);

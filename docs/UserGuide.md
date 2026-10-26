@@ -352,6 +352,7 @@ use `+` to append values and `-` to remove values.
 * At least one field to edit must be provided.
 * When editing subjects using `s/`, the existing subjects of the student are replaced by the newly supplied subjects. Use `+s/` to append and `-s/` to remove subjects. At least one subject must remain, and duplicate subjects are not allowed.
 * Supplying `t/` replaces the complete tag set; `+t/` appends tags and `-t/` removes tags. `t/` alone clears the tags. Supplying `r/` alone clears notes.
+* Supplying `e/` alone clears an existing email, and `a/` alone clears an existing address.
 * `a/ADDRESS` overwrites the address for both student and legacy records. Omit it to preserve the current address.
 * Single-use prefixes (`n/`, `p/`, `e/`, `l/`, `r/`) cannot be repeated within the same command.
 * If the edited student matches another existing student according to TutorRoster duplicate rules, the command is rejected with `This student already exists in TutorRoster.`.
@@ -364,6 +365,7 @@ Examples:
 * `edit 2 +s/Physics -s/English +t/exam-prep -t/old-tag`
 * `edit 2 r/Prefers worked examples`
 * `edit 2 a/34 River Road`
+* `edit 2 e/ a/`
 
 **Success feedback:** `Edited student: NAME`, for example `Edited student: Ryan Tan`.
 
