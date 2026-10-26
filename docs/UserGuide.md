@@ -102,7 +102,7 @@ If you are using a PDF version of this user guide, be careful when copying comma
 | Action | Format | Example |
 | --- | --- | --- |
 | Open help | `help` | `help` |
-| Add student | `add n/NAME p/PHONE [e/EMAIL] [a/ADDRESS] s/SUBJECT [s/SUBJECT]... l/LEVEL [/t TAG]... [r/NOTES]` | `add n/Ryan Tan p/81234567 a/12 Main Street s/Mathematics l/Secondary 4 r/Prefers worked examples` |
+| Add student | `add n/NAME p/PHONE [e/EMAIL] [a/ADDRESS] s/SUBJECT [s/SUBJECT]... l/LEVEL [t/TAG]... [r/NOTES]` | `add n/Ryan Tan p/81234567 a/12 Main Street s/Mathematics l/Secondary 4 r/Prefers worked examples` |
 | List students | `list` | `list` |
 | Find students | `find [--any] [n/NAME]... [p/PHONE]... [e/EMAIL]... [a/ADDRESS]... [s/SUBJECT]... [l/LEVEL]... [t/TAG]...` where at least one field is required | `find n/Ryan` |
 | Show student details | `show INDEX` | `show 2` |
@@ -132,9 +132,9 @@ Opens a help window containing a link to this User Guide.
 
 Adds a student and shows the complete roster, including the new student at the end.
 
-**Format:** `add n/NAME p/PHONE [e/EMAIL] [a/ADDRESS] s/SUBJECT [s/SUBJECT]... l/LEVEL [/t TAG].. [r/NOTES]`
+**Format:** `add n/NAME p/PHONE [e/EMAIL] [a/ADDRESS] s/SUBJECT [s/SUBJECT]... l/LEVEL [t/TAG].. [r/NOTES]`
 
-* `/t exam-prep group-class`, empty `/t`, and `t/exam-prep` are invalid.
+* `t/exam-prep` and `t/group-class` add separate tags; an empty `t/` is invalid.
 * Repeated equivalent tags are stored once and produce `Warning: Duplicate tags were ignored.`
 
 | Field | Accepted values | Examples |
@@ -606,7 +606,7 @@ may have changed since the command was first entered.
 
 | Action | Format | Example |
 | --- | --- | --- |
-| Add student | `add n/NAME p/PHONE [e/EMAIL] [a/ADDRESS] s/SUBJECT [s/SUBJECT]... l/LEVEL [/t TAG]... [r/NOTES]` | `add n/Ryan Tan p/81234567 a/12 Main Street s/Mathematics l/Secondary 4 r/Prefers worked examples` |
+| Add student | `add n/NAME p/PHONE [e/EMAIL] [a/ADDRESS] s/SUBJECT [s/SUBJECT]... l/LEVEL [t/TAG]... [r/NOTES]` | `add n/Ryan Tan p/81234567 a/12 Main Street s/Mathematics l/Secondary 4 r/Prefers worked examples` |
 | List students | `list` | `list` |
 | Find students | `find [--any] [n/NAME]... [p/PHONE]... [e/EMAIL]... [a/ADDRESS]... [s/SUBJECT]... [l/LEVEL]... [t/TAG]...` | `find n/Ryan` or `find --any n/Ryan s/Physics` |
 | Show student details | `show INDEX` | `show 2` |

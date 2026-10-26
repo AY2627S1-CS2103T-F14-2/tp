@@ -178,11 +178,11 @@ public class TagHistoryIntegrationTest {
 
     @Test
     public void execute_addWithTags_isOneUndoStepAndInvalidTagsCreateNoStudent() throws Exception {
-        assertThrows(ParseException.class, () -> logic.execute("add n/Cam p/789 s/Math l/JC 1 /t bad--tag"));
+        assertThrows(ParseException.class, () -> logic.execute("add n/Cam p/789 s/Math l/JC 1 t/bad--tag"));
         assertRoster(amy, bob);
         assertFalse(model.canUndoAddressBook());
         assertEquals(0, saves);
-        var result = logic.execute("add n/Cam p/789 s/Math l/JC 1 /t EXAM-PREP /t exam-prep /t group-class");
+        var result = logic.execute("add n/Cam p/789 s/Math l/JC 1 t/EXAM-PREP t/exam-prep t/group-class");
         assertTrue(result.getFeedbackToUser().contains("Warning: Duplicate tags were ignored."));
         Person cam = new Person("Cam", "789", null, List.of("Math"), "JC 1")
                 .withTags(Set.of(new Tag("exam-prep"), new Tag("group-class")));

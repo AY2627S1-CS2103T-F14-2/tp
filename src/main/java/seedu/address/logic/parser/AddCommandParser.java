@@ -113,7 +113,7 @@ public class AddCommandParser implements Parser<AddCommand> {
         if (values.containsKey("r/") && !StudentFields.isValidNotes(notes)) {
             throw new ParseException(StudentFields.INVALID_NOTES);
         }
-        List<String> tagValues = values.getOrDefault("/t", List.of());
+        List<String> tagValues = values.getOrDefault("t/", List.of());
         Set<Tag> tags = parseTags(tagValues);
         if (tags.size() > Tag.MAX_TAGS_PER_STUDENT) {
             throw new ParseException(Tag.MESSAGE_TAG_LIMIT);
@@ -138,6 +138,6 @@ public class AddCommandParser implements Parser<AddCommand> {
     private static boolean isKnownPrefix(String prefix) {
         return prefix.equals("n/") || prefix.equals("p/") || prefix.equals("e/")
                 || prefix.equals("a/") || prefix.equals("s/") || prefix.equals("l/") || prefix.equals("r/")
-                || prefix.equals("/t");
+                || prefix.equals("t/");
     }
 }

@@ -26,9 +26,9 @@ public class AddCommand extends Command {
             + PREFIX_NAME + "NAME " + PREFIX_PHONE + "PHONE "
             + PREFIX_SUBJECT + "SUBJECT " + PREFIX_LEVEL + "LEVEL\n"
             + "Optional: " + PREFIX_EMAIL + "EMAIL; " + PREFIX_ADDRESS + "ADDRESS; " + PREFIX_NOTES
-            + "NOTES; /t TAG; repeat "
+            + "NOTES; t/TAG; repeat "
             + PREFIX_SUBJECT
-            + "SUBJECT for additional subjects or /t TAG for additional tags.\n"
+            + "SUBJECT for additional subjects or t/TAG for additional tags.\n"
             + "Parameters may appear in any order.";
     public static final String MESSAGE_USAGE = "Invalid command format.\n" + MESSAGE_PARAMETER_GUIDE;
 

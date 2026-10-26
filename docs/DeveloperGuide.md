@@ -166,8 +166,8 @@ This section describes some noteworthy details on how certain features are imple
 
 ### Add student
 
-`AddCommandParser` recognises `n/`, `p/`, `e/`, optional `a/` address, `s/`, `l/`, optional `r/` notes, and `/t` at parameter boundaries.
-Each repeated `/t TAG` supplies one tag. Equivalent tags are deduplicated with warning feedback,
+`AddCommandParser` recognises `n/`, `p/`, `e/`, optional `a/` address, `s/`, `l/`, optional `r/` notes, and `t/` at parameter boundaries.
+Each repeated `t/TAG` supplies one tag. Equivalent tags are deduplicated with warning feedback,
 and invalid tags or more than 20 distinct tags reject the entire command.
 It rejects unknown prefixes and repeated single-use prefixes first. For a missing required prefix or an empty
 required value, it reports the affected field and shows separate required and optional parameter lists. Invalid
@@ -622,7 +622,7 @@ Priorities: High (must have) - `* * *`, Medium (nice to have) - `* *`, Low (unli
 | **Subject** | An academic subject the tutor teaches a student, such as Mathematics or Physics. A student may have multiple subjects. |
 | **Education level** | The academic stage at which a student is taught, such as Primary 6, Secondary 4, or JC 1. |
 | **School** | The educational institution a student attends. A planned field beyond the strict MVP. |
-| **Tag** | A lowercase label such as `exam-prep`, attached with `tag INDEX TAG` or `/t TAG` during add, and removed with `untag`. |
+| **Tag** | A lowercase label such as `exam-prep`, attached with `tag INDEX TAG` or `t/TAG` during add, and removed with `untag`. |
 | **Student notes** | Optional free-text information about a student, such as learning difficulties, goals, preferred explanations, or parent requests. |
 | **Preferred contact person** | The student or guardian whom the tutor should contact first. A planned feature beyond the strict MVP. |
 | **Command** | A typed instruction that performs an operation, such as `list` or `delete 1`. |
