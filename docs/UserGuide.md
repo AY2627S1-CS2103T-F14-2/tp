@@ -435,6 +435,10 @@ index-based command.
 Closes TutorRoster. You can also close the main window. Successfully saved student records will be
 available when you reopen the app from the same folder.
 
+| Problem | Feedback |
+| --- | --- |
+| Extra arguments, such as `exit now` | `Error: Invalid command format.` followed by `Usage: exit` |
+
 <br>
 
 ## Saving and restoring student records
