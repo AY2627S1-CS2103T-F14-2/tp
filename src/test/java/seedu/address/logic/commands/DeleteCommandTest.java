@@ -40,7 +40,8 @@ public class DeleteCommandTest {
         Person personToDelete = model.getFilteredPersonList().get(INDEX_FIRST_PERSON.getZeroBased());
         DeleteCommand deleteCommand = new DeleteCommand(INDEX_FIRST_PERSON);
 
-        String expectedMessage = "Student removed: " + personToDelete.getName().fullName;
+        String expectedMessage = String.format(DeleteCommand.MESSAGE_DELETE_STUDENT_SUCCESS,
+                personToDelete.getName().fullName, personToDelete.getPhone().value);
 
         ModelManager expectedModel = new ModelManager(model.getAddressBook(), new UserPrefs());
         expectedModel.deletePerson(personToDelete);
@@ -63,7 +64,8 @@ public class DeleteCommandTest {
         Person personToDelete = model.getFilteredPersonList().get(INDEX_FIRST_PERSON.getZeroBased());
         DeleteCommand deleteCommand = new DeleteCommand(INDEX_FIRST_PERSON);
 
-        String expectedMessage = "Student removed: " + personToDelete.getName().fullName;
+        String expectedMessage = String.format(DeleteCommand.MESSAGE_DELETE_STUDENT_SUCCESS,
+                personToDelete.getName().fullName, personToDelete.getPhone().value);
 
         Model expectedModel = new ModelManager(model.getAddressBook(), new UserPrefs());
         expectedModel.deletePerson(personToDelete);
@@ -95,7 +97,7 @@ public class DeleteCommandTest {
         expectedModel.deletePerson(DANIEL);
 
         assertCommandSuccess(new DeleteCommand(INDEX_SECOND_PERSON), model,
-                "Student removed: Daniel Meier", expectedModel);
+                "Student removed: Daniel Meier (phone: 87652533)", expectedModel);
     }
 
     @Test
@@ -106,7 +108,8 @@ public class DeleteCommandTest {
         expectedModel.deletePerson(personToDelete);
 
         assertCommandSuccess(new DeleteCommand(lastIndex), model,
-                "Student removed: " + personToDelete.getName().fullName, expectedModel);
+                String.format(DeleteCommand.MESSAGE_DELETE_STUDENT_SUCCESS,
+                        personToDelete.getName().fullName, personToDelete.getPhone().value), expectedModel);
     }
 
     @Test
@@ -116,7 +119,22 @@ public class DeleteCommandTest {
         model.addPerson(student);
 
         assertCommandSuccess(new DeleteCommand(INDEX_FIRST_PERSON), model,
-                "Student removed: Ryan Tan", new ModelManager());
+                "Student removed: Ryan Tan (phone: 85355255)", new ModelManager());
+    }
+
+    @Test
+    public void execute_identicalNames_includesPhoneForDisambiguation() {
+        model = new ModelManager();
+        Person firstStudent = new Person("Alex Tan", "90000001", null, List.of("Mathematics"), "JC 1");
+        Person secondStudent = new Person("Alex Tan", "90000002", null, List.of("Physics"), "JC 1");
+        model.addPerson(firstStudent);
+        model.addPerson(secondStudent);
+
+        Model expectedModel = new ModelManager(new AddressBook(model.getAddressBook()), new UserPrefs());
+        expectedModel.deletePerson(secondStudent);
+
+        assertCommandSuccess(new DeleteCommand(Index.fromOneBased(2)), model,
+                "Student removed: Alex Tan (phone: 90000002)", expectedModel);
     }
 
     @Test

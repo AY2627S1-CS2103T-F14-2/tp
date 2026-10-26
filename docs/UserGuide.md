@@ -310,7 +310,7 @@ Removes a student from the active roster and shows the complete remaining roster
 * Deleting the last student leaves an empty roster.
 * Deletion takes effect immediately without a confirmation dialog. Use `undo` to recover it in the same session.
 
-**Success feedback:** `Student removed: NAME`, for example `Student removed: Ryan Tan`.
+**Success feedback:** `Student removed: NAME (phone: PHONE)`, for example `Student removed: Ryan Tan (phone: 81234567)`.
 
 Examples:
 
@@ -514,7 +514,7 @@ it does not reinterpret the old displayed index against the full roster.
 | Command | Result-area feedback | Displayed roster |
 | --- | --- | --- |
 | `find n/Ryan` | `1 person(s) listed!` | `1. Ryan Tan` |
-| `delete 1` | `Student removed: Ryan Tan` | `1. Alicia Lim`, `2. Sarah Lee` |
+| `delete 1` | `Student removed: Ryan Tan (phone: 81234567)` | `1. Alicia Lim`, `2. Sarah Lee` |
 | `undo` | `Undo successful.` | `1. Alicia Lim`, `2. Ryan Tan`, `3. Sarah Lee` |
 | `find n/Nobody` | `0 person(s) listed!` | Empty search results |
 | `redo` | `Redo successful.` | `1. Alicia Lim`, `2. Sarah Lee` |
