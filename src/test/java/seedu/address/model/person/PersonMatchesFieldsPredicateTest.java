@@ -55,6 +55,7 @@ public class PersonMatchesFieldsPredicateTest {
                 List.of(new SearchTerm(SearchField.PHONE, "+659123")), MatchMode.ALL);
 
         assertTrue(withoutPlusPredicate.test(personWithPlus));
+        assertTrue(withoutPlusPredicate.test(personWithoutPlus));
         assertTrue(withPlusPredicate.test(personWithPlus));
         assertTrue(withPlusPredicate.test(personWithoutPlus));
     }
