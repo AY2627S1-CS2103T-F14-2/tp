@@ -143,7 +143,7 @@ Adds a student and shows the complete roster, including the new student at the e
 
 | Field | Accepted values | Examples |
 | --- | --- | --- |
-| `NAME` | 1–100 characters after whitespace normalization. Unicode letters and numbers, spaces, apostrophes, hyphens, and full stops; at least one letter or number. | `Ryan Tan`, `Anne-Marie Lee`, `O'Connor`, `李明` |
+| `NAME` | 1–100 characters after whitespace normalization. Unicode letters and numbers, spaces, straight (`'`, U+0027) or curly (`’`, U+2019) apostrophes, hyphens, and full stops; at least one letter or number. | `Ryan Tan`, `Anne-Marie Lee`, `O'Connor`, `O’Connor`, `李明` |
 | `PHONE` | 3–15 digits, optionally beginning with one `+`. No spaces or hyphens. | `81234567`, `+6591234567` |
 | `EMAIL` | Exactly one `@`, a non-empty local part, and a domain containing a full stop with non-empty text between full stops. No whitespace. | `ryan@example.com`, `parent.tan@example.sg` |
 | `ADDRESS` | Optional non-blank text. | `12 Main Street`, `45 Orchard Road, Singapore` |
