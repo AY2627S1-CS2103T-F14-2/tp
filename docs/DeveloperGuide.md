@@ -178,7 +178,8 @@ Subject duplicate comparison uses that normalized value without case; storage re
 entered capitalization. Subjects remain in input order.
 
 Student records have subjects, a level, optional address, and optional notes. Notes are trimmed, limited to 500 Unicode characters,
-and cannot contain control characters. `Person.isSamePerson` compares two records by normalized
+and cannot contain control characters. Slash-based shorthands such as `w/o` are prohibited in notes because they can resemble
+parameter prefixes; users should write `without` instead. `Person.isSamePerson` compares two records by normalized
 name and either normalized phone or case-insensitive email.
 
 `AddCommand` changes an isolated working model and resets its filter to the full roster. `LogicManager`

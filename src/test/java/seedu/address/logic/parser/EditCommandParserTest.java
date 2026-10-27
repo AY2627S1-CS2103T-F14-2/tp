@@ -80,7 +80,7 @@ public class EditCommandParserTest {
         assertParseFailure(parser, "1 some random string", MESSAGE_INVALID_FORMAT);
 
         // invalid prefix being parsed as preamble
-        assertParseFailure(parser, "1 i/ string", MESSAGE_INVALID_FORMAT);
+        assertParseFailure(parser, "1 i/ string", "Unknown parameter prefix: i/");
     }
 
     @Test
@@ -121,6 +121,11 @@ public class EditCommandParserTest {
         EditCommand expectedCommand = new EditCommand(targetIndex, descriptor);
 
         assertParseSuccess(parser, userInput, expectedCommand);
+    }
+
+    @Test
+    public void parse_unknownPrefix_failure() {
+        assertParseFailure(parser, "1 p/90000003 x/hello", "Unknown parameter prefix: x/");
     }
 
     @Test

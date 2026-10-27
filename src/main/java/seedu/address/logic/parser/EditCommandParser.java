@@ -21,6 +21,8 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Optional;
 import java.util.Set;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 import seedu.address.commons.core.index.Index;
 import seedu.address.logic.commands.EditCommand;
@@ -36,6 +38,13 @@ import seedu.address.model.tag.Tag;
  * Parses input arguments and creates a new EditCommand object
  */
 public class EditCommandParser implements Parser<EditCommand> {
+    private static final Pattern PREFIX_PATTERN = Pattern.compile(
+            "(?U)(?<!\\S)([a-z]/|[+-][a-z]/|/[a-z](?=\\s|$))");
+    private static final Set<String> KNOWN_PREFIXES = Set.of(
+            PREFIX_NAME.getPrefix(), PREFIX_PHONE.getPrefix(), PREFIX_EMAIL.getPrefix(), PREFIX_ADDRESS.getPrefix(),
+            PREFIX_TAG.getPrefix(), PREFIX_APPEND_TAG.getPrefix(), PREFIX_REMOVE_TAG.getPrefix(),
+            PREFIX_SUBJECT.getPrefix(), PREFIX_APPEND_SUBJECT.getPrefix(),
+            PREFIX_REMOVE_SUBJECT.getPrefix(), PREFIX_LEVEL.getPrefix(), PREFIX_NOTES.getPrefix());
 
     /**
      * Parses the given {@code String} of arguments in the context of the EditCommand
@@ -44,6 +53,7 @@ public class EditCommandParser implements Parser<EditCommand> {
      */
     public EditCommand parse(String args) throws ParseException {
         requireNonNull(args);
+        rejectUnknownPrefixes(args);
         ArgumentMultimap argMultimap =
                 ArgumentTokenizer.tokenize(args, PREFIX_NAME, PREFIX_PHONE, PREFIX_EMAIL, PREFIX_ADDRESS,
                         PREFIX_TAG, PREFIX_APPEND_TAG, PREFIX_REMOVE_TAG, PREFIX_SUBJECT,
@@ -118,6 +128,18 @@ public class EditCommandParser implements Parser<EditCommand> {
         }
 
         return new EditCommand(index, editPersonDescriptor);
+    }
+
+    /** Rejects prefix-shaped tokens that are not part of the edit command syntax. */
+    private static void rejectUnknownPrefixes(String args) throws ParseException {
+        requireNonNull(args);
+        Matcher matcher = PREFIX_PATTERN.matcher(args);
+        while (matcher.find()) {
+            String prefix = matcher.group(1);
+            if (prefix == null || !KNOWN_PREFIXES.contains(prefix)) {
+                throw new ParseException("Unknown parameter prefix: " + prefix);
+            }
+        }
     }
 
     /**

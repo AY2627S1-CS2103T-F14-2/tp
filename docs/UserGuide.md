@@ -90,6 +90,8 @@ After a search, the roster shows matching students and numbers them from 1. A su
   education levels, consecutive internal whitespace is stored as one space. Capitalization is
   preserved for display.
 * Only the subject prefix `s/` may be repeated within an add command. Unknown prefixes are rejected.
+* Do not use slash-based shorthands such as `w/o` in free-text values such as `NOTES`, as they can
+  resemble a parameter prefix. Write `without` instead.
 * `list`, `undo`, and `redo` accept no arguments; `show` and `delete` accepts exactly one index. `find` accepts the optional
   `--any` flag before its search keywords. Use `help` and `exit` as shown in their formats below.
 
@@ -356,7 +358,8 @@ use `+` to append values and `-` to remove values.
 * Supplying `t/` replaces the complete tag set; `+t/` appends tags and `-t/` removes tags. `t/` alone clears the tags. Supplying `r/` alone clears notes.
 * Supplying `e/` alone clears an existing email, and `a/` alone clears an existing address.
 * `a/ADDRESS` overwrites the address for both student and legacy records. Omit it to preserve the current address.
-* Single-use prefixes (`n/`, `p/`, `e/`, `a/`, `l/`, `r/`) cannot be repeated within the same command.
+* Single-use prefixes (`n/`, `p/`, `e/`, `l/`, `r/`) cannot be repeated within the same command.
+* Do not use slash-based shorthands such as `w/o` in `r/NOTES`, as they can resemble a parameter prefix. Write `without` instead.
 * If the edited student matches another existing student according to TutorRoster duplicate rules, the command is rejected with `This student already exists in TutorRoster.`.
 * After a successful edit, the roster resets to show the complete student list.
 
@@ -379,6 +382,7 @@ Examples:
 | An existing student matches the duplicate rule | `This student already exists in TutorRoster.` |
 | Repeated single-use prefix | `Multiple values specified for the following single-valued field(s): ...` |
 | Repeated subject | `Duplicate subject: SUBJECT` |
+| An unknown prefix, such as `x/` | `Unknown parameter prefix: x/` |
 | Invalid field value | Message explaining the applicable rule (e.g. `Invalid phone number. ...`) |
 
 <br>
