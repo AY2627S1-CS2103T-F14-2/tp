@@ -44,7 +44,7 @@ Student records are saved locally so you can return to them in later sessions.
    | --- | --- |
    | `list` | Shows the complete roster. |
    | `add n/Ryan Tan p/+6591234567 s/Mathematics l/Secondary 4 r/Prefers worked examples` | Adds Ryan's student record. |
-   | `find Ryan` | Shows students whose names contain `Ryan`. |
+   | `find n/Ryan` | Shows students whose names contain `Ryan`. |
    | `show 1` | Opens the complete record for student 1 in the currently displayed list. |
    | `edit 1 p/+6591234567 l/Secondary 5` | Updates student 1's phone and level in the currently displayed list. |
    | `delete 1` | Removes the student numbered 1 in the currently displayed list. |
@@ -85,7 +85,8 @@ After a search, the roster shows matching students and numbers them from 1. A su
 * Square brackets mark optional input. For example, `n/NAME [t/Tag]` becomes `n/Ryan Tan t/online` or `n/Ryan Tan`.
 * `...` means that the preceding item may be repeated. For example, `s/SUBJECT [s/SUBJECT]...`
   requires one subject and allows additional subjects.
-* Fields may appear in any order. For example, `add p/81234567 n/Ryan Tan` is valid.
+* Fields may appear in any order, but all required fields must still be included. For example,
+  `add p/81234567 n/Ryan Tan s/Mathematics l/Primary 6` is valid.
 * Spaces around the complete command and textual values are ignored. In names, subjects, and
   education levels, consecutive internal whitespace is stored as one space. Capitalization is
   preserved for display.
@@ -573,8 +574,9 @@ student's name and contact details to choose the correct number.
 
 **How do I search for several possible names?**
 
-This version accepts one name filter per command. To search another name, run a separate
-`find n/NAME` command. `--any` is useful for searching across fields, such as
+Repeat `n/` and use `--any`. For example, `find --any n/Ryan n/Sarah` matches students whose
+names contain either `Ryan` or `Sarah`. Without `--any`, every supplied name filter must match
+the same student. You can also use `--any` across different fields, such as
 `find --any n/Ryan s/Mathematics`.
 
 **Why are sample students shown on first use?**
