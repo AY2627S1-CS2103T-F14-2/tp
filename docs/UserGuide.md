@@ -90,6 +90,8 @@ After a search, the roster shows matching students and numbers them from 1. A su
   education levels, consecutive internal whitespace is stored as one space. Capitalization is
   preserved for display.
 * Only the subject prefix `s/` may be repeated within an add command. Unknown prefixes are rejected.
+* Do not use slash-based shorthands such as `w/o` in free-text values such as `NOTES`, as they can
+  resemble a parameter prefix. Write `without` instead.
 * `list`, `undo`, and `redo` accept no arguments; `show` and `delete` accepts exactly one index. `find` accepts the optional
   `--any` flag before its search keywords. Use `help` and `exit` as shown in their formats below.
 
@@ -136,7 +138,6 @@ Adds a student and shows the complete roster, including the new student at the e
 
 * `t/exam-prep` and `t/group-class` add separate tags; an empty `t/` is invalid.
 * Repeated equivalent tags are stored once and produce `Warning: Duplicate tags were ignored.`
-* Prefix-shaped text such as `w/o` within `r/NOTES` is treated as part of the notes rather than as a parameter prefix.
 
 | Field | Accepted values | Examples |
 | --- | --- | --- |
@@ -356,6 +357,7 @@ use `+` to append values and `-` to remove values.
 * Supplying `e/` alone clears an existing email, and `a/` alone clears an existing address.
 * `a/ADDRESS` overwrites the address for both student and legacy records. Omit it to preserve the current address.
 * Single-use prefixes (`n/`, `p/`, `e/`, `l/`, `r/`) cannot be repeated within the same command.
+* Do not use slash-based shorthands such as `w/o` in `r/NOTES`, as they can resemble a parameter prefix. Write `without` instead.
 * If the edited student matches another existing student according to TutorRoster duplicate rules, the command is rejected with `This student already exists in TutorRoster.`.
 * After a successful edit, the roster resets to show the complete student list.
 

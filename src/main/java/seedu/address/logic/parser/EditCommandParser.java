@@ -138,12 +138,9 @@ public class EditCommandParser implements Parser<EditCommand> {
     private static void rejectUnknownPrefixes(String args) throws ParseException {
         requireNonNull(args);
         Matcher matcher = PREFIX_PATTERN.matcher(args);
-        String currentPrefix = null;
         while (matcher.find()) {
             String prefix = matcher.group(1);
-            if (KNOWN_PREFIXES.contains(prefix)) {
-                currentPrefix = prefix;
-            } else if (!PREFIX_NOTES.getPrefix().equals(currentPrefix)) {
+            if (prefix == null || !KNOWN_PREFIXES.contains(prefix)) {
                 throw new ParseException("Unknown parameter prefix: " + prefix);
             }
         }

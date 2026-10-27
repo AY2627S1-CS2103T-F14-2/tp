@@ -36,12 +36,8 @@ public class AddCommandParser implements Parser<AddCommand> {
 
         while (matcher.find()) {
             String prefix = matcher.group(1);
-            boolean knownPrefix = isKnownPrefix(prefix);
-            if (!knownPrefix && !"r/".equals(previousPrefix)) {
+            if (!isKnownPrefix(prefix)) {
                 throw new ParseException("Unknown parameter prefix: " + prefix);
-            }
-            if (!knownPrefix) {
-                continue;
             }
             if (firstPrefixStart < 0) {
                 firstPrefixStart = matcher.start(1);
