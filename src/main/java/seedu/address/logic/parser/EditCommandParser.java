@@ -78,13 +78,22 @@ public class EditCommandParser implements Parser<EditCommand> {
         }
         if (argMultimap.getValue(PREFIX_EMAIL).isPresent()) {
             String email = argMultimap.getValue(PREFIX_EMAIL).get();
-            if (!StudentFields.isValidEmail(email)) {
-                throw new ParseException(StudentFields.INVALID_EMAIL);
+            if (email == null || email.isEmpty()) {
+                editPersonDescriptor.clearEmail();
+            } else {
+                if (!StudentFields.isValidEmail(email)) {
+                    throw new ParseException(StudentFields.INVALID_EMAIL);
+                }
+                editPersonDescriptor.setEmail(Email.fromStoredValue(email));
             }
-            editPersonDescriptor.setEmail(Email.fromStoredValue(email));
         }
         if (argMultimap.getValue(PREFIX_ADDRESS).isPresent()) {
-            editPersonDescriptor.setAddress(ParserUtil.parseAddress(argMultimap.getValue(PREFIX_ADDRESS).get()));
+            String address = argMultimap.getValue(PREFIX_ADDRESS).get();
+            if (address == null || address.isEmpty()) {
+                editPersonDescriptor.clearAddress();
+            } else {
+                editPersonDescriptor.setAddress(ParserUtil.parseAddress(address));
+            }
         }
         parseTagsForEdit(argMultimap.getAllValues(PREFIX_TAG), true).ifPresent(editPersonDescriptor::setTags);
         parseTagsForEdit(argMultimap.getAllValues(PREFIX_APPEND_TAG), false)

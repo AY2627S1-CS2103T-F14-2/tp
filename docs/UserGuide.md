@@ -266,7 +266,9 @@ Shows students matching the given fields.
 * By default, every given field must match. Use `--any` to find students matching at least one given field.
 * Matching is case-insensitive: `find n/RYAN` and `find n/ryan` return the same results.
 * A keyword may match part of a field: `find n/Ann` can match `Anna Lee` and `Annie Tan`.
-* Addresses are searchable with `a/ADDRESS`, including for student records added with an address.
+* Phone searches ignore an optional leading `+` in both the search value and stored phone number. For example,
+  `find p/659` and `find p/+659` return the same matches.
+* Addresses are searchable with `a/ADDRESS`, including for student records added with an address and older records.
 * Every field may be repeated. For example, `find s/Math s/English` matches students who take both Math and English.
 * The order of the fields does not matter.
 
@@ -310,7 +312,7 @@ Removes a student from the active roster and shows the complete remaining roster
 * Deleting the last student leaves an empty roster.
 * Deletion takes effect immediately without a confirmation dialog. Use `undo` to recover it in the same session.
 
-**Success feedback:** `Student removed: NAME`, for example `Student removed: Ryan Tan`.
+**Success feedback:** `Student removed: NAME (phone: PHONE)`, for example `Student removed: Ryan Tan (phone: 81234567)`.
 
 Examples:
 
@@ -352,8 +354,9 @@ use `+` to append values and `-` to remove values.
 * At least one field to edit must be provided.
 * When editing subjects using `s/`, the existing subjects of the student are replaced by the newly supplied subjects. Use `+s/` to append and `-s/` to remove subjects. At least one subject must remain, and duplicate subjects are not allowed.
 * Supplying `t/` replaces the complete tag set; `+t/` appends tags and `-t/` removes tags. `t/` alone clears the tags. Supplying `r/` alone clears notes.
-* `a/ADDRESS` overwrites the address. Omit it to preserve the current address.
-* Single-use prefixes (`n/`, `p/`, `e/`, `l/`, `r/`) cannot be repeated within the same command.
+* Supplying `e/` alone clears an existing email, and `a/` alone clears an existing address.
+* `a/ADDRESS` overwrites the address for both student and legacy records. Omit it to preserve the current address.
+* Single-use prefixes (`n/`, `p/`, `e/`, `a/`, `l/`, `r/`) cannot be repeated within the same command.
 * If the edited student matches another existing student according to TutorRoster duplicate rules, the command is rejected with `This student already exists in TutorRoster.`.
 * After a successful edit, the roster resets to show the complete student list.
 
@@ -364,6 +367,7 @@ Examples:
 * `edit 2 +s/Physics -s/English +t/exam-prep -t/old-tag`
 * `edit 2 r/Prefers worked examples`
 * `edit 2 a/34 River Road`
+* `edit 2 e/ a/`
 
 **Success feedback:** `Edited student: NAME`, for example `Edited student: Ryan Tan`.
 
@@ -518,7 +522,7 @@ it does not reinterpret the old displayed index against the full roster.
 | Command | Result-area feedback | Displayed roster |
 | --- | --- | --- |
 | `find n/Ryan` | `1 person(s) listed!` | `1. Ryan Tan` |
-| `delete 1` | `Student removed: Ryan Tan` | `1. Alicia Lim`, `2. Sarah Lee` |
+| `delete 1` | `Student removed: Ryan Tan (phone: 81234567)` | `1. Alicia Lim`, `2. Sarah Lee` |
 | `undo` | `Undo successful.` | `1. Alicia Lim`, `2. Ryan Tan`, `3. Sarah Lee` |
 | `find n/Nobody` | `0 person(s) listed!` | Empty search results |
 | `redo` | `Redo successful.` | `1. Alicia Lim`, `2. Sarah Lee` |

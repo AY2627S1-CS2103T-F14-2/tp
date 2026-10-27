@@ -112,7 +112,7 @@ public class LogicManagerTest {
 
         Model expectedModel = new ModelManager(TypicalPersons.getTypicalAddressBook(), new UserPrefs());
         expectedModel.deletePerson(TypicalPersons.BENSON);
-        assertEquals("Student removed: Benson Meier", result.getFeedbackToUser());
+        assertEquals("Student removed: Benson Meier (phone: 98765432)", result.getFeedbackToUser());
         assertEquals(expectedModel, model);
         assertEquals(expectedModel.getAddressBook(),
                 new JsonAddressBookStorage(temporaryFolder.resolve("addressBook.json"))
