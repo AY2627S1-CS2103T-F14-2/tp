@@ -128,6 +128,10 @@ Tip: While inside the input box, use the Up and Down arrow keys to recall comman
 
 Opens a help window containing a link to this User Guide.
 
+| Problem | Feedback |
+| --- | --- |
+| Extra arguments, such as `help details` | `Error: Invalid command format.` followed by the help usage guide |
+
 <br>
 
 ### Adding a student: `add`
@@ -268,6 +272,8 @@ Shows students matching the given fields.
 * By default, every given field must match. Use `--any` to find students matching at least one given field.
 * Matching is case-insensitive: `find n/RYAN` and `find n/ryan` return the same results.
 * A keyword may match part of a field: `find n/Ann` can match `Anna Lee` and `Annie Tan`.
+* Phone searches ignore an optional leading `+` in both the search value and stored phone number. For example,
+  `find p/659` and `find p/+659` return the same matches.
 * Addresses are searchable with `a/ADDRESS`, including for student records added with an address and older records.
 * Every field may be repeated. For example, `find s/Math s/English` matches students who take both Math and English.
 * The order of the fields does not matter.
@@ -312,7 +318,7 @@ Removes a student from the active roster and shows the complete remaining roster
 * Deleting the last student leaves an empty roster.
 * Deletion takes effect immediately without a confirmation dialog. Use `undo` to recover it in the same session.
 
-**Success feedback:** `Student removed: NAME`, for example `Student removed: Ryan Tan`.
+**Success feedback:** `Student removed: NAME (phone: PHONE)`, for example `Student removed: Ryan Tan (phone: 81234567)`.
 
 Examples:
 
@@ -437,6 +443,10 @@ index-based command.
 Closes TutorRoster. You can also close the main window. Successfully saved student records will be
 available when you reopen the app from the same folder.
 
+| Problem | Feedback |
+| --- | --- |
+| Extra arguments, such as `exit now` | `Error: Invalid command format.` followed by `Usage: exit` |
+
 <br>
 
 ## Saving and restoring student records
@@ -520,7 +530,7 @@ it does not reinterpret the old displayed index against the full roster.
 | Command | Result-area feedback | Displayed roster |
 | --- | --- | --- |
 | `find n/Ryan` | `1 person(s) listed!` | `1. Ryan Tan` |
-| `delete 1` | `Student removed: Ryan Tan` | `1. Alicia Lim`, `2. Sarah Lee` |
+| `delete 1` | `Student removed: Ryan Tan (phone: 81234567)` | `1. Alicia Lim`, `2. Sarah Lee` |
 | `undo` | `Undo successful.` | `1. Alicia Lim`, `2. Ryan Tan`, `3. Sarah Lee` |
 | `find n/Nobody` | `0 person(s) listed!` | Empty search results |
 | `redo` | `Redo successful.` | `1. Alicia Lim`, `2. Sarah Lee` |
