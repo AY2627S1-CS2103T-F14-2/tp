@@ -220,7 +220,8 @@ retained. Migration is idempotent and preserves unrelated model fields.
 
 Student cards display sorted, wrapping badges and hide the tag area for an empty set. First-launch
 sample students include example tags. Tag changes use the undo/redo implementation below;
-field-targeted searches can also filter by address, subjects, level, notes, contact details, and tags.
+field-targeted searches can also filter by address, subjects, level, notes, contact details, and tags. Phone searches
+normalise an optional leading `+` before applying partial matching.
 
 ### Delete student
 

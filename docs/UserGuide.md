@@ -270,6 +270,8 @@ Shows students matching the given fields.
 * By default, every given field must match. Use `--any` to find students matching at least one given field.
 * Matching is case-insensitive: `find n/RYAN` and `find n/ryan` return the same results.
 * A keyword may match part of a field: `find n/Ann` can match `Anna Lee` and `Annie Tan`.
+* Phone searches ignore an optional leading `+` in both the search value and stored phone number. For example,
+  `find p/659` and `find p/+659` return the same matches.
 * Addresses are searchable with `a/ADDRESS`, including for student records added with an address and older records.
 * Every field may be repeated. For example, `find s/Math s/English` matches students who take both Math and English.
 * The order of the fields does not matter.
