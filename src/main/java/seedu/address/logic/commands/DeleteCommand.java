@@ -39,15 +39,11 @@ public class DeleteCommand extends Command {
         requireNonNull(model);
         List<Person> lastShownList = model.getFilteredPersonList();
 
-        if (lastShownList == null || targetIndex.getZeroBased() < 0
-                || targetIndex.getZeroBased() >= lastShownList.size()) {
+        if (targetIndex.getZeroBased() >= lastShownList.size()) {
             throw new CommandException(MESSAGE_INVALID_STUDENT_DISPLAYED_INDEX);
         }
 
         Person personToDelete = lastShownList.get(targetIndex.getZeroBased());
-        if (personToDelete == null || personToDelete.getName() == null || personToDelete.getPhone() == null) {
-            throw new CommandException(MESSAGE_INVALID_STUDENT_DISPLAYED_INDEX);
-        }
         model.deletePerson(personToDelete);
         model.updateFilteredPersonList(PREDICATE_SHOW_ALL_PERSONS);
         return new CommandResult(String.format(MESSAGE_DELETE_STUDENT_SUCCESS, personToDelete.getName().fullName,
