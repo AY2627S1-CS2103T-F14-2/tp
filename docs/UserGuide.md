@@ -136,6 +136,7 @@ Adds a student and shows the complete roster, including the new student at the e
 
 * `t/exam-prep` and `t/group-class` add separate tags; an empty `t/` is invalid.
 * Repeated equivalent tags are stored once and produce `Warning: Duplicate tags were ignored.`
+* Prefix-shaped text such as `w/o` within `r/NOTES` is treated as part of the notes rather than as a parameter prefix.
 
 | Field | Accepted values | Examples |
 | --- | --- | --- |

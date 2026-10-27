@@ -146,6 +146,15 @@ public class EditCommandParserTest {
     }
 
     @Test
+    public void parse_notesContainingSlashWord_success() {
+        EditPersonDescriptor descriptor = new EditPersonDescriptorBuilder()
+                .withNotes("Lesson's need to be carried out w/o phone")
+                .build();
+        assertParseSuccess(parser, "1 r/Lesson's need to be carried out w/o phone",
+                new EditCommand(INDEX_FIRST_PERSON, descriptor));
+    }
+
+    @Test
     public void parse_someFieldsSpecified_success() {
         Index targetIndex = INDEX_FIRST_PERSON;
         String userInput = targetIndex.getOneBased() + PHONE_DESC_BOB + EMAIL_DESC_AMY;

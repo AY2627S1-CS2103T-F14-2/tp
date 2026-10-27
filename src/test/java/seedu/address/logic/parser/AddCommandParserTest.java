@@ -91,6 +91,12 @@ public class AddCommandParserTest {
                 " n/Ryan Tan p/+6591234567 s/Mathematics l/Secondary 4"
                         + " r/Prefers worked examples; parent requests weekly updates",
                 new AddCommand(expected));
+
+        Person studentWithSlashInNotes = new Person("Jaxon", "1012", null,
+                List.of("English"), "P2", "Lesson's need to be carried out w/o phone");
+        assertParseSuccess(parser,
+                " n/Jaxon p/1012 s/English l/P2 r/Lesson's need to be carried out w/o phone",
+                new AddCommand(studentWithSlashInNotes));
     }
 
     @Test
