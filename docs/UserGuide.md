@@ -354,7 +354,7 @@ use `+` to append values and `-` to remove values.
 * Supplying `t/` replaces the complete tag set; `+t/` appends tags and `-t/` removes tags. `t/` alone clears the tags. Supplying `r/` alone clears notes.
 * Supplying `e/` alone clears an existing email, and `a/` alone clears an existing address.
 * `a/ADDRESS` overwrites the address for both student and legacy records. Omit it to preserve the current address.
-* Single-use prefixes (`n/`, `p/`, `e/`, `l/`, `r/`) cannot be repeated within the same command.
+* Single-use prefixes (`n/`, `p/`, `e/`, `a/`, `l/`, `r/`) cannot be repeated within the same command.
 * If the edited student matches another existing student according to TutorRoster duplicate rules, the command is rejected with `This student already exists in TutorRoster.`.
 * After a successful edit, the roster resets to show the complete student list.
 
