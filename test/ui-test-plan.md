@@ -251,3 +251,32 @@ name `Alicia Lim`, phone `81234567`, email `alicia@example.com`, address
 `Test address 1`; tags, subjects, level, and notes each show `Not provided`.
 It must leave Jamie's addition available for redo. Enter `exit` and require
 status 0 within 10 seconds after the final modal is closed.
+
+
+## FIND-HINT-UI-01 Field-based find suggestion
+
+Aim: Show the current field-based syntax when completing `find`, list every
+supported search prefix, and describe `--any` as matching at least one field.
+
+Start a fresh isolated session using the build, fixture, launch instructions,
+and timeouts above. This case has its own session and does not continue any
+other case. Type each input without pressing Enter, replacing the complete
+command-box contents between rows. Inspect the find suggestion in the popup;
+other command suggestions may also appear for blank input.
+
+| Exact command-box input | Exact expected find format | Exact expected description text |
+| --- | --- | --- |
+| Empty string | `find [--any] PREFIX/VALUE [PREFIX/VALUE]...` | `Search using n/ name, p/ phone, e/ email, a/ address, s/ subject, l/ level, or t/ tag.` |
+| `fi` | `find [--any] PREFIX/VALUE [PREFIX/VALUE]...` | `Search using n/ name, p/ phone, e/ email, a/ address, s/ subject, l/ level, or t/ tag.` |
+| `find` | `find [--any] PREFIX/VALUE [PREFIX/VALUE]...` | `Search using n/ name, p/ phone, e/ email, a/ address, s/ subject, l/ level, or t/ tag.` |
+| `find ` | `--any` | `Match students matching at least one supplied field (OR search)` |
+| `find --a` | `--any` | `Match students matching at least one supplied field (OR search)` |
+
+The UI prepends an em dash and a space (`— `) to each description. Visual line
+wrapping is permitted; compare the complete label text. No command executes
+and the roster remains unchanged throughout these steps.
+
+Replace the command-box contents with `fi`, then press Tab. Expect exactly
+`find ` (including one trailing space) in the command box. Replace the contents
+with `find --a`, then press Tab. Expect exactly `find --any ` (including one
+trailing space). Enter `exit` and require status 0 within 10 seconds.
