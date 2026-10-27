@@ -20,7 +20,7 @@ public class DeleteCommand extends Command {
 
     public static final String MESSAGE_USAGE = COMMAND_WORD + " INDEX";
     public static final String MESSAGE_INVALID_COMMAND_FORMAT = "Invalid command format.\nUsage: " + MESSAGE_USAGE;
-    public static final String MESSAGE_DELETE_STUDENT_SUCCESS = "Student removed: %1$s";
+    public static final String MESSAGE_DELETE_STUDENT_SUCCESS = "Student removed: %1$s (phone: %2$s)";
     public static final String MESSAGE_INVALID_STUDENT_DISPLAYED_INDEX = "The student index provided is invalid.";
 
     private final Index targetIndex;
@@ -31,7 +31,7 @@ public class DeleteCommand extends Command {
      * @param targetIndex index in the currently displayed list.
      */
     public DeleteCommand(Index targetIndex) {
-        this.targetIndex = targetIndex;
+        this.targetIndex = requireNonNull(targetIndex);
     }
 
     @Override
@@ -46,7 +46,8 @@ public class DeleteCommand extends Command {
         Person personToDelete = lastShownList.get(targetIndex.getZeroBased());
         model.deletePerson(personToDelete);
         model.updateFilteredPersonList(PREDICATE_SHOW_ALL_PERSONS);
-        return new CommandResult(String.format(MESSAGE_DELETE_STUDENT_SUCCESS, personToDelete.getName().fullName));
+        return new CommandResult(String.format(MESSAGE_DELETE_STUDENT_SUCCESS, personToDelete.getName().fullName,
+                personToDelete.getPhone().value));
     }
 
     @Override

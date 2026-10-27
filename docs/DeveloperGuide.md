@@ -233,7 +233,8 @@ An out-of-range index produces `The student index provided is invalid.` without 
 For a valid index, it resolves the student before deleting the record, then resets the filter with
 `Model.PREDICATE_SHOW_ALL_PERSONS`. Resolving the student before clearing the filter is necessary because a search
 result's index can differ from its index in the complete roster.
-The command returns `Student removed: NAME`; it does not display contact details or ask for confirmation.
+The command returns `Student removed: NAME (phone: PHONE)` so identical names can be distinguished; it does not ask
+for confirmation.
 
 <puml src="diagrams/DeleteSequenceDiagram.puml" alt="Delete student sequence" />
 
@@ -679,7 +680,7 @@ testers are expected to do more *exploratory* testing.
 
    1. Test case: `delete 1`<br>
       Expected: The first student is removed, all remaining students are displayed, and the result area shows
-      `Student removed: NAME`.
+      `Student removed: NAME (phone: PHONE)`.
 
    1. Test case: `delete 0`<br>
       Expected: No student is removed, the displayed list is unchanged, and the result area shows
