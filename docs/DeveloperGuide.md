@@ -178,7 +178,8 @@ Subject duplicate comparison uses that normalized value without case; storage re
 entered capitalization. Subjects remain in input order.
 
 New student records have subjects, a level, optional address, and optional notes. Notes are trimmed, limited to 500 Unicode characters,
-and cannot contain control characters. `Person.isSamePerson` compares two new-format records by normalized
+cannot contain control characters. Slash-based shorthands such as `w/o` are prohibited in notes because they can resemble
+parameter prefixes; users should write `without` instead. `Person.isSamePerson` compares two new-format records by normalized
 name and either normalized phone or case-insensitive email. Legacy records retain their original address and tags
 for storage compatibility, but do not participate in new-student duplicate checks. Existing stored records are
 restored without reapplying add-time duplicate checks.
