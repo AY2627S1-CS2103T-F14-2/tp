@@ -75,14 +75,29 @@ public class CommandCompletionLogicTest {
                 .anyMatch(s -> s.completionText().endsWith("s/"));
         assertTrue(hasRepeatableSubject);
 
-        // e/ and r/ are optional so they should be suggested
+        // e/, a/, r/, t/ are optional so they should be suggested
         boolean hasEmail = suggestions.stream()
                 .anyMatch(s -> s.completionText().endsWith("e/"));
         assertTrue(hasEmail);
 
+        boolean hasAddress = suggestions.stream()
+                .anyMatch(s -> s.completionText().endsWith("a/"));
+        assertTrue(hasAddress);
+
         boolean hasNotes = suggestions.stream()
                 .anyMatch(s -> s.completionText().endsWith("r/"));
         assertTrue(hasNotes);
+
+        boolean hasTag = suggestions.stream()
+                .anyMatch(s -> s.completionText().endsWith("t/"));
+        assertTrue(hasTag);
+
+        // When t/ is already provided, it should still be suggested because it is repeatable
+        String withTag = allRequired + "t/exam-prep ";
+        List<CommandCompletionLogic.Suggestion> afterTag = completionLogic.getSuggestions(withTag);
+        boolean hasAdditionalTag = afterTag.stream()
+                .anyMatch(s -> s.completionText().endsWith("t/") && s.description().contains("(additional)"));
+        assertTrue(hasAdditionalTag);
     }
 
     @Test
@@ -164,5 +179,91 @@ public class CommandCompletionLogicTest {
         List<CommandCompletionLogic.Suggestion> allSuggestions = completionLogic.getSuggestions("");
         boolean hasEdit = allSuggestions.stream().anyMatch(s -> s.completionText().equals("edit "));
         assertTrue(hasEdit);
+    }
+
+    @Test
+    public void getSuggestions_tagCommandPrefix_returnsMatchingCommands() {
+        List<CommandCompletionLogic.Suggestion> tMatches = completionLogic.getSuggestions("t");
+        assertEquals(1, tMatches.size());
+        assertEquals("tag ", tMatches.get(0).completionText());
+        assertEquals("tag INDEX TAG", tMatches.get(0).formatText());
+
+        List<CommandCompletionLogic.Suggestion> taMatches = completionLogic.getSuggestions("ta");
+        assertEquals(1, taMatches.size());
+        assertEquals("tag ", taMatches.get(0).completionText());
+    }
+
+    @Test
+    public void autocomplete_tagCommandPrefix_returnsCompletedCommand() {
+        Optional<String> completed = completionLogic.autocomplete("ta");
+        assertTrue(completed.isPresent());
+        assertEquals("tag ", completed.get());
+    }
+
+    @Test
+    public void getSuggestions_tagCommandArguments_suggestsIndexAndTag() {
+        // When typing "tag " with no arguments, suggests index with format guide
+        List<CommandCompletionLogic.Suggestion> tagEmptyArgs = completionLogic.getSuggestions("tag ");
+        assertEquals(1, tagEmptyArgs.size());
+        assertEquals("tag 1 ", tagEmptyArgs.get(0).completionText());
+        assertEquals("tag INDEX TAG", tagEmptyArgs.get(0).formatText());
+
+        // When typing "tag 2" (partial index without trailing space), suggests completed space
+        List<CommandCompletionLogic.Suggestion> tagPartialIndex = completionLogic.getSuggestions("tag 2");
+        assertEquals(1, tagPartialIndex.size());
+        assertEquals("tag 2 ", tagPartialIndex.get(0).completionText());
+
+        // When index is entered followed by space "tag 2 ", suggests tag format guide
+        List<CommandCompletionLogic.Suggestion> tagWithIndex = completionLogic.getSuggestions("tag 2 ");
+        assertEquals(1, tagWithIndex.size());
+        assertEquals("tag 2 ", tagWithIndex.get(0).completionText());
+        assertEquals("TAG", tagWithIndex.get(0).formatText());
+
+        // When tag name is being typed, no suggestions
+        List<CommandCompletionLogic.Suggestion> tagComplete = completionLogic.getSuggestions("tag 2 exam-prep");
+        assertTrue(tagComplete.isEmpty());
+    }
+
+    @Test
+    public void getSuggestions_untagCommand_suggestsIndexAndAllFlag() {
+        // Prefix matching
+        List<CommandCompletionLogic.Suggestion> uMatches = completionLogic.getSuggestions("u");
+        assertEquals(1, uMatches.size());
+        assertEquals("untag ", uMatches.get(0).completionText());
+
+        // Autocomplete on "un"
+        Optional<String> completed = completionLogic.autocomplete("un");
+        assertTrue(completed.isPresent());
+        assertEquals("untag ", completed.get());
+
+        // When typing "untag ", suggests both index and --all options
+        List<CommandCompletionLogic.Suggestion> untagEmpty = completionLogic.getSuggestions("untag ");
+        assertEquals(2, untagEmpty.size());
+        assertEquals("untag 1 ", untagEmpty.get(0).completionText());
+        assertEquals("untag --all 1", untagEmpty.get(1).completionText());
+
+        // When typing flag prefix "untag --"
+        List<CommandCompletionLogic.Suggestion> untagFlag = completionLogic.getSuggestions("untag --");
+        assertEquals(1, untagFlag.size());
+        assertEquals("untag --all 1", untagFlag.get(0).completionText());
+
+        // When typing "untag --all "
+        List<CommandCompletionLogic.Suggestion> untagAllArgs = completionLogic.getSuggestions("untag --all ");
+        assertEquals(1, untagAllArgs.size());
+        assertEquals("untag --all 1", untagAllArgs.get(0).completionText());
+
+        // When typing "untag 3 "
+        List<CommandCompletionLogic.Suggestion> untagWithIndex = completionLogic.getSuggestions("untag 3 ");
+        assertEquals(1, untagWithIndex.size());
+        assertEquals("TAG", untagWithIndex.get(0).formatText());
+    }
+
+    @Test
+    public void getSuggestions_emptyInput_includesTagCommands() {
+        List<CommandCompletionLogic.Suggestion> allSuggestions = completionLogic.getSuggestions("");
+        boolean hasTag = allSuggestions.stream().anyMatch(s -> s.completionText().equals("tag "));
+        boolean hasUntag = allSuggestions.stream().anyMatch(s -> s.completionText().equals("untag "));
+        assertTrue(hasTag);
+        assertTrue(hasUntag);
     }
 }

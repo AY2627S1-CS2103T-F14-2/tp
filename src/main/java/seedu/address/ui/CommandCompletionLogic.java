@@ -21,7 +21,7 @@ public class CommandCompletionLogic {
     private static final Pattern PREFIX_PATTERN = Pattern.compile("(?U)(?<!\\S)([+\\-]?[a-z])/");
 
     private static final List<CommandSpec> COMMANDS = List.of(
-            new CommandSpec("add", "add n/NAME p/PHONE s/SUBJECT l/LEVEL [e/EMAIL] [a/ADDRESS] [r/NOTES]",
+            new CommandSpec("add", "add n/NAME p/PHONE s/SUBJECT l/LEVEL [e/EMAIL] [a/ADDRESS] [r/NOTES] [t/TAG]...",
                     "Add a new student to the roster"),
             new CommandSpec("edit",
                     "edit INDEX [n/NAME] [p/PHONE] [e/EMAIL] [a/ADDRESS] [s/SUBJECT]... [l/LEVEL] [r/NOTES] [t/TAG]...",
@@ -34,6 +34,10 @@ public class CommandCompletionLogic {
                     "Show the complete student roster"),
             new CommandSpec("show", "show INDEX",
                     "Show complete record of student at displayed index"),
+            new CommandSpec("tag", "tag INDEX TAG",
+                    "Add a tag to student by displayed list index"),
+            new CommandSpec("untag", "untag INDEX TAG or untag --all INDEX",
+                    "Remove a tag from student by displayed list index"),
             new CommandSpec("help", "help",
                     "Open the user guide window"),
             new CommandSpec("exit", "exit",
@@ -47,7 +51,8 @@ public class CommandCompletionLogic {
             new PrefixSpec("l/", "LEVEL", "Education level (required)", true, false),
             new PrefixSpec("e/", "EMAIL", "Email address (optional)", false, false),
             new PrefixSpec("a/", "ADDRESS", "Home address (optional)", false, false),
-            new PrefixSpec("r/", "NOTES", "Tutoring notes (optional)", false, false)
+            new PrefixSpec("r/", "NOTES", "Tutoring notes (optional)", false, false),
+            new PrefixSpec("t/", "TAG", "Student tag (optional, repeatable)", false, true)
     );
 
     private static final List<PrefixSpec> EDIT_PREFIXES = List.of(
@@ -124,6 +129,8 @@ public class CommandCompletionLogic {
             case "edit" -> getEditCommandSuggestions(trimmed, arguments);
             case "find" -> getFindCommandSuggestions(trimmed, arguments);
             case "show", "delete" -> getIndexCommandSuggestions(commandWord, arguments);
+            case "tag" -> getTagCommandSuggestions(trimmed, arguments);
+            case "untag" -> getUntagCommandSuggestions(trimmed, arguments);
             default -> Collections.emptyList();
         };
 
@@ -314,6 +321,85 @@ public class CommandCompletionLogic {
                     commandWord + " INDEX",
                     "Positive integer index from displayed list (e.g. 1)"));
         }
+        return Collections.emptyList();
+    }
+
+    private List<Suggestion> getTagCommandSuggestions(String fullInput, String arguments) {
+        String trimmedArgs = arguments.strip();
+        if (trimmedArgs.isEmpty()) {
+            return List.of(new Suggestion(
+                    "tag 1 ",
+                    "tag INDEX TAG",
+                    "Positive integer index followed by tag name (e.g. 1 exam-prep)"));
+        }
+
+        String[] parts = trimmedArgs.split("\\s+");
+        if (parts.length == 1) {
+            if (arguments.endsWith(" ")) {
+                return List.of(new Suggestion(
+                        fullInput,
+                        "TAG",
+                        "Alphanumeric tag name (e.g. exam-prep)"));
+            } else {
+                return List.of(new Suggestion(
+                        "tag " + parts[0] + " ",
+                        "tag " + parts[0] + " TAG",
+                        "Space followed by tag name (e.g. " + parts[0] + " exam-prep)"));
+            }
+        }
+
+        return Collections.emptyList();
+    }
+
+    private List<Suggestion> getUntagCommandSuggestions(String fullInput, String arguments) {
+        String trimmedArgs = arguments.strip();
+        if (trimmedArgs.isEmpty()) {
+            return List.of(
+                    new Suggestion(
+                            "untag 1 ",
+                            "untag INDEX TAG",
+                            "Positive integer index followed by tag name (e.g. 1 exam-prep)"),
+                    new Suggestion(
+                            "untag --all 1",
+                            "untag --all INDEX",
+                            "Remove all tags from student at displayed index")
+            );
+        }
+
+        if (trimmedArgs.startsWith("-")) {
+            if ("--all".startsWith(trimmedArgs.toLowerCase(Locale.ROOT))) {
+                return List.of(new Suggestion(
+                        "untag --all 1",
+                        "untag --all INDEX",
+                        "Remove all tags from student at displayed index"));
+            }
+        }
+
+        String[] parts = trimmedArgs.split("\\s+");
+        if (parts[0].equals("--all")) {
+            if (parts.length == 1 && arguments.endsWith(" ")) {
+                return List.of(new Suggestion(
+                        "untag --all 1",
+                        "untag --all INDEX",
+                        "Positive integer index from displayed list (e.g. 1)"));
+            }
+            return Collections.emptyList();
+        }
+
+        if (parts.length == 1) {
+            if (arguments.endsWith(" ")) {
+                return List.of(new Suggestion(
+                        fullInput,
+                        "TAG",
+                        "Tag name to remove from student"));
+            } else {
+                return List.of(new Suggestion(
+                        "untag " + parts[0] + " ",
+                        "untag " + parts[0] + " TAG",
+                        "Space followed by tag name to remove"));
+            }
+        }
+
         return Collections.emptyList();
     }
 

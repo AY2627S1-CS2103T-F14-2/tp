@@ -178,7 +178,8 @@ Subject duplicate comparison uses that normalized value without case; storage re
 entered capitalization. Subjects remain in input order.
 
 New student records have subjects, a level, optional address, and optional notes. Notes are trimmed, limited to 500 Unicode characters,
-and cannot contain control characters. `Person.isSamePerson` compares two new-format records by normalized
+cannot contain control characters. Slash-based shorthands such as `w/o` are prohibited in notes because they can resemble
+parameter prefixes; users should write `without` instead. `Person.isSamePerson` compares two new-format records by normalized
 name and either normalized phone or case-insensitive email. Legacy records retain their original address and tags
 for storage compatibility, but do not participate in new-student duplicate checks. Existing stored records are
 restored without reapplying add-time duplicate checks.
@@ -220,7 +221,8 @@ retained. Migration is idempotent and preserves unrelated model fields.
 
 Student cards display sorted, wrapping badges and hide the tag area for an empty set. First-launch
 sample students include example tags. Tag changes use the undo/redo implementation below;
-field-targeted searches can also filter by address, subjects, level, notes, contact details, and tags.
+field-targeted searches can also filter by address, subjects, level, notes, contact details, and tags. Phone searches
+normalise an optional leading `+` before applying partial matching.
 
 ### Delete student
 
@@ -232,7 +234,8 @@ An out-of-range index produces `The student index provided is invalid.` without 
 For a valid index, it resolves the student before deleting the record, then resets the filter with
 `Model.PREDICATE_SHOW_ALL_PERSONS`. Resolving the student before clearing the filter is necessary because a search
 result's index can differ from its index in the complete roster.
-The command returns `Student removed: NAME`; it does not display contact details or ask for confirmation.
+The command returns `Student removed: NAME (phone: PHONE)` so identical names can be distinguished; it does not ask
+for confirmation.
 
 <puml src="diagrams/DeleteSequenceDiagram.puml" alt="Delete student sequence" />
 
@@ -678,7 +681,7 @@ testers are expected to do more *exploratory* testing.
 
    1. Test case: `delete 1`<br>
       Expected: The first student is removed, all remaining students are displayed, and the result area shows
-      `Student removed: NAME`.
+      `Student removed: NAME (phone: PHONE)`.
 
    1. Test case: `delete 0`<br>
       Expected: No student is removed, the displayed list is unchanged, and the result area shows
