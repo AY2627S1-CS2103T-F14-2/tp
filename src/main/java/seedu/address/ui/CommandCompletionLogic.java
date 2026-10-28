@@ -18,11 +18,14 @@ import java.util.regex.Pattern;
  */
 public class CommandCompletionLogic {
 
-    private static final Pattern PREFIX_PATTERN = Pattern.compile("(?U)(?<!\\S)([a-z])/");
+    private static final Pattern PREFIX_PATTERN = Pattern.compile("(?U)(?<!\\S)([+\\-]?[a-z])/");
 
     private static final List<CommandSpec> COMMANDS = List.of(
             new CommandSpec("add", "add n/NAME p/PHONE s/SUBJECT l/LEVEL [e/EMAIL] [a/ADDRESS] [r/NOTES] [t/TAG]...",
                     "Add a new student to the roster"),
+            new CommandSpec("edit",
+                    "edit INDEX [n/NAME] [p/PHONE] [e/EMAIL] [a/ADDRESS] [s/SUBJECT]... [l/LEVEL] [r/NOTES] [t/TAG]...",
+                    "Edit student details by displayed list index"),
             new CommandSpec("delete", "delete INDEX",
                     "Delete student by displayed list index"),
             new CommandSpec("find", "find [--any] KEYWORD [MORE_KEYWORDS]...",
@@ -50,6 +53,21 @@ public class CommandCompletionLogic {
             new PrefixSpec("a/", "ADDRESS", "Home address (optional)", false, false),
             new PrefixSpec("r/", "NOTES", "Tutoring notes (optional)", false, false),
             new PrefixSpec("t/", "TAG", "Student tag (optional, repeatable)", false, true)
+    );
+
+    private static final List<PrefixSpec> EDIT_PREFIXES = List.of(
+            new PrefixSpec("n/", "NAME", "Student full name", false, false),
+            new PrefixSpec("p/", "PHONE", "Phone number", false, false),
+            new PrefixSpec("e/", "EMAIL", "Email address", false, false),
+            new PrefixSpec("a/", "ADDRESS", "Home address", false, false),
+            new PrefixSpec("s/", "SUBJECT", "Subject taught (replaces existing)", false, true),
+            new PrefixSpec("+s/", "SUBJECT", "Subject taught (append)", false, true),
+            new PrefixSpec("-s/", "SUBJECT", "Subject taught (remove)", false, true),
+            new PrefixSpec("l/", "LEVEL", "Education level", false, false),
+            new PrefixSpec("r/", "NOTES", "Tutoring notes", false, false),
+            new PrefixSpec("t/", "TAG", "Student tag (replaces existing)", false, true),
+            new PrefixSpec("+t/", "TAG", "Student tag (append)", false, true),
+            new PrefixSpec("-t/", "TAG", "Student tag (remove)", false, true)
     );
 
     /**
@@ -106,19 +124,16 @@ public class CommandCompletionLogic {
         String commandWord = trimmed.substring(0, firstSpace).toLowerCase(Locale.ROOT);
         String arguments = trimmed.substring(firstSpace + 1);
 
-        if (commandWord.equals("add")) {
-            return getAddCommandSuggestions(trimmed, arguments);
-        } else if (commandWord.equals("find")) {
-            return getFindCommandSuggestions(trimmed, arguments);
-        } else if (commandWord.equals("show") || commandWord.equals("delete")) {
-            return getIndexCommandSuggestions(trimmed, commandWord, arguments);
-        } else if (commandWord.equals("tag")) {
-            return getTagCommandSuggestions(trimmed, arguments);
-        } else if (commandWord.equals("untag")) {
-            return getUntagCommandSuggestions(trimmed, arguments);
-        }
+        return switch (commandWord) {
+            case "add" -> getAddCommandSuggestions(trimmed, arguments);
+            case "edit" -> getEditCommandSuggestions(trimmed, arguments);
+            case "find" -> getFindCommandSuggestions(trimmed, arguments);
+            case "show", "delete" -> getIndexCommandSuggestions(commandWord, arguments);
+            case "tag" -> getTagCommandSuggestions(trimmed, arguments);
+            case "untag" -> getUntagCommandSuggestions(trimmed, arguments);
+            default -> Collections.emptyList();
+        };
 
-        return Collections.emptyList();
     }
 
     /**
@@ -137,7 +152,7 @@ public class CommandCompletionLogic {
             return Optional.empty();
         }
 
-        return Optional.of(suggestions.get(0).completionText());
+        return Optional.of(suggestions.getFirst().completionText());
     }
 
     private List<Suggestion> getAllCommandSuggestions() {
@@ -219,6 +234,85 @@ public class CommandCompletionLogic {
         return Collections.unmodifiableList(suggestions);
     }
 
+    /**
+     * Returns suggestions for the edit command based on the current input state.
+     * When the index is missing, returns a suggestion prompting the user to supply the target index.
+     * When a prefix is partially typed (without a slash), returns matching prefix completions for
+     * unused or repeatable prefixes.
+     * When fields have already been supplied, excludes used single-use prefixes and suggests only the
+     * remaining unsupplied prefixes and repeatable prefixes.
+     *
+     * @param fullInput full user input text currently in the command box.
+     * @param arguments argument string following the "edit" command word.
+     * @return an unmodifiable list of suggestions for the edit command.
+     */
+    private List<Suggestion> getEditCommandSuggestions(String fullInput, String arguments) {
+        String trimmedArgs = arguments.stripLeading();
+        if (trimmedArgs.isEmpty()) {
+            return List.of(new Suggestion(
+                    "edit 1 ",
+                    "edit INDEX",
+                    "Positive integer index from displayed list (e.g. 1)"));
+        }
+
+        int firstSpace = trimmedArgs.indexOf(' ');
+        if (firstSpace < 0) {
+            if (!trimmedArgs.contains("/")) {
+                return List.of(new Suggestion(
+                        "edit " + trimmedArgs + " ",
+                        "edit " + trimmedArgs + " [PREFIX/VALUE]...",
+                        "Space followed by fields to edit"));
+            }
+        }
+
+        String prefixArgs = firstSpace >= 0 ? trimmedArgs.substring(firstSpace + 1) : "";
+        Set<String> usedPrefixes = extractPrefixes(prefixArgs);
+        List<Suggestion> suggestions = new ArrayList<>();
+
+        int lastSpace = fullInput.lastIndexOf(' ');
+        String trailingToken = (lastSpace >= 0 && lastSpace < fullInput.length() - 1)
+                ? fullInput.substring(lastSpace + 1)
+                : "";
+
+        // Check if trailing token is a partially typed prefix (e.g. "n", "+", or "-s")
+        if (!trailingToken.isEmpty() && !trailingToken.contains("/")) {
+            String lowerToken = trailingToken.toLowerCase(Locale.ROOT);
+            for (PrefixSpec spec : EDIT_PREFIXES) {
+                if (spec.prefix.startsWith(lowerToken)) {
+                    if (spec.isRepeatable || !usedPrefixes.contains(spec.prefix)) {
+                        String completed = fullInput.substring(0, lastSpace + 1) + spec.prefix;
+                        suggestions.add(new Suggestion(
+                                completed,
+                                spec.prefix + spec.valuePlaceholder,
+                                spec.description));
+                    }
+                }
+            }
+            if (!suggestions.isEmpty()) {
+                return Collections.unmodifiableList(suggestions);
+            }
+        }
+
+        String base = fullInput.endsWith(" ") ? fullInput : fullInput + " ";
+
+        // Suggest remaining single-use prefixes and repeatable prefixes
+        for (PrefixSpec spec : EDIT_PREFIXES) {
+            if (!usedPrefixes.contains(spec.prefix)) {
+                suggestions.add(new Suggestion(
+                        base + spec.prefix,
+                        spec.prefix + spec.valuePlaceholder,
+                        spec.description));
+            } else if (spec.isRepeatable) {
+                suggestions.add(new Suggestion(
+                        base + spec.prefix,
+                        spec.prefix + spec.valuePlaceholder,
+                        spec.description + " (additional)"));
+            }
+        }
+
+        return Collections.unmodifiableList(suggestions);
+    }
+
     private List<Suggestion> getFindCommandSuggestions(String fullInput, String arguments) {
         String trimmedArgs = arguments.stripLeading();
         if (trimmedArgs.isEmpty() || "--any".startsWith(trimmedArgs.toLowerCase(Locale.ROOT))) {
@@ -231,7 +325,7 @@ public class CommandCompletionLogic {
         return Collections.emptyList();
     }
 
-    private List<Suggestion> getIndexCommandSuggestions(String fullInput, String commandWord, String arguments) {
+    private List<Suggestion> getIndexCommandSuggestions(String commandWord, String arguments) {
         String trimmedArgs = arguments.strip();
         if (trimmedArgs.isEmpty()) {
             return List.of(new Suggestion(
