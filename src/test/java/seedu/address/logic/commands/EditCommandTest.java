@@ -283,6 +283,28 @@ public class EditCommandTest {
     }
 
     @Test
+    public void execute_clearOptionalStudentFields_success() {
+        Person student = new Person("Alice Wong", "+6581234567", "alice@example.com",
+                List.of("English"), "Secondary 1", "", new Address("12 Main Street"));
+        model.addPerson(student);
+        Index studentIndex = Index.fromOneBased(model.getFilteredPersonList().size());
+
+        EditPersonDescriptor descriptor = new EditPersonDescriptor();
+        descriptor.clearEmail();
+        descriptor.clearAddress();
+        EditCommand editCommand = new EditCommand(studentIndex, descriptor);
+
+        Person expectedStudent = new Person("Alice Wong", "+6581234567", null,
+                List.of("English"), "Secondary 1", "", null);
+        Model expectedModel = new ModelManager(new AddressBook(model.getAddressBook()), new UserPrefs());
+        expectedModel.setPerson(student, expectedStudent);
+
+        String expectedMessage = String.format(EditCommand.MESSAGE_EDIT_PERSON_SUCCESS,
+                expectedStudent.getName().fullName);
+        assertCommandSuccess(editCommand, model, expectedMessage, expectedModel);
+    }
+
+    @Test
     public void execute_appendAndRemoveMultiValueFields_success() {
         Person student = new Person("Alice Wong", "+6581234567", null,
                 List.of("English", "Mathematics"), "Secondary 1", "")

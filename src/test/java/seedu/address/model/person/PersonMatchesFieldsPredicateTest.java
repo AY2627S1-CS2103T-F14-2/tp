@@ -43,6 +43,23 @@ public class PersonMatchesFieldsPredicateTest {
     }
 
     @Test
+    public void test_phoneMatchesWithOrWithoutLeadingPlus_returnsTrue() {
+        Person personWithPlus = new Person("Alex Alexander", "+6591234567", "alex@example.com",
+                List.of("Mathematics"), "Secondary 4");
+        Person personWithoutPlus = new Person("Alex Alexander", "6591234567", "alex@example.com",
+                List.of("Mathematics"), "Secondary 4");
+        PersonMatchesFieldsPredicate withoutPlusPredicate = new PersonMatchesFieldsPredicate(
+                List.of(new SearchTerm(SearchField.PHONE, "659123")), MatchMode.ALL);
+        PersonMatchesFieldsPredicate withPlusPredicate = new PersonMatchesFieldsPredicate(
+                List.of(new SearchTerm(SearchField.PHONE, "+659123")), MatchMode.ALL);
+
+        assertTrue(withoutPlusPredicate.test(personWithPlus));
+        assertTrue(withoutPlusPredicate.test(personWithoutPlus));
+        assertTrue(withPlusPredicate.test(personWithPlus));
+        assertTrue(withPlusPredicate.test(personWithoutPlus));
+    }
+
+    @Test
     public void test_anyFieldMatches_returnsTrue() {
         PersonMatchesFieldsPredicate predicate = new PersonMatchesFieldsPredicate(
                 List.of(new SearchTerm(SearchField.NAME, "Beatrice"),

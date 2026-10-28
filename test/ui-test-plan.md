@@ -72,7 +72,7 @@ complete remaining roster in order.
 | Exact GUI input | Exact expected result-area output | Expected numbered names |
 | --- | --- | --- |
 | `find Ryan` | `1 person(s) listed!` | `1. Ryan Tan` |
-| `delete 1` | `Student removed: Ryan Tan` | `1. Alicia Lim`, `2. Sarah Lee` |
+| `delete 1` | `Student removed: Ryan Tan (phone: 91234567)` | `1. Alicia Lim`, `2. Sarah Lee` |
 
 ## DEL-UI-02 Reject an index outside the filtered list
 
@@ -126,7 +126,7 @@ the first student.
 | Exact GUI input | Exact expected result-area output | Expected numbered names |
 | --- | --- | --- |
 | `list` | `Listed all students.` | `1. Alicia Lim`, `2. Sarah Lee` |
-| `delete 2` | `Student removed: Sarah Lee` | `1. Alicia Lim` |
+| `delete 2` | `Student removed: Sarah Lee (phone: 82345678)` | `1. Alicia Lim` |
 
 ## DEL-UI-06 Delete the final student and reject another deletion
 
@@ -137,7 +137,7 @@ The first input below contains exactly two leading and two trailing spaces.
 
 | Exact GUI input | Exact expected result-area output | Expected numbered names |
 | --- | --- | --- |
-| `  delete 1  ` | `Student removed: Alicia Lim` | None |
+| `  delete 1  ` | `Student removed: Alicia Lim (phone: 81234567)` | None |
 | `delete 1` | `The student index provided is invalid.` | None |
 
 ## Persistence scope
@@ -171,7 +171,7 @@ commands return to the full roster. Search commands must not create undo steps.
 | Exact GUI input | Exact expected result-area output | Expected numbered names |
 | --- | --- | --- |
 | `find Ryan` | `1 person(s) listed!` | `1. Ryan Tan` |
-| `delete 1` | `Student removed: Ryan Tan` | `1. Alicia Lim`, `2. Sarah Lee` |
+| `delete 1` | `Student removed: Ryan Tan (phone: 91234567)` | `1. Alicia Lim`, `2. Sarah Lee` |
 | `undo` | `Undo successful.` | `1. Alicia Lim`, `2. Ryan Tan`, `3. Sarah Lee` |
 | `find Nobody` | `0 person(s) listed!` | None |
 | `redo` | `Redo successful.` | `1. Alicia Lim`, `2. Sarah Lee` |
@@ -241,7 +241,7 @@ verify these exact displayed field values: name `Jamie Koh`, phone `81234567`, s
 | `show 1` | `Showing student details.` | `1. Alicia Lim`, `2. Ryan Tan`, `3. Sarah Lee` |
 | `redo` | `Redo successful.` | `1. Alicia Lim`, `2. Ryan Tan`, `3. Sarah Lee`, `4. Jamie Koh` |
 | `find Jamie` | `1 person(s) listed!` | `1. Jamie Koh` |
-| `delete 1` | `Student removed: Jamie Koh` | `1. Alicia Lim`, `2. Ryan Tan`, `3. Sarah Lee` |
+| `delete 1` | `Student removed: Jamie Koh (phone: 81234567)` | `1. Alicia Lim`, `2. Ryan Tan`, `3. Sarah Lee` |
 | `undo` | `Undo successful.` | `1. Alicia Lim`, `2. Ryan Tan`, `3. Sarah Lee`, `4. Jamie Koh` |
 | `find Jamie` | `1 person(s) listed!` | `1. Jamie Koh` |
 | `show 1` | `Showing student details.` | `1. Jamie Koh` |

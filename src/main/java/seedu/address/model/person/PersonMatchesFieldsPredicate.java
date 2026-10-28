@@ -53,7 +53,8 @@ public class PersonMatchesFieldsPredicate implements Predicate<Person> {
     private boolean matches(Person person, SearchTerm searchTerm) {
         return switch (searchTerm.field()) {
             case NAME -> contains(person.getName().fullName, searchTerm.value());
-            case PHONE -> contains(person.getPhone().value, searchTerm.value());
+            case PHONE -> containsPhone(person.getPhone() == null ? null : person.getPhone().value,
+                    searchTerm.value());
             case SUBJECT -> person.getSubjects().stream().anyMatch(subject -> contains(subject, searchTerm.value()));
             case LEVEL -> contains(person.getLevel(), searchTerm.value());
             case EMAIL -> person.getEmail() != null && contains(person.getEmail().value, searchTerm.value());
@@ -63,7 +64,17 @@ public class PersonMatchesFieldsPredicate implements Predicate<Person> {
     }
 
     private boolean contains(String fieldValue, String searchValue) {
-        return fieldValue != null && normalize(fieldValue).contains(normalize(searchValue));
+        return fieldValue != null && searchValue != null && normalize(fieldValue).contains(normalize(searchValue));
+    }
+
+    /** Returns whether phone values match after ignoring their optional leading plus signs. */
+    private boolean containsPhone(String fieldValue, String searchValue) {
+        if (fieldValue == null || searchValue == null) {
+            return false;
+        }
+        String normalizedFieldValue = StudentFields.phoneKey(fieldValue);
+        String normalizedSearchValue = StudentFields.phoneKey(searchValue);
+        return !normalizedSearchValue.isEmpty() && normalizedFieldValue.contains(normalizedSearchValue);
     }
 
     private String normalize(String value) {
