@@ -234,6 +234,18 @@ public class CommandCompletionLogic {
         return Collections.unmodifiableList(suggestions);
     }
 
+    /**
+     * Returns suggestions for the edit command based on the current input state.
+     * When the index is missing, returns a suggestion prompting the user to supply the target index.
+     * When a prefix is partially typed (without a slash), returns matching prefix completions for
+     * unused or repeatable prefixes.
+     * When fields have already been supplied, excludes used single-use prefixes and suggests only the
+     * remaining unsupplied prefixes and repeatable prefixes.
+     *
+     * @param fullInput full user input text currently in the command box.
+     * @param arguments argument string following the "edit" command word.
+     * @return an unmodifiable list of suggestions for the edit command.
+     */
     private List<Suggestion> getEditCommandSuggestions(String fullInput, String arguments) {
         String trimmedArgs = arguments.stripLeading();
         if (trimmedArgs.isEmpty()) {
