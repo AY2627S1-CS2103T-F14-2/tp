@@ -118,8 +118,8 @@ class JsonAdaptedPerson {
             throw new IllegalValueException(StudentFields.INVALID_PHONE);
         }
 
-        if (email != null) {
-            String trimmedEmail = StudentFields.trim(email);
+        String trimmedEmail = email == null ? null : StudentFields.trim(email);
+        if (trimmedEmail != null) {
             if (!StudentFields.isValidEmail(trimmedEmail)) {
                 throw new IllegalValueException(StudentFields.INVALID_EMAIL);
             }
@@ -175,7 +175,7 @@ class JsonAdaptedPerson {
         }
 
         Address storedAddress = address == null ? null : new Address(address);
-        return Person.fromStoredRecord(normalizedName, trimmedPhone, email, normalizedSubjects, normalizedLevel,
+        return Person.fromStoredRecord(normalizedName, trimmedPhone, trimmedEmail, normalizedSubjects, normalizedLevel,
                 storedNotes, storedAddress, new HashSet<>(personTags));
     }
 

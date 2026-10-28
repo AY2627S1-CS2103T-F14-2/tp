@@ -56,6 +56,14 @@ public class JsonAdaptedPersonTest {
     }
 
     @Test
+    public void toModelType_emailWithSurroundingWhitespace_trimsEmail() throws Exception {
+        JsonAdaptedPerson person = new JsonAdaptedPerson(VALID_NAME, VALID_PHONE, " student@example.com ",
+                VALID_ADDRESS, VALID_TAGS, VALID_SUBJECTS, VALID_LEVEL, VALID_NOTES);
+        Person model = person.toModelType();
+        assertEquals("student@example.com", model.getEmail().value);
+    }
+
+    @Test
     public void toModelType_studentNotes_preservesNotes() throws Exception {
         Person student = new Person("Ryan Tan", "+6591234567", null,
                 List.of("Mathematics"), "Secondary 4", "Prefers worked examples");
