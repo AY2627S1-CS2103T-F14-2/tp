@@ -10,7 +10,6 @@ import static seedu.address.logic.parser.CliSyntax.PREFIX_PHONE;
 import static seedu.address.logic.parser.CliSyntax.PREFIX_SUBJECT;
 
 import seedu.address.commons.util.ToStringBuilder;
-import seedu.address.logic.Messages;
 import seedu.address.logic.commands.exceptions.CommandException;
 import seedu.address.model.Model;
 import seedu.address.model.person.Person;
@@ -73,8 +72,7 @@ public class AddCommand extends Command {
         }
 
         model.addPerson(toAdd);
-        String displayedDetails = toAdd.isNewFormat() ? toAdd.getName().fullName : Messages.format(toAdd);
-        String feedback = String.format(MESSAGE_SUCCESS, displayedDetails);
+        String feedback = String.format(MESSAGE_SUCCESS, toAdd.getName().fullName);
         if (duplicateTagsIgnored) {
             feedback += "\nWarning: Duplicate tags were ignored.";
         }

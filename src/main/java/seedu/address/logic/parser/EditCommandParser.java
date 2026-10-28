@@ -15,7 +15,6 @@ import static seedu.address.logic.parser.CliSyntax.PREFIX_REMOVE_TAG;
 import static seedu.address.logic.parser.CliSyntax.PREFIX_SUBJECT;
 import static seedu.address.logic.parser.CliSyntax.PREFIX_TAG;
 
-import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.HashSet;
@@ -39,13 +38,12 @@ import seedu.address.model.tag.Tag;
  * Parses input arguments and creates a new EditCommand object
  */
 public class EditCommandParser implements Parser<EditCommand> {
-    private static final Prefix PREFIX_LEGACY_TAG = new Prefix("/t");
     private static final Pattern PREFIX_PATTERN = Pattern.compile(
             "(?U)(?<!\\S)([a-z]/|[+-][a-z]/|/[a-z](?=\\s|$))");
     private static final Set<String> KNOWN_PREFIXES = Set.of(
             PREFIX_NAME.getPrefix(), PREFIX_PHONE.getPrefix(), PREFIX_EMAIL.getPrefix(), PREFIX_ADDRESS.getPrefix(),
             PREFIX_TAG.getPrefix(), PREFIX_APPEND_TAG.getPrefix(), PREFIX_REMOVE_TAG.getPrefix(),
-            PREFIX_LEGACY_TAG.getPrefix(), PREFIX_SUBJECT.getPrefix(), PREFIX_APPEND_SUBJECT.getPrefix(),
+            PREFIX_SUBJECT.getPrefix(), PREFIX_APPEND_SUBJECT.getPrefix(),
             PREFIX_REMOVE_SUBJECT.getPrefix(), PREFIX_LEVEL.getPrefix(), PREFIX_NOTES.getPrefix());
 
     /**
@@ -58,7 +56,7 @@ public class EditCommandParser implements Parser<EditCommand> {
         rejectUnknownPrefixes(args);
         ArgumentMultimap argMultimap =
                 ArgumentTokenizer.tokenize(args, PREFIX_NAME, PREFIX_PHONE, PREFIX_EMAIL, PREFIX_ADDRESS,
-                        PREFIX_TAG, PREFIX_APPEND_TAG, PREFIX_REMOVE_TAG, PREFIX_LEGACY_TAG, PREFIX_SUBJECT,
+                        PREFIX_TAG, PREFIX_APPEND_TAG, PREFIX_REMOVE_TAG, PREFIX_SUBJECT,
                         PREFIX_APPEND_SUBJECT, PREFIX_REMOVE_SUBJECT, PREFIX_LEVEL, PREFIX_NOTES);
 
         Index index;
@@ -107,9 +105,7 @@ public class EditCommandParser implements Parser<EditCommand> {
                 editPersonDescriptor.setAddress(ParserUtil.parseAddress(address));
             }
         }
-        List<String> tagValues = new ArrayList<>(argMultimap.getAllValues(PREFIX_TAG));
-        tagValues.addAll(argMultimap.getAllValues(PREFIX_LEGACY_TAG));
-        parseTagsForEdit(tagValues, true).ifPresent(editPersonDescriptor::setTags);
+        parseTagsForEdit(argMultimap.getAllValues(PREFIX_TAG), true).ifPresent(editPersonDescriptor::setTags);
         parseTagsForEdit(argMultimap.getAllValues(PREFIX_APPEND_TAG), false)
                 .ifPresent(editPersonDescriptor::setTagsToAdd);
         parseTagsForEdit(argMultimap.getAllValues(PREFIX_REMOVE_TAG), false)
@@ -170,7 +166,7 @@ public class EditCommandParser implements Parser<EditCommand> {
         if (subjects.isEmpty()) {
             return Optional.empty();
         }
-        List<String> parsedSubjects = new ArrayList<>();
+        List<String> parsedSubjects = new java.util.ArrayList<>();
         Set<String> subjectKeys = new HashSet<>();
         for (String subject : subjects) {
             String parsedSubject = ParserUtil.parseSubject(subject);

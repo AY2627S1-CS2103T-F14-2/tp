@@ -13,7 +13,7 @@ import seedu.address.commons.util.ToStringBuilder;
 import seedu.address.model.tag.Tag;
 
 /**
- * A student record. Older address-book records retain their legacy fields for storage compatibility.
+ * A student record in TutorRoster.
  */
 public class Person {
 
@@ -21,27 +21,10 @@ public class Person {
     private final Phone phone;
     private final Email email;
     private final List<String> subjects;
-    private final boolean subjectsPresent;
     private final String level;
     private final String notes;
     private final Address address;
     private final Set<Tag> tags = new HashSet<>();
-    private final boolean newFormat;
-
-    /** Constructs a legacy record whose original fields remain available for persistence. */
-    public Person(Name name, Phone phone, Email email, Address address, Set<Tag> tags) {
-        requireAllNonNull(name, phone, email, address, tags);
-        this.name = name;
-        this.phone = phone;
-        this.email = email;
-        this.subjects = List.of();
-        this.subjectsPresent = false;
-        this.level = null;
-        this.notes = "";
-        this.address = address;
-        this.tags.addAll(tags);
-        this.newFormat = false;
-    }
 
     /** Creates a new student after validating all fields. Email may be absent. */
     public Person(String name, String phone, String email, List<String> subjects, String level) {
@@ -97,25 +80,18 @@ public class Person {
         this.phone = Phone.fromStoredValue(phone);
         this.email = email == null ? null : Email.fromStoredValue(email);
         this.subjects = List.copyOf(normalizedSubjects);
-        this.subjectsPresent = true;
         this.level = normalizedLevel;
         this.notes = normalizedNotes;
         this.address = address;
-        this.newFormat = true;
     }
 
     private Person(String name, String phone, String email, List<String> subjects, String level, String notes,
-            Address address, Set<Tag> tags, boolean newFormat) {
-        requireAllNonNull(name, phone, tags);
-        requireAllNonNull(tags);
-        if (subjects != null) {
-            requireAllNonNull(subjects);
-        }
+            Address address, Set<Tag> tags) {
+        requireAllNonNull(name, phone, subjects, level, tags);
         this.name = Name.fromStoredValue(name);
         this.phone = Phone.fromStoredValue(phone);
         this.email = email == null ? null : Email.fromStoredValue(email);
-        this.subjects = subjects == null ? List.of() : Collections.unmodifiableList(new ArrayList<>(subjects));
-        this.subjectsPresent = subjects != null;
+        this.subjects = Collections.unmodifiableList(new ArrayList<>(subjects));
         this.level = level;
         String normalizedNotes = notes == null ? "" : StudentFields.trim(notes);
         if (!normalizedNotes.isEmpty() && !StudentFields.isValidNotes(normalizedNotes)) {
@@ -124,7 +100,6 @@ public class Person {
         this.notes = normalizedNotes;
         this.address = address;
         this.tags.addAll(tags);
-        this.newFormat = newFormat;
     }
 
     /** Restores an already stored record without applying new-add validation to existing data. */
@@ -133,17 +108,10 @@ public class Person {
         return fromStoredRecord(name, phone, email, subjects, level, "", address, tags);
     }
 
-    /** Restores a stored record with notes, retaining the compatibility behaviour of the older overload. */
+    /** Restores a stored record with notes. */
     public static Person fromStoredRecord(String name, String phone, String email, List<String> subjects,
             String level, String notes, Address address, Set<Tag> tags) {
-        return new Person(name, phone, email, subjects, level, notes, address, tags,
-                subjects != null && level != null);
-    }
-
-    /** Restores a stored record with notes after the legacy parameters for source compatibility. */
-    public static Person fromStoredRecord(String name, String phone, String email, List<String> subjects,
-            String level, Address address, Set<Tag> tags, String notes) {
-        return fromStoredRecord(name, phone, email, subjects, level, notes, address, tags);
+        return new Person(name, phone, email, subjects, level, notes, address, tags);
     }
 
     public Name getName() {
@@ -162,10 +130,6 @@ public class Person {
         return subjects;
     }
 
-    public boolean hasSubjectsField() {
-        return subjectsPresent;
-    }
-
     public String getLevel() {
         return level;
     }
@@ -173,10 +137,6 @@ public class Person {
     /** Returns tutoring-specific notes, or an empty string when no notes were supplied. */
     public String getNotes() {
         return notes;
-    }
-
-    public boolean isNewFormat() {
-        return newFormat;
     }
 
     public Address getAddress() {
@@ -191,15 +151,15 @@ public class Person {
         return Collections.unmodifiableSet(tags);
     }
 
-    /** Copies this record with new tags, preserving every other field and the original record format. */
+    /** Copies this record with new tags, preserving every other field. */
     public Person withTags(Set<Tag> replacementTags) {
         requireAllNonNull(replacementTags);
         return new Person(name.fullName, phone.value, email == null ? null : email.value,
-                subjectsPresent ? subjects : null, level, notes, address, replacementTags, newFormat);
+                subjects, level, notes, address, replacementTags);
     }
 
     /**
-     * Copies a new-format student with replacement student fields and tags.
+     * Copies a student with replacement student fields and tags.
      * The public student constructor performs the complete validation before the copy is returned.
      */
     public Person withStudentDetails(String replacementName, String replacementPhone, String replacementEmail,
@@ -209,32 +169,25 @@ public class Person {
                 replacementLevel, replacementNotes, address, replacementTags);
     }
 
-    /** Copies a new-format student with replacement student fields, address, and tags. */
+    /** Copies a student with replacement student fields, address, and tags. */
     public Person withStudentDetails(String replacementName, String replacementPhone, String replacementEmail,
             List<String> replacementSubjects, String replacementLevel, String replacementNotes,
             Address replacementAddress, Set<Tag> replacementTags) {
         requireAllNonNull(replacementName, replacementPhone, replacementSubjects, replacementLevel, replacementTags);
-        if (!newFormat) {
-            throw new IllegalStateException("Legacy records cannot be given student fields without migration data.");
-        }
         return new Person(replacementName, replacementPhone, replacementEmail, replacementSubjects,
                 replacementLevel, replacementNotes, replacementAddress).withTags(replacementTags);
     }
 
     /**
-     * New students match only other new-format students, using name and either contact method.
-     * Legacy records retain their former comparison for direct legacy operations.
+     * Returns true if both students have the same normalized name and either the same phone or same email.
      */
     public boolean isSamePerson(Person otherPerson) {
         if (otherPerson == this) {
             return true;
         }
 
-        if (otherPerson == null || newFormat != otherPerson.newFormat) {
+        if (otherPerson == null) {
             return false;
-        }
-        if (!newFormat) {
-            return otherPerson.getName().equals(getName());
         }
         boolean sameName = StudentFields.nameKey(name.fullName)
                 .equals(StudentFields.nameKey(otherPerson.name.fullName));
@@ -255,7 +208,6 @@ public class Person {
             return true;
         }
 
-        // instanceof handles nulls
         if (!(other instanceof Person otherPerson)) {
             return false;
         }
@@ -264,18 +216,15 @@ public class Person {
                 && phone.equals(otherPerson.phone)
                 && Objects.equals(email, otherPerson.email)
                 && subjects.equals(otherPerson.subjects)
-                && subjectsPresent == otherPerson.subjectsPresent
                 && Objects.equals(level, otherPerson.level)
                 && notes.equals(otherPerson.notes)
                 && Objects.equals(address, otherPerson.address)
-                && tags.equals(otherPerson.tags)
-                && newFormat == otherPerson.newFormat;
+                && tags.equals(otherPerson.tags);
     }
 
     @Override
     public int hashCode() {
-        // use this method for custom fields hashing instead of implementing your own
-        return Objects.hash(name, phone, email, subjects, subjectsPresent, level, notes, address, tags, newFormat);
+        return Objects.hash(name, phone, email, subjects, level, notes, address, tags);
     }
 
     @Override
@@ -283,15 +232,14 @@ public class Person {
         ToStringBuilder builder = new ToStringBuilder(this)
                 .add("name", name)
                 .add("phone", phone)
-                .add("email", email);
-        if (newFormat) {
-            builder.add("subjects", subjects).add("level", level).add("address", address);
-            if (!notes.isEmpty()) {
-                builder.add("notes", notes);
-            }
-            return builder.toString();
+                .add("email", email)
+                .add("subjects", subjects)
+                .add("level", level)
+                .add("address", address);
+        if (!notes.isEmpty()) {
+            builder.add("notes", notes);
         }
-        return builder.add("address", address).add("tags", tags).toString();
+        return builder.add("tags", tags).toString();
     }
 
 }

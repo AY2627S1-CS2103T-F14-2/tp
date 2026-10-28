@@ -64,18 +64,16 @@ public class StudentDetailModal extends UiPart<Region> {
         closeAction.run();
     }
 
-    /** Populates every detail field, including optional legacy fields when present. */
+    /** Populates every detail field for the student. */
     private void setStudentDetails(Person person) {
         String fullName = person.getName().fullName;
         initials.setText(PersonCard.getInitialsForDisplay(fullName));
         name.setText(fullName);
         phone.setText(person.getPhone().value);
         email.setText(person.getEmail() == null ? NOT_PROVIDED : person.getEmail().value);
-        subjects.setText(person.getSubjects().isEmpty() ? NOT_PROVIDED : String.join(", ", person.getSubjects()));
-        level.setText(person.getLevel() == null ? NOT_PROVIDED : person.getLevel());
-        notes.setText(person.getNotes() == null || person.getNotes().isEmpty()
-                ? NOT_PROVIDED
-                : person.getNotes());
+        subjects.setText(String.join(", ", person.getSubjects()));
+        level.setText(person.getLevel());
+        notes.setText(person.getNotes().isEmpty() ? NOT_PROVIDED : person.getNotes());
         address.setText(person.getAddress() == null ? NOT_PROVIDED : person.getAddress().value);
         tags.setText(person.getTags().isEmpty()
                 ? NOT_PROVIDED

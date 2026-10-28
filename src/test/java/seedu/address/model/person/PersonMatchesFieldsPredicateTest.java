@@ -5,7 +5,6 @@ import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.util.List;
-import java.util.Set;
 
 import org.junit.jupiter.api.Test;
 
@@ -123,14 +122,14 @@ public class PersonMatchesFieldsPredicateTest {
 
     @Test
     public void test_missingAndNonMatchingFields_returnsFalse() {
-        Person legacyPersonWithoutLevel = new Person(new Name("Alex Alexander"), new Phone("91234567"),
-                new Email("alex@example.com"), new Address("1 Main Street"), Set.of());
-        PersonMatchesFieldsPredicate missingLevelPredicate = new PersonMatchesFieldsPredicate(
+        Person personWithDifferentLevel = new Person("Alex Alexander", "91234567",
+                "alex@example.com", List.of("Mathematics"), "JC 1", "", new Address("1 Main Street"));
+        PersonMatchesFieldsPredicate nonMatchingLevelPredicate = new PersonMatchesFieldsPredicate(
                 List.of(new SearchTerm(SearchField.LEVEL, "Secondary 4")), MatchMode.ALL);
         PersonMatchesFieldsPredicate nonMatchingEmailPredicate = new PersonMatchesFieldsPredicate(
                 List.of(new SearchTerm(SearchField.EMAIL, "other@example.com")), MatchMode.ALL);
 
-        assertFalse(missingLevelPredicate.test(legacyPersonWithoutLevel));
+        assertFalse(nonMatchingLevelPredicate.test(personWithDifferentLevel));
         assertFalse(nonMatchingEmailPredicate.test(ALEX_ALEXANDER));
     }
 

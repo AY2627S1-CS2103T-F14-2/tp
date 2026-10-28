@@ -9,7 +9,6 @@ import java.util.List;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
-import seedu.address.logic.Messages;
 import seedu.address.model.Model;
 import seedu.address.model.ModelManager;
 import seedu.address.model.UserPrefs;
@@ -36,7 +35,7 @@ public class AddCommandIntegrationTest {
         expectedModel.addPerson(validPerson);
 
         assertCommandSuccess(new AddCommand(validPerson), model,
-                String.format(AddCommand.MESSAGE_SUCCESS, Messages.format(validPerson)),
+                String.format(AddCommand.MESSAGE_SUCCESS, validPerson.getName().fullName),
                 expectedModel);
     }
 
@@ -142,18 +141,6 @@ public class AddCommandIntegrationTest {
         expectedModel.addPerson(sibling);
 
         assertCommandSuccess(new AddCommand(sibling), model, "New student added: Alicia Tan", expectedModel);
-    }
-
-    @Test
-    public void execute_legacyRecordDoesNotBlockNewStudent() {
-        Person legacy = new PersonBuilder().withName("Ryan Tan").withPhone("81234567").build();
-        model.addPerson(legacy);
-        Person student = new Person("Ryan Tan", "81234567", null,
-                List.of("Mathematics"), "Secondary 4");
-        Model expectedModel = new ModelManager(model.getAddressBook(), new UserPrefs());
-        expectedModel.addPerson(student);
-
-        assertCommandSuccess(new AddCommand(student), model, "New student added: Ryan Tan", expectedModel);
     }
 
 }
