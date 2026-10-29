@@ -108,6 +108,22 @@ public class UniquePersonListTest {
     }
 
     @Test
+    public void setPerson_sharedContactWithTargetAndAnotherPerson_throwsDuplicatePersonException() {
+        Person target = new Person("Amy Tan", "111", "amy1@example.com", List.of("Math"), "JC 1");
+        Person other = new Person("Amy Tan", "222", "amy2@example.com", List.of("Math"), "JC 1");
+        uniquePersonList.add(target);
+        uniquePersonList.add(other);
+
+        List<Person> conflictingEdits = List.of(
+                new PersonBuilder(target).withEmail("amy2@example.com").build(),
+                new PersonBuilder(target).withPhone("222").build());
+        for (Person editedPerson : conflictingEdits) {
+            assertThrows(DuplicatePersonException.class, () -> uniquePersonList.setPerson(target, editedPerson));
+            assertEquals(List.of(target, other), uniquePersonList.asUnmodifiableObservableList());
+        }
+    }
+
+    @Test
     public void remove_nullPerson_throwsNullPointerException() {
         assertThrows(NullPointerException.class, () -> uniquePersonList.remove(null));
     }
