@@ -13,6 +13,7 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 import seedu.address.commons.util.StringUtil;
+import seedu.address.model.person.StudentFields;
 
 /**
  * Computes command and parameter completion suggestions based on the user's current input.
@@ -258,7 +259,7 @@ public class CommandCompletionLogic {
         }
 
         int firstSpace = trimmedArgs.indexOf(' ');
-        String indexToken = firstSpace < 0 ? trimmedArgs : trimmedArgs.substring(0, firstSpace);
+        String indexToken = (firstSpace < 0 ? trimmedArgs : trimmedArgs.substring(0, firstSpace)).trim();
         if (!StringUtil.isNonZeroUnsignedInteger(indexToken)) {
             return Collections.emptyList();
         }
@@ -341,7 +342,7 @@ public class CommandCompletionLogic {
     }
 
     private List<Suggestion> getTagCommandSuggestions(String fullInput, String arguments) {
-        String trimmedArgs = arguments.strip();
+        String trimmedArgs = StudentFields.trim(arguments);
         if (trimmedArgs.isEmpty()) {
             return List.of(new Suggestion(
                     "tag 1 ",
@@ -349,7 +350,7 @@ public class CommandCompletionLogic {
                     "Positive integer index followed by tag name (e.g. 1 exam-prep)"));
         }
 
-        String[] parts = trimmedArgs.split("\\s+");
+        String[] parts = trimmedArgs.split("(?U)\\s+");
         if (!StringUtil.isNonZeroUnsignedInteger(parts[0])) {
             return Collections.emptyList();
         }
@@ -371,7 +372,7 @@ public class CommandCompletionLogic {
     }
 
     private List<Suggestion> getUntagCommandSuggestions(String fullInput, String arguments) {
-        String trimmedArgs = arguments.strip();
+        String trimmedArgs = StudentFields.trim(arguments);
         if (trimmedArgs.isEmpty()) {
             return List.of(
                     new Suggestion(
@@ -394,7 +395,7 @@ public class CommandCompletionLogic {
             }
         }
 
-        String[] parts = trimmedArgs.split("\\s+");
+        String[] parts = trimmedArgs.split("(?U)\\s+");
         if (parts[0].equals("--all")) {
             if (parts.length == 1 && arguments.endsWith(" ")) {
                 return List.of(new Suggestion(

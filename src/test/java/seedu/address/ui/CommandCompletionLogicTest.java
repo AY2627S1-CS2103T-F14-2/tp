@@ -177,13 +177,20 @@ public class CommandCompletionLogicTest {
     @Test
     public void getSuggestions_editCommandInvalidIndex_returnsNoSuggestions() {
         for (String index : List.of("abc", "0", "-1", "+1", "2147483648", "1/")) {
-            assertTrue(completionLogic.getSuggestions("edit " + index).isEmpty());
-            assertTrue(completionLogic.getSuggestions("edit " + index + " ").isEmpty());
-            assertTrue(completionLogic.getSuggestions("edit " + index + " n/").isEmpty());
-            assertTrue(completionLogic.autocomplete("edit " + index).isEmpty());
+            for (String input : List.of("edit " + index, "edit " + index + " ", "edit " + index + " n/")) {
+                assertTrue(completionLogic.getSuggestions(input).isEmpty(), input);
+                assertTrue(completionLogic.autocomplete(input).isEmpty(), input);
+            }
         }
 
         assertEquals("edit 01 ", completionLogic.autocomplete("edit 01").orElseThrow());
+    }
+
+    @Test
+    public void getSuggestions_editCommandTabAfterIndex_suggestsFields() {
+        String input = "edit 1\t n/Alice";
+        assertTrue(completionLogic.getSuggestions(input).stream()
+                .anyMatch(suggestion -> suggestion.completionText().equals(input + " p/")), input);
     }
 
     @Test
@@ -239,12 +246,19 @@ public class CommandCompletionLogicTest {
     @Test
     public void getSuggestions_tagCommandInvalidIndex_returnsNoSuggestions() {
         for (String index : List.of("abc", "0", "-1", "+1", "2147483648", "1/")) {
-            assertTrue(completionLogic.getSuggestions("tag " + index).isEmpty());
-            assertTrue(completionLogic.getSuggestions("tag " + index + " ").isEmpty());
-            assertTrue(completionLogic.autocomplete("tag " + index).isEmpty());
+            for (String input : List.of("tag " + index, "tag " + index + " ")) {
+                assertTrue(completionLogic.getSuggestions(input).isEmpty(), input);
+                assertTrue(completionLogic.autocomplete(input).isEmpty(), input);
+            }
         }
 
         assertEquals("tag 01 ", completionLogic.autocomplete("tag 01").orElseThrow());
+    }
+
+    @Test
+    public void getSuggestions_tagCommandNonBreakingSpaceBeforeIndex_suggestsTag() {
+        String input = "tag \u00a01";
+        assertEquals("tag 1 ", completionLogic.autocomplete(input).orElseThrow(), input);
     }
 
     @Test
@@ -284,23 +298,31 @@ public class CommandCompletionLogicTest {
     @Test
     public void getSuggestions_untagCommandInvalidIndex_returnsNoSuggestions() {
         for (String index : List.of("abc", "0", "-1", "+1", "2147483648", "1/")) {
-            assertTrue(completionLogic.getSuggestions("untag " + index).isEmpty());
-            assertTrue(completionLogic.getSuggestions("untag " + index + " ").isEmpty());
-            assertTrue(completionLogic.autocomplete("untag " + index).isEmpty());
-            assertTrue(completionLogic.getSuggestions("untag --all " + index).isEmpty());
-            assertTrue(completionLogic.autocomplete("untag --all " + index).isEmpty());
+            for (String input : List.of("untag " + index, "untag " + index + " ", "untag --all " + index)) {
+                assertTrue(completionLogic.getSuggestions(input).isEmpty(), input);
+                assertTrue(completionLogic.autocomplete(input).isEmpty(), input);
+            }
         }
 
         assertEquals("untag 01 ", completionLogic.autocomplete("untag 01").orElseThrow());
     }
 
     @Test
+    public void getSuggestions_untagCommandNonBreakingSpaceBeforeIndex_suggestsTag() {
+        String input = "untag \u00a01";
+        assertEquals("untag 1 ", completionLogic.autocomplete(input).orElseThrow(), input);
+    }
+
+    @Test
     public void getSuggestions_showAndDeleteCommands_onlyPromptForMissingIndex() {
         for (String command : List.of("show", "delete")) {
-            assertEquals(command + " 1", completionLogic.autocomplete(command + " ").orElseThrow());
+            String missingIndexInput = command + " ";
+            assertEquals(command + " 1", completionLogic.autocomplete(missingIndexInput).orElseThrow(),
+                    missingIndexInput);
             for (String index : List.of("1", "abc", "0", "-1", "+1", "2147483648")) {
-                assertTrue(completionLogic.getSuggestions(command + " " + index).isEmpty());
-                assertTrue(completionLogic.autocomplete(command + " " + index).isEmpty());
+                String input = command + " " + index;
+                assertTrue(completionLogic.getSuggestions(input).isEmpty(), input);
+                assertTrue(completionLogic.autocomplete(input).isEmpty(), input);
             }
         }
     }
