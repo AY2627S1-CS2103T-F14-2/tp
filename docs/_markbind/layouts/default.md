@@ -30,14 +30,14 @@
 * [User Guide]({{ baseUrl }}/UserGuide.html) :expanded:
   * [Quick Start]({{ baseUrl }}/UserGuide.html#quick-start)
   * [Features]({{ baseUrl }}/UserGuide.html#features)
-  * [FAQ]({{ baseUrl }}/UserGuide.html#faq)
+  * [FAQ and known issues]({{ baseUrl }}/UserGuide.html#faq-and-known-issues)
   * [Command Summary]({{ baseUrl }}/UserGuide.html#command-summary)
 * [Developer Guide]({{ baseUrl }}/DeveloperGuide.html) :expanded:
   * [Acknowledgements]({{ baseUrl }}/DeveloperGuide.html#acknowledgements)
-  * [Setting Up]({{ baseUrl }}/DeveloperGuide.html#setting-up-getting-started)
+  * [Setting Up]({{ baseUrl }}/DeveloperGuide.html#setting-up-and-getting-started)
   * [Design]({{ baseUrl }}/DeveloperGuide.html#design)
   * [Implementation]({{ baseUrl }}/DeveloperGuide.html#implementation)
-  * [Documentation, logging, testing, dev-ops]({{ baseUrl }}/DeveloperGuide.html#documentation-logging-testing-dev-ops)
+  * [Testing, logging, and DevOps]({{ baseUrl }}/DeveloperGuide.html#testing-logging-and-devops)
   * [Appendix: Requirements]({{ baseUrl }}/DeveloperGuide.html#appendix-requirements)
   * [Appendix: Instructions for manual testing]({{ baseUrl }}/DeveloperGuide.html#appendix-instructions-for-manual-testing)
 * [About Us]({{ baseUrl }}/AboutUs.html)

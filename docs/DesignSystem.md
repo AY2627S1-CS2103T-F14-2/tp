@@ -1,8 +1,8 @@
 # TutorRoster design system
 
-TutorRoster uses a light, calm visual system designed for a keyboard-first workflow. The interface is based on the current TutorRoster mock-up: a white brand header, a quiet off-white canvas, rounded information cards, restrained colour accents, and one prominent command entry point.
+TutorRoster uses a light, calm visual system designed for a keyboard-first workflow: a white brand header, a quiet off-white canvas, rounded information cards, restrained colour accents, and one prominent command entry point.
 
-The implementation lives in [`DesignSystem.css`](../src/main/resources/view/DesignSystem.css). FXML defines structure and semantic component classes; the stylesheet owns colours, typography, spacing, borders, states, and control treatment.
+The implementation lives in [`DesignSystem.css`](https://github.com/AY2627S1-CS2103T-F14-2/tp/blob/master/src/main/resources/view/DesignSystem.css). FXML defines structure and semantic component classes; the stylesheet owns colours, typography, spacing, borders, states, and control treatment.
 
 ## Design principles
 
