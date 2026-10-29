@@ -3,19 +3,43 @@
   title: ""
 ---
 
-# AddressBook Level-3
+# TutorRoster
 
-[![CI Status](https://github.com/se-edu/addressbook-level3/workflows/Java%20CI/badge.svg)](https://github.com/se-edu/addressbook-level3/actions)
-[![codecov](https://codecov.io/gh/se-edu/addressbook-level3/branch/master/graph/badge.svg)](https://codecov.io/gh/se-edu/addressbook-level3)
+![TutorRoster main window](images/Ui.png)
 
-![Ui](images/Ui.png)
+## A focused student directory for private tutors
 
-**AddressBook is a desktop application for managing your contact details.** While it has a GUI, most of the user interactions happen using a CLI (Command Line Interface).
+TutorRoster keeps student contact details and tutoring context together in one fast, local desktop
+workspace. Use short keyboard commands to add, edit, search, tag, inspect, and recover student records;
+use the visual roster to confirm what is on screen.
 
-* If you are interested in using AddressBook, head over to the [_Quick Start_ section of the **User Guide**](UserGuide.html#quick-start).
-* If you are interested in developing AddressBook, the [**Developer Guide**](DeveloperGuide.html) is a good place to start.
+TutorRoster is designed for tutors who manage several students, prefer typing to repetitive mouse
+navigation, and want a simple application that works without an Internet connection.
 
+### Start here
 
-**Acknowledgements**
+* [User Guide](UserGuide.html) — install TutorRoster and learn every implemented command.
+* [Developer Guide](DeveloperGuide.html) — understand the architecture, implementation, requirements,
+  and manual test path.
 
-* Libraries used: [JavaFX](https://openjfx.io/), [Jackson](https://github.com/FasterXML/jackson), [JUnit5](https://github.com/junit-team/junit5)
+### What it does
+
+* **Student profiles** — store names, phone numbers, email addresses, addresses, subjects, education
+  levels, tutoring notes, and tags.
+* **Fast search** — find by name, phone, email, address, subject, level, or tag using case-insensitive
+  partial matching and `ALL`/`ANY` queries.
+* **Safe changes** — validate input, detect duplicate student identities, save atomically, and keep
+  failed operations from changing the live roster.
+* **Session recovery** — undo and redo add, edit, delete, clear, and changed tag operations.
+* **Keyboard workflow** — autocomplete suggestions, command history, `/` focus, `Esc` navigation, and
+  `F1` help.
+
+TutorRoster intentionally focuses on student-profile management. Lesson scheduling, attendance,
+billing, teaching materials, school fields, and separate guardian records are not part of the current
+release.
+
+## Acknowledgements
+
+TutorRoster builds on the [AddressBook-Level3 project](https://github.com/se-edu/addressbook-level3)
+from the [SE-EDU initiative](https://se-education.org/). It uses JavaFX, Jackson, JUnit 5, and MarkBind;
+the full attribution is in the [Developer Guide](DeveloperGuide.html#acknowledgements).

@@ -4,699 +4,556 @@
   pageNav: 3
 ---
 
-# AB-3 Developer Guide
+# TutorRoster Developer Guide
 
-<!-- * Table of Contents -->
-<page-nav-print />
+TutorRoster is a JavaFX desktop application for private tutors. The current implementation stores
+student records locally as JSON and exposes roster operations through a command-driven interface.
+This guide describes the v1.6 design and the behaviour that a future developer must preserve.
 
---------------------------------------------------------------------------------------------------------------------
+## Acknowledgements
 
-## **Acknowledgements**
+TutorRoster was started from the [AddressBook-Level3 project](https://github.com/se-edu/addressbook-level3),
+which is maintained by the [SE-EDU initiative](https://se-education.org/). We retained and adapted the
+project's component separation, JavaFX/FXML application shell, command-parser pattern, JSON storage
+approach, Gradle layout, and testing conventions. The student domain model, field-specific search,
+student tags and migration, multi-value editing, student detail modal, command completion, and atomic
+session history are TutorRoster-specific implementations in this repository.
 
-* _{List the sources of reused or adapted ideas, code, documentation, and third-party libraries here, with links to the originals.}_
+We use the following open-source libraries:
 
---------------------------------------------------------------------------------------------------------------------
+* [OpenJFX](https://openjfx.io/) for the desktop UI.
+* [Jackson](https://github.com/FasterXML/jackson) for JSON serialisation.
+* [JUnit 5](https://github.com/junit-team/junit5) for automated tests.
+* [MarkBind](https://markbind.org/) for the project documentation site.
 
-## **Setting up, getting started**
+The product visual design is implemented in the repository's FXML and CSS files. No other student
+project is referenced as a source of code or documentation in the current release.
 
-Refer to the guide [_Setting up and getting started_](SettingUp.md).
+## Setting up and getting started
 
---------------------------------------------------------------------------------------------------------------------
+### Prerequisites
 
-## **Design**
+* JDK 25 or later.
+* A desktop environment supported by JavaFX.
+* Gradle Wrapper, included as `./gradlew`.
+
+### Build and run
+
+From the repository root:
+
+```sh
+./gradlew shadowJar
+java -jar build/libs/TutorRoster.jar
+```
+
+For a development run, use `./gradlew run`. The application reads and writes `data/addressbook.json`
+and `preferences.json` relative to its working directory. Start it from a temporary or dedicated
+folder when testing storage behaviour so that test data is not mixed with a developer's roster.
+
+### Verification commands
+
+```sh
+./gradlew test
+./gradlew check
+```
+
+`test` runs the JUnit 5 suite. `check` also runs Checkstyle and the configured JaCoCo coverage gate.
+The UI package and application-entry classes are excluded from the coverage gate because they require
+a desktop session; their behaviour is covered by focused UI tests and manual testing.
+
+For project documentation conventions, see [Documentation](Documentation.md). The legacy setup,
+testing, logging, and DevOps pages remain available from [Setting up](SettingUp.md),
+[Testing](Testing.md), [Logging](Logging.md), and [DevOps](DevOps.md).
+
+## Design
 
 ### Architecture
 
-<puml src="diagrams/ArchitectureDiagram.puml" width="280" />
+The high-level component relationships are shown in the
+[architecture diagram](diagrams/ArchitectureDiagram.puml):
 
-The ***Architecture Diagram*** given above explains the high-level design of the App.
+<puml src="diagrams/ArchitectureDiagram.puml" alt="TutorRoster architecture" />
 
-The following provides a quick overview of the main components and their interactions.
+| Component | Responsibility | Main entry points |
+| --- | --- | --- |
+| `Main` / `MainApp` | Starts JavaFX, initialises preferences, storage, model, logic, and UI. | `Main.java`, `MainApp.java` |
+| UI | Displays the roster and feedback, receives commands, and manages help/detail windows. | `UiManager`, `MainWindow` |
+| Logic | Parses commands, invokes model operations, and coordinates save-before-publish execution. | `LogicManager`, command parsers |
+| Model | Owns immutable student records, the roster, the filtered list, preferences, and session history. | `ModelManager`, `Person`, `VersionedTutorRoster` |
+| Storage | Reads and writes roster and preference files. | `StorageManager`, JSON storage classes |
+| Commons | Shared utilities, logging, validation helpers, and small value objects. | `commons` package |
 
-**Main components of the architecture**
-
-**`Main`** (consisting of classes [`Main`](https://github.com/se-edu/addressbook-level3/tree/master/src/main/java/seedu/address/Main.java) and [`MainApp`](https://github.com/se-edu/addressbook-level3/tree/master/src/main/java/seedu/address/MainApp.java)) is in charge of the app launch and shut down.
-* At app launch, it initializes the other components in the correct sequence, and connects them up with each other.
-* At shut down, it shuts down the other components and invokes cleanup methods where necessary.
-
-The bulk of the app's work is done by the following four components:
-
-* [**`UI`**](#ui-component): The UI of the App.
-* [**`Logic`**](#logic-component): The command executor.
-* [**`Model`**](#model-component): Holds the data of the App in memory.
-* [**`Storage`**](#storage-component): Reads data from, and writes data to, the hard disk.
-
-[**`Commons`**](#common-classes) represents a collection of classes used by multiple other components.
-
-**How the architecture components interact with each other**
-
-The *Sequence Diagram* below shows how the components interact with each other for the scenario where the user issues the command `delete 1`.
-
-<puml src="diagrams/ArchitectureSequenceDiagram.puml" width="574" />
-
-Each of the four main components (also shown in the diagram above),
-
-* defines its *API* in an `interface` with the same name as the Component.
-* provides its functionality through a concrete `{Component Name}Manager` class that implements the corresponding API interface.
-
-For example, the `Logic` component defines its API in `Logic.java` and implements it in `LogicManager.java`. Other components interact with a component through its interface rather than its concrete class, preventing them from coupling to that component's implementation, as illustrated in the following partial class diagram.
-
-<puml src="diagrams/ComponentManagers.puml" width="300" />
-
-The sections below give more details of each component.
+The normal dependency direction is UI → Logic → Model and Storage. Storage depends on model types to
+serialise them, but Model does not depend on UI, Logic, or Storage. `MainApp` is the composition root.
 
 ### UI component
 
-The **API** of this component is specified in [`Ui.java`](https://github.com/se-edu/addressbook-level3/tree/master/src/main/java/seedu/address/ui/Ui.java)
+The [UI class diagram](diagrams/UiClassDiagram.puml) shows the JavaFX composition:
 
-<puml src="diagrams/UiClassDiagram.puml" alt="Structure of the UI Component"/>
+<puml src="diagrams/UiClassDiagram.puml" alt="TutorRoster UI classes" />
 
-The UI consists of a `MainWindow` and its parts, such as `CommandBox`, `ResultDisplay`, `PersonListPanel`, and `StatusBarFooter`. All of these, including `MainWindow`, inherit from the abstract `UiPart` class, which captures common behavior among classes that represent visible GUI parts.
+`UiManager` creates `MainWindow`. `MainWindow` owns the command box, result display, student list,
+status bar, and Help window. The student detail modal is created only when `show INDEX` succeeds and
+is displayed as an overlay over the main scene.
 
-The `UI` component uses the JavaFX UI framework. The layouts of these UI parts are defined in matching `.fxml` files in `src/main/resources/view`. For example, [`MainWindow.fxml`](https://github.com/se-edu/addressbook-level3/tree/master/src/main/resources/view/MainWindow.fxml) specifies the layout of [`MainWindow`](https://github.com/se-edu/addressbook-level3/tree/master/src/main/java/seedu/address/ui/MainWindow.java).
+* `PersonListPanel` observes the model's filtered observable list and creates a `PersonCard` for each
+  displayed student.
+* `PersonCard` renders the displayed index, initials, contact details, subjects, level, notes, and
+  sorted tag badges. Optional email and notes are hidden when absent.
+* `StudentDetailModal` renders every stored field and uses `Not provided` for absent optional values.
+* `CommandBox` delegates command execution to `Logic`, keeps invalid input in the text field, and
+  shows completion suggestions in a popup.
+* `CommandBoxLogic` supplies command and prefix suggestions. `CommandHistory` records commands for
+  the current session and preserves an unfinished draft while navigating.
+* `HelpWindow` is a secondary, non-resizable stage. It displays the User Guide URL, copies it to the
+  system clipboard, and closes on `F1`.
 
-The `UI` component,
-
-* executes user commands using the `Logic` component.
-* listens for changes to `Model` data so that the UI can be updated with the modified data.
-* keeps a reference to the `Logic` component, because the `UI` relies on the `Logic` to execute commands.
-* depends on some classes in the `Model` component because it displays `Person` objects from the model.
+The UI observes one stable filtered-list instance. Model snapshot publication updates its contents
+without replacing the list object that the JavaFX `ListView` is observing.
 
 ### Logic component
 
-**API** : [`Logic.java`](https://github.com/se-edu/addressbook-level3/tree/master/src/main/java/seedu/address/logic/Logic.java)
+The [Logic class diagram](diagrams/LogicClassDiagram.puml) shows the parser/command flow:
 
-Here's a (partial) class diagram of the `Logic` component:
+<puml src="diagrams/LogicClassDiagram.puml" alt="TutorRoster logic classes" />
 
-<puml src="diagrams/LogicClassDiagram.puml" width="550"/>
+`LogicManager.execute(commandText)` performs these steps:
 
-The sequence diagram below illustrates the interactions within the `Logic` component, taking `execute("delete 1")` API call as an example.
+1. `AddressBookParser` separates the command word from its arguments and selects the command parser.
+2. The selected parser validates syntax and creates a command object.
+3. A proposed `ModelManager` is created from a snapshot of the live roster, history, preferences, and
+   current filter.
+4. The command executes against the proposed model. A parser or command error therefore cannot
+   publish a partial state.
+5. If the roster changed, the proposed model commits one history state. Undo and redo move the
+   existing history pointer instead of appending a new state.
+6. A changed roster is saved atomically. Only after saving succeeds is the proposed snapshot
+   published to the live model.
+7. The resulting `CommandResult` is returned to the UI. It can request a Help window, an exit, or a
+   student detail modal in addition to feedback text.
 
-<puml src="diagrams/DeleteSequenceDiagram.puml" alt="Interactions Inside the Logic Component for the `delete 1` Command" />
-
-<box type="info" seamless>
-
-**Note:** The lifeline for `DeleteCommandParser` should end at the destroy marker (X), but due to a limitation of PlantUML, the lifeline continues till the end of diagram.
-</box>
-
-
-How the `Logic` component works:
-
-1. When `Logic` is called upon to execute a command, the command is passed to an `AddressBookParser` object, which in turn creates a parser that matches the command (e.g., `DeleteCommandParser`) and uses it to parse the command.
-1. This produces a `Command` object, such as `DeleteCommand`. `LogicManager` executes it against an isolated
-   working model containing a checkpoint of the live roster, history, and filter.
-1. The command communicates with that working `Model`, for example to delete a student. The Delete sequence
-   diagram focuses on these command/model calls; its `m:Model` represents the working model.
-1. For a roster change or an undo/redo operation, `LogicManager` saves the proposed roster atomically before
-   publishing the working model's checkpoint to the live model. Display-only commands do not save roster data.
-1. The result is returned as a `CommandResult` after successful execution and any required save. See
-   [Recording and publishing a change](#recording-and-publishing-a-change) for the complete flow.
-
-Here are the other classes in `Logic` (omitted from the class diagram above) that are used for parsing a user command:
-
-<puml src="diagrams/ParserClasses.puml" width="600"/>
-
-How the parsing works:
-* When called upon to parse a user command, the `AddressBookParser` class creates an `XYZCommandParser` (`XYZ` is a placeholder for the specific command name, e.g., `AddCommandParser`). The parser uses the other classes shown above to parse the user command and create an `XYZCommand` object (e.g., `AddCommand`). The `AddressBookParser` returns that object as a `Command` object.
-* All `XYZCommandParser` classes, such as `AddCommandParser` and `DeleteCommandParser`, implement the `Parser` interface so they can be treated similarly where appropriate, for example during testing.
+Display-only commands publish a changed filter without committing history or writing the roster file.
+The [parser class diagram](diagrams/ParserClasses.puml) lists the command-specific parsers.
 
 ### Model component
-**API** : [`Model.java`](https://github.com/se-edu/addressbook-level3/tree/master/src/main/java/seedu/address/model/Model.java)
 
-<puml src="diagrams/ModelClassDiagram.puml" width="450" />
+The [Model class diagram](diagrams/ModelClassDiagram.puml) shows the domain model:
 
+<puml src="diagrams/ModelClassDiagram.puml" alt="TutorRoster model classes" />
 
-The `Model` component,
+`Person` is an immutable student record containing:
 
-* stores student records as `Person` objects in a `UniquePersonList`, together with session history in
-  `VersionedTutorRoster`, which extends `AddressBook`.
-* stores the `Person` objects selected by the current filter, such as search results, in a separate _filtered_ list. It exposes this list as an unmodifiable `ObservableList<Person>` that the UI can observe and bind to, so the UI updates when the list changes.
-* stores a `UserPrefs` object that represents the user’s preferences (currently, just the GUI settings). This is exposed to the outside as a `ReadOnlyUserPrefs` object.
-* does not depend on any of the other three components (as the `Model` represents data entities of the domain, they should make sense on their own without depending on other components)
+* required name, phone, one or more subjects, and education level;
+* optional email and address;
+* optional notes, stored as an empty string when absent; and
+* a defensive, unmodifiable set of `Tag` values.
 
+`StudentFields` centralises normalisation and validation for names, phones, email addresses, subjects,
+levels, and notes. `Person.isSamePerson` defines duplicate identity using normalised name plus either
+normalised phone or case-insensitive email. `Person.equals` remains a full-record comparison, which is
+what history and proposed/live model comparisons use.
 
-<box type="info" seamless>
+`ModelManager` owns:
 
-**Note:** The alternative, arguably more object-oriented, design below keeps a unique list of tags in `AddressBook`, and each `Person` references tags from that list. This lets `AddressBook` maintain one `Tag` object per unique tag instead of each `Person` holding its own `Tag` objects.<br>
+* a `VersionedTutorRoster` containing the roster and session snapshots;
+* the filtered observable list used by the UI; and
+* `UserPrefs`, currently GUI window size and position.
 
-<puml src="diagrams/BetterModelClassDiagram.puml" width="450" />
-</box>
-
+`ModelSnapshot` copies the roster, history, and current predicate for isolated command execution. The
+filter is deliberately replaced with the full-roster predicate after undo, redo, add, edit, delete,
+list, and clear as specified by the User Guide.
 
 ### Storage component
 
-**API** : [`Storage.java`](https://github.com/se-edu/addressbook-level3/tree/master/src/main/java/seedu/address/storage/Storage.java)
+The [Storage class diagram](diagrams/StorageClassDiagram.puml) shows the storage classes:
 
-<puml src="diagrams/StorageClassDiagram.puml" width="550" />
+<puml src="diagrams/StorageClassDiagram.puml" alt="TutorRoster storage classes" />
 
-The `Storage` component,
-* can save both address book data and user preference data in JSON format, and read them back into corresponding objects.
-* is implemented by `StorageManager`, which delegates the actual JSON file access to `JsonAddressBookStorage` and `JsonUserPrefsStorage` (one class per data file).
-* depends on some classes in the `Model` component (because the `Storage` component's job is to save/retrieve objects that belong to the `Model`)
+`StorageManager` implements the storage interface and delegates to:
 
-### Common classes
+* `JsonAddressBookStorage` for `data/addressbook.json`;
+* `JsonUserPrefsStorage` for `preferences.json`; and
+* Jackson adapter classes for `Person`, `Tag`, and the root address-book object.
 
-Classes used by multiple components are in the `seedu.address.commons` package.
+Roster changes use `saveAddressBookAtomically`: a sibling temporary file is written first and then
+atomically moved over the destination. A failed write leaves the previous live model, history, and
+data file intact. Preferences are saved when the application stops; a missing or unreadable preference
+file falls back to default window settings.
 
---------------------------------------------------------------------------------------------------------------------
+When an existing roster contains mixed-case or duplicate tags, `JsonAdaptedPerson` detects the need
+for migration. The normalised roster is saved atomically before startup continues. A migration save
+failure raises `TagMigrationException`, which stops startup rather than exposing an empty editable
+roster.
 
-## **Implementation**
+## Implementation
 
-This section describes some noteworthy details on how certain features are implemented.
+### Add and edit student records
 
-### Add student
+`AddCommandParser` recognises `n/`, `p/`, `e/`, `a/`, `s/`, `l/`, `r/`, and repeated `t/` values at
+parameter boundaries. It rejects unknown prefixes, repeated single-use fields, missing required
+fields, empty required values, invalid field values, duplicate subjects, and more than 20 new tags.
+Names, subjects, and levels are whitespace-normalised before validation; notes are trimmed and limited
+to 500 Unicode characters without control characters.
 
-`AddCommandParser` recognises `n/`, `p/`, `e/`, optional `a/` address, `s/`, `l/`, optional `r/` notes, and `t/` at parameter boundaries.
-Each repeated `t/TAG` supplies one tag. Equivalent tags are deduplicated with warning feedback,
-and invalid tags or more than 20 distinct tags reject the entire command.
-It rejects unknown prefixes and repeated single-use prefixes first. For a missing required prefix or an empty
-required value, it reports the affected field and shows separate required and optional parameter lists. Invalid
-field values are checked before constructing a student. `StudentFields` defines normalization and field validation.
-Names, subjects, and levels lose surrounding Unicode whitespace and collapse each internal whitespace run to one space
-before validation.
-Subject duplicate comparison uses that normalized value without case; storage retains the normalized value and
-entered capitalization. Subjects remain in input order.
+`EditCommandParser` additionally recognises `+s/`, `-s/`, `+t/`, and `-t/`. The `EditPersonDescriptor`
+records replacement, append, removal, and clear operations separately. `EditCommand` creates a new
+validated immutable `Person`, rejects duplicate identity, updates the filtered list to the full roster,
+and lets `LogicManager` record and save the change as one history step.
 
-Student records have subjects, a level, optional address, and optional notes. Notes are trimmed, limited to 500 Unicode characters,
-and cannot contain control characters. Slash-based shorthands such as `w/o` are prohibited in notes because they can resemble
-parameter prefixes; users should write `without` instead. `Person.isSamePerson` compares two records by normalized
-name and either normalized phone or case-insensitive email.
+### Search and displayed indices
 
-`AddCommand` changes an isolated working model and resets its filter to the full roster. `LogicManager`
-records the changed roster in that model's history, saves it atomically, and then publishes its checkpoint
-(roster, history, and filter) to the live model. A save failure leaves the live model and data file unchanged.
-This is the shared [recording and publishing flow](#recording-and-publishing-a-change) used for roster changes.
+`FindCommandParser` converts each field-prefixed term into a `SearchTerm`. `PersonMatchesFieldsPredicate`
+performs case-insensitive partial matching across name, phone, email, address, subject, level, and tag.
+Phone matching removes an optional leading `+`. `ALL` mode requires every term to match; `ANY` mode is
+selected by `--any`.
+
+Index-based commands read `Model.getFilteredPersonList()` before changing anything. This is important
+after a search: the selected displayed person must be resolved before a command resets the filter to
+the full roster. `show`, `edit`, `delete`, `tag`, and `untag` all use this displayed-index rule.
 
 ### Student tags
 
-`TagCommandParser` parses `tag INDEX TAG`, `untag INDEX TAG`, and `untag --all INDEX`.
-The two command words share `TagCommand`, whose operation is ADD, REMOVE, or CLEAR.
-It validates the index against the displayed list and replaces the selected immutable student using
-`Person.withTags`. That copy preserves all other fields and optional-field presence.
-The model's tag sets are unmodifiable and copied defensively.
+`TagCommandParser` supports `tag INDEX TAG`, `untag INDEX TAG`, and `untag --all INDEX`. `TagCommand`
+uses `Person.withTags` so every non-tag field is preserved. New tag names are lowercase, 1–30 English
+letters or digits with optional single hyphens, and each student can receive at most 20 new tags.
 
-`Tag` stores canonical lowercase names. New names contain at most 30 English letters/digits with
-single hyphens between nonempty segments. `Tag.fromStoredName` validates the same grammar without
-the new length limit, allowing old tags to remain readable and removable. Commands enforce the
-20-tag addition limit.
+Warning-only operations do not change the model, do not save, and do not create history. Changed tag
+operations retain the current search filter. Storage writes tags in sorted order; load-time migration
+keeps older tags that exceed the new add limits readable and removable.
 
-`LogicManager` executes tag commands through the shared snapshot flow, copying the roster, current
-filter, and undo/redo history into the working model. Unchanged outcomes return warning feedback
-without saving or altering history. Changed outcomes create one undo step and are saved atomically
-before the complete snapshot is published. Tag commands retain the current filter; undo/redo show
-the full roster. An I/O failure raises a command exception and leaves the live roster, filter, and
-history unchanged. The observable list instance remains stable.
-Input validation uses exceptions; assertions check internal identity invariants. Logs record operation
-and save outcomes without adding tag values to the new log messages.
+### Student detail view and command completion
 
-Storage keeps the existing per-student JSON `tags` array, sorted when written. On load,
-`JsonAdaptedPerson` detects spelling changes and duplicate tags. `JsonAddressBookStorage` atomically
-saves normalized data only when migration is needed and exposes whether migration occurred.
-`MainApp` passes the completed-migration notice to the UI. `TagMigrationException` distinguishes a
-failed migration save from other load errors, so it stops startup with an error dialog instead of
-falling back to an empty editable roster. Existing tag lengths and counts above the new limits are
-retained. Migration is idempotent and preserves unrelated model fields.
+`ShowCommand` returns a `CommandResult` containing the selected `Person`. `MainWindow` consumes that
+result and creates `StudentDetailModal`; the command itself does not alter the roster or filter.
 
-Student cards display sorted, wrapping badges and hide the tag area for an empty set. First-launch
-sample students include example tags. Tag changes use the undo/redo implementation below;
-field-targeted searches can also filter by address, subjects, level, notes, contact details, and tags. Phone searches
-normalise an optional leading `+` before applying partial matching.
+`CommandCompletionLogic` offers all implemented command words (`add`, `edit`, `delete`, `find`, `list`,
+`show`, `tag`, `untag`, `help`, and `exit`) and context-sensitive parameter prefixes. The completion
+list is UI guidance only: parsers remain the source of truth for validation.
 
-### Delete student
+### Simple commands and lifecycle
 
-`DeleteCommandParser` accepts a single positive displayed index through `ParserUtil.parseIndex`.
-Malformed arguments produce `Error: Invalid command format.` followed by `Usage: delete INDEX`.
-
-`DeleteCommand.execute` reads the currently filtered list and validates the index against its size.
-An out-of-range index produces `The student index provided is invalid.` without changing the model or filter.
-For a valid index, it resolves the student before deleting the record, then resets the filter with
-`Model.PREDICATE_SHOW_ALL_PERSONS`. Resolving the student before clearing the filter is necessary because a search
-result's index can differ from its index in the complete roster.
-The command returns `Student removed: NAME (phone: PHONE)` so identical names can be distinguished; it does not ask
-for confirmation.
-
-<puml src="diagrams/DeleteSequenceDiagram.puml" alt="Delete student sequence" />
-
-The diagram shows `DeleteCommand` operating on the isolated working model. `LogicManager` records the deletion
-as one undo step and saves the proposed roster atomically before publishing it to the live model. If saving
-fails, the live roster, filter, and history remain unchanged; the command can be retried after resolving the
-save error. See the shared [recording and publishing flow](#recording-and-publishing-a-change).
+`ListCommand` applies the full-roster predicate without changing history. `ClearCommand` replaces the
+roster with an empty `AddressBook`; the central `LogicManager` then records and saves it like any other
+roster change. `HelpCommand` returns a `CommandResult` that asks `MainWindow` to show `HelpWindow`, and
+`ExitCommand` returns a result that asks the main window to save GUI settings and hide the stage. The
+window-close handler follows the same preference-saving path.
 
 ### Undo and redo
 
-TutorRoster restores complete roster states so tutors can recover from accidental changes. The enabled
-roster-changing commands are currently `add`, `edit`, `delete`, `clear`, `tag`, and `untag`. Tag commands that only
-report a warning leave history unchanged. The history mechanism also supports record replacements at the model level.
+`VersionedTutorRoster` stores private whole-roster snapshots and a pointer to the current state. It
+starts with one snapshot of the loaded or sample roster. A successful roster change calls `commit()`;
+the method removes any abandoned redo suffix and appends a copy of the changed roster. Undo and redo
+restore a previous or later snapshot without appending a new one.
 
-#### State and responsibilities
+The following diagram traces a successful undo through parsing, working-model restoration, atomic
+saving, and publication:
 
-| Class | Responsibility |
+<puml src="diagrams/UndoSequenceDiagram-Logic.puml" alt="Successful undo sequence" />
+
+Inside the working model, `VersionedTutorRoster.undo()` first checks availability and restores the
+previous snapshot. The pointer is decremented only after restoration succeeds; a failed restoration
+can therefore be retried. `ModelManager` then applies the full-roster filter.
+
+<puml src="diagrams/UndoSequenceDiagram-Model.puml" alt="Undo inside the working model" />
+
+The model-level state and the `ModelSnapshot` serve different purposes. The history states support
+stepping backward and forward. The `ModelSnapshot` carries the history and current filter across the
+save boundary so that a save failure can discard the entire proposed operation.
+
+| Case | Result |
 | --- | --- |
-| `VersionedTutorRoster` | Extends `AddressBook` with a private `states` list of roster snapshots and a `currentStatePointer`. Implements `commit()`, `canUndo()`, `canRedo()`, `undo()`, and `redo()`. |
-| `ModelManager` | Owns the versioned roster and filtered list. Exposes history operations through `Model`, and shows the full roster after undo/redo. |
-| `ModelSnapshot` | Checkpoints the working roster, its entire undo/redo history, and its current filter for isolated execution and later publication. |
-| `UndoCommandParser` / `RedoCommandParser` | Reject arguments and create the corresponding command. `AddressBookParser` dispatches to them. |
-| `UndoCommand` / `RedoCommand` | Check history availability, restore the previous/next roster through `Model`, and return feedback. |
-| `LogicManager` | Coordinates command execution, history commits, atomic persistence, and publication to the live model. |
+| New change after undo | The redo suffix is discarded and the new change becomes the latest state. |
+| Display-only command | The filter may change, but no history state is added. |
+| Failed roster save | The live roster, filter, history, and previous file remain unchanged. |
+| Application restart | The saved roster is loaded with a fresh one-state session history. |
 
-`VersionedTutorRoster` starts with one snapshot of the loaded or sample roster and a pointer of `0`.
-`canUndo()` is true when the pointer is greater than `0`; `canRedo()` is true when the pointer is less than
-`states.size() - 1`. Each roster snapshot preserves the complete student records and their order. The private
-roster copies can share immutable `Person` values without exposing a mutable historical list.
+### Atomic save and publication flow
 
-The history snapshots and `ModelSnapshot` serve different purposes: `states` supports stepping through roster
-changes, while `ModelSnapshot` carries both that history and the display filter across the save boundary.
-The filter is not restored from an older undo step: a successful undo or redo deliberately shows all students.
+For `add`, `edit`, `delete`, `clear`, and changed tag operations, execution is intentionally isolated:
 
-#### Recording and publishing a change
+```text
+live ModelManager
+        │ createSnapshot()
+        ▼
+proposed ModelManager ── command.execute() ── commit if changed
+        │
+        ├── saveAddressBookAtomically()
+        │       ├── failure: discard proposed state
+        │       └── success
+        ▼
+live ModelManager.restoreSnapshot(proposed snapshot)
+```
 
-`LogicManager.execute` uses the following flow for every parsed command:
+This design also applies to undo and redo, except that those commands move the history pointer rather
+than creating a new state. It avoids exposing a change in the UI before persistence has succeeded.
 
-1. Construct an isolated `ModelManager` from the live roster and preferences, then call
-   `proposedModel.restoreSnapshot(model.createSnapshot())` to copy the current history and filter as well.
-1. Execute the command against `proposedModel`. An index-based command therefore resolves the same displayed
-   student as it would in the live model. Parser or command errors do not publish any working state.
-1. Compare the working and live rosters. If the roster changed and the command is neither undo nor redo, call
-   `proposedModel.commitAddressBook()`. `commit()` discards the redo suffix, appends a roster copy, and advances
-   the pointer to that new last state. An unchanged roster does not create a history entry.
-1. If the roster changed, or the command is undo/redo, call
-   `storage.saveAddressBookAtomically(proposedModel.getAddressBook())`. `StorageManager` delegates to
-   `JsonAddressBookStorage`, which writes a sibling temporary file and atomically replaces the data file.
-1. Only after saving succeeds, publish with `model.restoreSnapshot(proposedModel.createSnapshot())`.
-   Restoring the checkpoint transfers the roster, pointer, history, and filter while retaining the observable
-   list instance used by the UI. Return the command's `CommandResult`.
+## Testing, logging, and DevOps
 
-Display-only commands such as `find`, `list`, and `show` publish their updated filter without committing history or
-writing the roster file. Undo and redo move within the existing history; they do not append a new state.
-The same save-before-publication rule applies to them, so a failed save cannot consume an undo or redo step.
+The automated suite covers parsing, field validation, duplicate identity, search predicates, tag
+limits and migration, filtered index operations, edit semantics, history branching, persistence, and
+save-failure rollback. UI classes are intentionally excluded from the JaCoCo gate because JavaFX tests
+need a desktop session; the most important UI paths are covered by manual testing below.
 
-#### Successful undo sequence
+Use the project guides for supporting workflows:
 
-The following PlantUML sequence diagram follows `undo` through both parsers, the command, the working model,
-persistence, and the live model. It assumes an earlier state exists and the save succeeds. Routine data getters
-and the internal copying performed by checkpoints are omitted to keep the command flow readable.
-
-<puml src="diagrams/UndoSequenceDiagram-Logic.puml" alt="Undo command parsing, working-model restoration, atomic save, and live-model publication" />
-
-`AddressBookParser.parseCommand("undo")` creates an `UndoCommandParser`, whose `parse("")` returns an
-`UndoCommand`. `LogicManager` prepares the working model before calling `UndoCommand.execute(proposedModel)`.
-The command calls `canUndoAddressBook()` and then `undoAddressBook()` on that working model. Its success result
-is not returned to the UI until the restored roster has been saved and published.
-
-The next diagram expands `undoAddressBook()` inside the working model:
-
-<puml src="diagrams/UndoSequenceDiagram-Model.puml" alt="Working ModelManager restores the previous VersionedTutorRoster state and clears the display filter" />
-
-`VersionedTutorRoster.undo()` checks availability, asserts that there are no uncommitted roster changes,
-calls `resetData` with `states.get(currentStatePointer - 1)`, and decrements the pointer only after restoration
-succeeds. A restoration exception leaves the pointer unchanged. `ModelManager` then calls
-`updateFilteredPersonList(PREDICATE_SHOW_ALL_PERSONS)`. These steps affect only the working model until
-`LogicManager` completes persistence and publication.
-
-Redo follows the same flow using `RedoCommandParser`, `RedoCommand`, `canRedoAddressBook()`, and
-`redoAddressBook()`. `VersionedTutorRoster.redo()` restores `states.get(currentStatePointer + 1)` before
-incrementing the pointer, so the same failure protection applies.
-
-#### History example
-
-Assume the session starts with Alicia Lim, Ryan Tan, and Sarah Lee in that order. Let `S0` be that initial
-roster, `S1` the roster after deleting Ryan, and `S2` the roster after subsequently adding Jamie Koh.
-All commands below succeed unless the feedback says otherwise.
-
-| Command | `states` after publication | Pointer | Result |
-| --- | --- | --- | --- |
-| Start the session | `[S0]` | `0` | No undo or redo available. |
-| `delete 2` | `[S0, S1]` | `1` | Alicia and Sarah remain. |
-| `add n/Jamie Koh p/81234567 s/Physics l/JC 1` | `[S0, S1, S2]` | `2` | Jamie is appended. |
-| `undo` | `[S0, S1, S2]` | `1` | The complete roster in `S1` is restored. |
-| `list` | `[S0, S1, S2]` | `1` | History is unchanged. |
-| `redo` | `[S0, S1, S2]` | `2` | Jamie is restored. |
-| `undo` | `[S0, S1, S2]` | `1` | Jamie is removed again. |
-| `add n/Noah Goh p/91234567 s/English l/Secondary 4` | `[S0, S1, S3]` | `2` | The new roster `S3` replaces the abandoned redo branch `S2`. |
-| `redo` | `[S0, S1, S3]` | `2` | `There are no changes to redo.`; history is unchanged. |
-
-The history is session-only. Saving writes the current roster, without `states`, the pointer, or the display
-filter. Loading the saved roster into a new `ModelManager` starts a fresh one-state history.
-
-#### Errors and invariants
-
-* Arguments such as `undo 1` and `redo all` produce `ParseException` with
-  `Error: Invalid command format.` followed by `Usage: undo` or `Usage: redo` in the UI.
-* When history is unavailable, the command throws `CommandException` with `There are no changes to undo.`
-  or `There are no changes to redo.`. It does not restore a state or clear the live search filter.
-* An `IOException` or `AccessDeniedException` during atomic saving becomes a `CommandException`. The live
-  roster, filter, history, and previously saved file remain unchanged. The proposed pointer movement is discarded.
-* Java `assert` statements in `VersionedTutorRoster` check that the history contains a valid current pointer,
-  new commits end the redo branch, and undo/redo starts from a committed roster. These diagnose programmer errors.
-  History availability and command syntax also have runtime checks, so user-input validation works when Java
-  assertions are disabled.
-
-#### Design considerations and extension
-
-**Whole-roster snapshots:** A state restores every student field and roster position together. This avoids
-maintaining separate inverse operations for add, delete, and future record replacements. The cost is memory
-that grows with the number of retained states and roster size; history is not persisted across sessions.
-
-**Save before publication:** Preparing the entire operation on a working model keeps roster data, redo history,
-and display state consistent on save failure. This requires copying the working roster and history metadata
-for command execution. Updating the live model first would require restoring all three after a failed save.
-
-**Adding a roster-changing command:** Enable its parser and change the supplied working `Model` in `execute`.
-`LogicManager` detects the changed roster and records it centrally. Avoid independently committing a second
-history step, preserve `Person` immutability when adding fields, and cover undo/redo and save failures in tests.
-
-Existing coverage includes `VersionedTutorRosterTest`, `ModelHistoryTest`, `UndoCommandTest`, `RedoCommandTest`,
-`HistoryCommandParserTest`, and `LogicManagerTest`. Together they cover bounds, record replacements, ordering,
-redo-branch replacement, filtered deletion, persistence, save failures, failed restorations with retry,
-notes preservation, read-only detail viewing, and fresh history after restart.
-
-### \[Proposed\] Data archiving
-
-_{Explain here how the data archiving feature will be implemented}_
-
-
---------------------------------------------------------------------------------------------------------------------
-
-## **Documentation, logging, testing, dev-ops**
-
-* [Documentation guide](Documentation.md)
 * [Testing guide](Testing.md)
 * [Logging guide](Logging.md)
 * [DevOps guide](DevOps.md)
 
---------------------------------------------------------------------------------------------------------------------
-
-## **Appendix: Requirements**
+## Appendix: Requirements
 
 ### Product scope
 
-**Target user profile**:
+**Target users** are private freelance tutors who manage multiple students, prefer a desktop app, and
+are comfortable typing commands. TutorRoster's value proposition is fast, local student-record
+management with a lightweight visual roster and dependable keyboard workflow.
 
-* has a need to manage a significant number of contacts
-* prefers desktop apps over other types of applications
-* can type fast
-* prefers typing to mouse interactions
-* is reasonably comfortable using CLI apps
+TutorRoster v1.6 covers student contact and tutoring-profile management. It does not implement lesson
+scheduling, attendance, billing or payments, teaching materials, school fields, or a separate guardian
+entity.
 
-**Value proposition**: Manage contacts faster than with a typical mouse-driven GUI application.
+### User stories implemented in the current version
 
+Priorities: High (must have) – `***`; Medium (nice to have) – `**`; Low – `*`.
 
-### User stories
+| Priority | As a … | I want to … | So that I can … |
+| --- | --- | --- | --- |
+| `***` | new user | open usage instructions | learn the command syntax and recover from mistakes |
+| `***` | tutor | add a student with tutoring details | keep a complete record in one place |
+| `***` | tutor | edit a student's fields | keep contact and tutoring information current |
+| `***` | tutor | find students by field | locate a record without scanning the whole roster |
+| `***` | tutor | view a full student profile | inspect optional details before contacting or editing |
+| `***` | tutor | delete a student | remove records that are no longer needed |
+| `***` | tutor | clear the roster | start again with an empty list |
+| `***` | tutor | add and remove tags | group students for follow-up or lesson preparation |
+| `***` | tutor | undo or redo roster changes | recover from an accidental change |
+| `***` | tutor | save records automatically | retain the roster between sessions |
+| `**` | tutor | use autocomplete and command history | enter frequent commands quickly |
+| `**` | tutor | use the keyboard for core operations | work efficiently without mouse navigation |
 
-Priorities: High (must have) - `* * *`, Medium (nice to have) - `* *`, Low (unlikely to have) - `*`
+### Requirements yet to be implemented
 
-| Priority | As a …                                    | I want to …                 | So that I can…                                                        |
-|----------|--------------------------------------------|------------------------------|------------------------------------------------------------------------|
-| `* * *`  | new user                                   | see usage instructions       | refer to instructions when I forget how to use the App                 |
-| `* * *`  | user                                       | add a new person             |                                                                        |
-| `* * *`  | user                                       | delete a person              | remove entries that I no longer need                                   |
-| `* * *`  | user                                       | find students by their fields | locate details of students without going through the entire list |
-| `* *`    | user                                       | hide private contact details | minimize chance of someone else seeing them by accident                |
-| `*`      | user with many persons in the address book | sort persons by name         | locate a person easily                                                 |
+These are future requirements, not v1.6 behaviour. They must not be documented as available product
+features until implemented and tested.
 
-*{More to be added}*
-
-### Use cases
-
-(For all use cases below, the **System** is the `AddressBook` and the **Actor** is the `user`, unless specified otherwise)
-
-**Use case: Delete a person**
-
-**MSS**
-
-1.  User requests to list persons
-2.  AddressBook shows a list of persons
-3.  User requests to delete a specific person in the list
-4.  AddressBook deletes the person
-
-    Use case ends.
-
-**Extensions**
-
-* 2a. The list is empty.
-
-  Use case ends.
-
-* 3a. The given index is invalid.
-
-    * 3a1. AddressBook shows an error message.
-
-      Use case resumes at step 2.
+| Priority | As a … | I want to … | So that I can … |
+| --- | --- | --- | --- |
+| `**` | tutor | sort students by name, level, or tag | find a record in a preferred order |
+| `**` | tutor | hide or reveal optional contact fields | reduce accidental exposure on screen |
+| `**` | tutor | record a school and structured guardian details | keep more context for each student |
+| `*` | tutor | record lesson schedules and attendance | manage the wider tutoring workflow |
+| `*` | tutor | record fees and payment status | track administrative work |
 
 ### Use cases
 
-(For all use cases below, the **System** is `TutorRoster` and the **Actor** is the `user`.)
+The use cases below document non-trivial interaction patterns. The actor is the tutor and the system
+is TutorRoster.
 
-**Use case: Add a student**
-
-**MSS**
-
-1. User enters a command to add a student with their name, phone number, subject(s), education level, and optional email address, address, and notes
-2. TutorRoster validates the command and student details
-3. TutorRoster checks that the student is not a duplicate
-4. TutorRoster stores the new student record
-5. TutorRoster displays the updated student list and a confirmation message
-
-   Use case ends.
-
-**Extensions**
-
-- 2a. The command or student details are invalid.
-
-  - 2a1. TutorRoster shows an error message.
-
-    Use case ends.
-
-- 3a. The student is already in the roster.
-
-  - 3a1. TutorRoster rejects the duplicate record and shows an error message.
-
-    Use case ends.
-
-- 4a. TutorRoster cannot save the student data.
-
-  - 4a1. TutorRoster shows an error message and makes no changes.
-
-    Use case ends.
-
----
-
-**Use case: List students**
+#### Use case: Add a student
 
 **MSS**
 
-1. User requests to list students
-2. TutorRoster displays all stored students in roster order
-3. TutorRoster displays the number of students listed
-
-   Use case ends.
+1. Tutor enters `add` with the required student fields and any optional fields.
+2. TutorRoster parses and validates the command.
+3. TutorRoster checks the duplicate-student rule.
+4. TutorRoster adds the student to a proposed roster and saves it atomically.
+5. TutorRoster publishes the new roster and displays a confirmation.
 
 **Extensions**
 
-- 1a. The user provides additional text or parameters.
+* 2a. A required field is missing, a prefix is unknown, or a value is invalid. TutorRoster displays
+  the relevant error and changes nothing.
+* 2b. A subject or tag is repeated. TutorRoster rejects a repeated subject; it stores a repeated
+  equivalent tag once and displays a warning.
+* 3a. The record is a duplicate. TutorRoster displays `This student already exists in TutorRoster.`
+* 4a. Saving fails. TutorRoster displays a save error and does not publish the proposed roster.
 
-  - 1a1. TutorRoster shows an error message.
-
-    Use case ends.
-
-- 2a. The roster is empty.
-
-  - 2a1. TutorRoster displays `No students in TutorRoster`.
-
-    Use case ends.
-
----
-
-**Use case: Find students by field**
+#### Use case: Search, inspect, and act on a displayed student
 
 **MSS**
 
-1. User enters one or more field-prefixed search values
-2. TutorRoster searches the specified fields using case-insensitive partial matching
-3. TutorRoster displays the matching students in roster order
-4. TutorRoster displays the number of students found
-
-   Use case ends.
+1. Tutor enters a field-specific `find` command.
+2. TutorRoster displays matching students in roster order and numbers them from 1.
+3. Tutor enters `show`, `edit`, `delete`, `tag`, or `untag` with a displayed index.
+4. TutorRoster resolves the index against the filtered list.
+5. TutorRoster performs the requested action and displays the appropriate result.
 
 **Extensions**
 
-- 1a. The user does not provide a search keyword.
+* 1a. No search field is supplied or a value is empty. TutorRoster shows usage guidance and keeps
+  the prior display.
+* 2a. No students match. TutorRoster displays an empty list and `0 person(s) listed!`.
+* 3a. The index is missing, malformed, or outside the displayed list. TutorRoster shows an error and
+  changes nothing.
+* 3b. The command is `show`. TutorRoster opens the modal and leaves the roster and filter unchanged.
+* 3c. The command is `delete` or `edit`. A successful operation returns to the complete roster.
+* 3d. The command is `tag` or `untag`. A successful operation keeps the current filter.
 
-  - 1a1. TutorRoster shows an error message.
-
-    Use case ends.
-
-- 3a. No students match the search keywords.
-
-  - 3a1. TutorRoster displays an empty list and shows `No students found`.
-
-    Use case ends.
-
----
-
-**Use case: Delete a student**
+#### Use case: Edit multi-value fields
 
 **MSS**
 
-1. User requests to list students
-2. TutorRoster displays a numbered list of students
-3. User requests to delete a specific student using its index
-4. TutorRoster validates the index and deletes the selected student
-5. TutorRoster displays the remaining student list and a confirmation message
-
-   Use case ends.
+1. Tutor enters `edit INDEX` with replacement, append, or removal prefixes.
+2. TutorRoster builds a new immutable student record from the descriptor.
+3. TutorRoster validates the resulting subjects, tags, optional fields, and duplicate identity.
+4. TutorRoster saves and publishes the edited roster as one history state.
 
 **Extensions**
 
-- 2a. The displayed list is the result of a previous search.
+* 1a. No field is supplied. TutorRoster reports `At least one field to edit must be provided.`
+* 2a. `e/`, `a/`, `r/`, or `t/` is supplied without a value where clearing is supported. The
+  corresponding optional value is cleared.
+* 3a. Removing all subjects, repeating a subject, exceeding the tag limit, or creating a duplicate
+  record is rejected without changing the roster.
+* 4a. Saving fails. The prior roster and history remain live.
 
-  - 2a1. TutorRoster interprets the index using the filtered list.
-
-    Use case resumes at step 3.
-
-- 3a. The given index is invalid.
-
-  - 3a1. TutorRoster shows an error message.
-
-    Use case resumes at step 2.
-
-- 4a. TutorRoster cannot save the updated roster.
-
-  - 4a1. TutorRoster shows an error message and makes no changes.
-
-    Use case ends.
-
----
-
-**Use case: Restore persistent student records**
+#### Use case: Undo and redo a change
 
 **MSS**
 
-1. User starts or reopens TutorRoster
-2. TutorRoster loads the previously stored student records
-3. TutorRoster displays the restored student list
-
-   Use case ends.
+1. Tutor performs one or more successful roster changes.
+2. Tutor enters `undo`.
+3. TutorRoster restores the previous whole-roster snapshot in a proposed model.
+4. TutorRoster saves the restored roster and publishes it with the full-roster filter.
+5. Tutor enters `redo` to restore the next snapshot if required.
 
 **Extensions**
 
-- 2a. No previous student data exists.
+* 2a. No earlier snapshot exists. TutorRoster displays `There are no changes to undo.`
+  The roster and filter are unchanged.
+* 4a. Saving fails. The history pointer and live model remain unchanged.
+* 5a. A new successful roster change is made after undo. TutorRoster discards the abandoned redo
+  branch and reports no redo available.
 
-  - 2a1. TutorRoster starts with an empty roster.
+#### Use case: Restore persisted records
 
-    Use case ends.
+**MSS**
 
-- 2b. TutorRoster cannot load the existing student data.
+1. Tutor starts TutorRoster from a launch folder.
+2. TutorRoster reads `data/addressbook.json` and `preferences.json`.
+3. TutorRoster displays the saved roster and restores window settings.
 
-  - 2b1. TutorRoster shows an error message and starts with an empty roster without overwriting the existing data.
+**Extensions**
 
-    Use case ends.
+* 2a. The roster file is missing. TutorRoster displays sample students.
+* 2b. The roster file cannot be read. TutorRoster starts with an empty roster; the user should make a
+  backup before entering new commands.
+* 2c. Tags need migration. TutorRoster saves the normalised file before showing the roster; a failed
+  migration stops startup and leaves the original file unchanged.
 
+### Non-functional requirements
 
-
-
-### Non-Functional Requirements
-
-1.  TutorRoster should work on any _mainstream OS_ as long as it has Java `25` installed.
-2.  TutorRoster should be able to hold at least 1000 student records.
-3.  With up to 1000 student records, common operations such as adding, editing, deleting, finding, filtering, and listing students should normally complete within one second.
-4.  All core student-management operations should be executable entirely through keyboard commands without requiring a mouse.
-5.  A user who is familiar with TutorRoster's commands should be able to perform common student-management operations faster than with a typical mouse-driven contact-management application.
-6.  After TutorRoster reports that a data-modifying operation was successful, the updated student information should be saved and available when the application is restarted.
-7.  Invalid commands, invalid student information, and failed operations should not modify or remove any existing student records.
-8.  If the data file is missing, unreadable, or corrupted, TutorRoster should start safely, inform the user of the problem, and avoid automatically overwriting the affected file.
-9.  TutorRoster should store all student data locally in a human-editable text file. All core student-management functions should remain usable without an Internet connection and should not depend on a database management system or remote server.
-10. Error messages should identify the invalid field or command and explain the expected input format. Successful data-changing operations should also provide confirmation.
+1. TutorRoster must run on mainstream desktop operating systems with Java 25 or later and JavaFX.
+2. TutorRoster should support at least 1,000 student records.
+3. With up to 1,000 records, common operations should normally complete within one second.
+4. Core roster operations must be executable through keyboard commands without requiring a mouse.
+5. Student data must remain local and the core workflow must not depend on an Internet connection,
+   database server, or remote service.
+6. After a successful data-changing result, the updated roster must be available after restarting
+   from the same launch folder.
+7. Invalid commands and failed saves must not modify existing records or consume undo/redo history.
+8. Roster writes must be atomic so a failed write does not replace the last known-good data file.
+9. Error messages must identify the command or field problem and provide enough format guidance for
+   correction.
+10. The application must preserve optional-field presence and complete student details across save,
+    load, undo, redo, and detail viewing.
 
 ### Glossary
 
 | Term | Definition |
-|---|---|
-| **TutorRoster** | A keyboard-driven application for private tutors to store, retrieve, and manage students’ contact and tutoring information. |
-| **Private tutor** | A person who independently teaches students individually or in small groups. The intended user of TutorRoster. |
-| **Student** | A person taught by the tutor whose information is stored in TutorRoster. |
-| **Student record** | A stored entry representing one student. It contains a name, contact phone number, optional email address, optional address, one or more subjects, and an education level. |
-| **Roster / Student list** | The collection of student records managed by the tutor. |
-| **Contact information** | Details used to reach a student or their parent or guardian, such as a phone number or email address. |
-| **Main contact number** | The phone number stored in a student record. It may belong to the student or a parent or guardian. |
-| **Guardian** | A person responsible for a student who may serve as the tutor’s contact person. |
-| **Subject** | An academic subject the tutor teaches a student, such as Mathematics or Physics. A student may have multiple subjects. |
-| **Education level** | The academic stage at which a student is taught, such as Primary 6, Secondary 4, or JC 1. |
-| **School** | The educational institution a student attends. A planned field beyond the strict MVP. |
-| **Tag** | A lowercase label such as `exam-prep`, attached with `tag INDEX TAG` or `t/TAG` during add, and removed with `untag`. |
-| **Student notes** | Optional free-text information about a student, such as learning difficulties, goals, preferred explanations, or parent requests. |
-| **Preferred contact person** | The student or guardian whom the tutor should contact first. A planned feature beyond the strict MVP. |
-| **Command** | A typed instruction that performs an operation, such as `list` or `delete 1`. |
-| **CLI-first interface** | An interface where typing commands is the primary way to interact with the application, while a graphical interface displays records and feedback. |
-| **Parameter** | A value supplied to a command, such as a student’s name or the index of a record to delete. |
-| **Prefix** | A marker identifying a parameter’s type, such as `n/` for name or `s/` for subject. |
-| **Student index (`INDEX`)** | A student’s position in the currently displayed numbered list, starting from 1. After a search, it refers to the search results. |
-| **Filtered list** | A displayed subset of the roster containing only students who match the current search or filter criteria. |
-| **Case-insensitive matching** | Comparing text without distinguishing uppercase from lowercase letters. For example, `Ryan` and `ryan` match. |
-| **Whitespace normalization** | Removing surrounding whitespace and treating consecutive internal whitespace as one space in names, subjects, and education levels. |
-| **Duplicate student record** | Under the MVP rules, a record with the same normalized name as an existing record and either the same phone number or the same email address. Sharing contact details alone does not make students duplicates. |
-| **Input validation** | Checking that command input meets the required format and field rules before accepting it. |
-| **Result area** | The part of the interface that displays command feedback, such as success messages or errors. |
-| **Data persistence** | Automatically retaining student records between application sessions so they remain available after reopening TutorRoster. |
-| **Application session** | One period of using TutorRoster, from opening the application until closing it. |
-| **Minimum viable product (MVP)** | The smallest usable version of TutorRoster that supports its essential student-management needs. |
+| --- | --- |
+| **TutorRoster** | The desktop application documented here. |
+| **Student record** | One immutable stored entry containing a name, phone, subjects, level, optional email and address, optional notes, and tags. |
+| **Roster** | The ordered collection of student records. |
+| **Displayed list** | The list currently visible in the UI; it may be the full roster or search results. |
+| **Displayed index** | A one-based position in the displayed list, used by index-based commands. |
+| **Prefix** | The marker before a field value, such as `n/` for name or `s/` for subject. |
+| **Field-specific search** | A `find` query that limits matching to named fields such as `n/`, `p/`, `a/`, or `t/`. |
+| **Tag** | A lowercase label attached to a student for grouping or follow-up. |
+| **Session history** | In-memory whole-roster snapshots used by `undo` and `redo`; it is not persisted. |
+| **Proposed model** | An isolated model copy on which a command executes before saving and publication. |
+| **Atomic save** | Writing a temporary sibling file and replacing the destination only after the write succeeds. |
+| **Migration** | Normalising old stored tags while preserving the rest of the roster. |
+| **Value object** | An immutable model type such as `Name`, `Phone`, `Email`, `Address`, or `Tag`. |
 
---------------------------------------------------------------------------------------------------------------------
+## Appendix: Instructions for Manual Testing
 
-## **Appendix: Instructions for manual testing**
+These checks complement the User Guide. Use a fresh temporary folder and a copy of the runnable JAR so
+that the test roster does not alter a developer's normal data.
 
-Given below are instructions to test the app manually.
+### Launch and preferences
 
-<box type="info" seamless>
+1. Put `TutorRoster.jar` in an empty, writable folder.
+2. Launch from a terminal with `java -jar TutorRoster.jar`.
+   Expected: the main window opens with sample students, a command box, result area, and a status bar
+   showing a path under `data/addressbook.json`.
+3. Resize and move the window, close it, then launch it again from the same folder.
+   Expected: the size and position are restored through `preferences.json`.
+4. Repeat the launch from a write-protected folder or with a read-only data file.
+   Expected: data-changing commands report a save error and do not change the visible roster.
 
-**Note:** These instructions only provide a starting point for testers to work on;
-testers are expected to do more *exploratory* testing.
-</box>
+### Basic roster workflow
 
-### Launch and shutdown
+1. Enter the following valid command:
 
-1. Initial launch
+   ```text
+   add n/Mei Lin p/+6598765432 e/mei@example.com a/12 River Road s/Mathematics s/Physics l/Secondary 3 t/exam-prep r/Prefers diagrams
+   ```
 
-   1. Download the JAR file and copy it into an empty folder.
+   Expected: Mei Lin appears at the end, tags are shown as a badge, and the result says
+   `New student added: Mei Lin`.
+2. Enter `find n/Mei`, then `show 1`.
+   Expected: one match is shown; the modal displays all fields and can be closed with `Esc`.
+3. Enter `edit 1 +s/Chemistry +t/needs-follow-up`.
+   Expected: subjects and tags are appended and the full roster is shown.
+4. Enter `find --any s/Physics t/needs-follow-up`.
+   Expected: students matching either condition are displayed and the result area reports the count.
+5. Enter `list`.
+   Expected: the full roster returns and the result says `Listed all students.`
 
-   1. Double-click the JAR file.<br>
-      Expected: The GUI opens with a set of sample contacts. The window size may not be optimal.
+### Tags and validation
 
-1. Saving window preferences
+1. Enter `find n/Mei`, then `tag 1 Exam-Prep`.
+   Expected: the tag is stored/displayed as `exam-prep` and the filter remains active.
+2. Enter `tag 1 exam-prep` again.
+   Expected: a `Warning:` says the student already has the tag; no new history step is created.
+3. Enter `untag 1 exam-prep`, then `untag --all 1`.
+   Expected: the first removes one tag and the second clears all remaining tags.
+4. Try `add n/Test p/9123-4567 s/English l/Primary 6`.
+   Expected: validation rejects the hyphenated phone and no record is added.
+5. Try `add n/Test p/91234567 l/Primary 6`.
+   Expected: the missing `s/` field is identified and no record is added.
+6. Try `find` and `find --any`.
+   Expected: both show usage guidance because a search field is required.
 
-   1. Resize the window to an optimal size. Move the window to a different location. Close the window.
+### Index safety and history
 
-   1. Relaunch the app by double-clicking the JAR file.<br>
-       Expected: The most recent window size and location are retained.
+1. Enter `find n/Mei`, then `delete 1`.
+   Expected: the matching student is removed and the complete roster is displayed.
+2. Enter `undo`, then `redo`.
+   Expected: the student is restored, then removed again; each command reports success.
+3. Enter `undo`, then add a different student, then `redo`.
+   Expected: the new add starts a new branch and `redo` reports `There are no changes to redo.`
+4. Enter `delete 0`, `show 999`, and `edit 1` with no fields.
+   Expected: each is rejected without changing the roster.
+5. Enter `clear`, then `undo`.
+   Expected: the roster becomes empty and then the previous complete roster is restored.
 
-1. _{ more test cases … }_
+### Persistence and restart
 
-### Deleting a student
+1. Add or edit a record and wait for the success feedback.
+2. Enter `exit`, then launch again from the same folder.
+   Expected: the saved roster is present, but `undo` and `redo` report that no session history is available.
+3. Copy `data/addressbook.json` while the app is closed, restore the copy in another fresh launch folder,
+   and start the app there.
+   Expected: the copied roster is loaded.
 
-1. Deleting a student while the full roster is shown
+### UI keyboard paths
 
-   1. Prerequisites: List all persons using the `list` command, with multiple persons in the list.
-
-   1. Test case: `delete 1`<br>
-      Expected: The first student is removed, all remaining students are displayed, and the result area shows
-      `Student removed: NAME (phone: PHONE)`.
-
-   1. Test case: `delete 0`<br>
-      Expected: No student is removed, the displayed list is unchanged, and the result area shows
-      `Error: Invalid command format.` followed by `Usage: delete INDEX`.
-
-   1. Other incorrect delete commands to try: `delete`, `delete x`, `...` (where x is larger than the list size)<br>
-      Expected: Missing or malformed indices show `Error: Invalid command format.` followed by
-      `Usage: delete INDEX`. Positive indices outside the displayed list show
-      `Error: The student index provided is invalid.`.
-      No student is removed and the displayed list remains unchanged.
-
-1. _{ more test cases … }_
-
-### Saving data
-
-1. Dealing with missing/corrupted data files
-
-   1. _{Explain how to simulate missing or corrupted data files and state the expected behavior.}_
-
-1. _{ more test cases … }_
+1. Focus the roster and press `/`; type `li`, then press `Tab` and `Enter`.
+   Expected: `list` is completed and executed.
+2. Type part of `add` and inspect the suggestions. Click a suggestion and verify that its prefix is inserted.
+3. Use Up and Down arrows in the command box.
+   Expected: commands from the current session are recalled, with an unfinished draft restored at the end.
+4. Press `F1`, click **Copy URL**, and press `F1` again.
+   Expected: the Help window opens, the User Guide URL is copied, and the window closes.
