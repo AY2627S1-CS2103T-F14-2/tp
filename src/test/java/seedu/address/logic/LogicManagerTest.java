@@ -137,6 +137,26 @@ public class LogicManagerTest {
     }
 
     @Test
+    public void execute_addAndEditApostrophes_preservesSpellingAndSavedHistory() throws Exception {
+        CommandResult added = logic.execute("add p/81234567 n/O’rayn s/Mathematics l/Primary 6");
+        Person curlyName = new Person("O’rayn", "81234567", null, List.of("Mathematics"), "Primary 6");
+        assertEquals("New student added: O’rayn", added.getFeedbackToUser());
+        assertStoredRoster(List.of(curlyName));
+
+        CommandResult edited = logic.execute("edit 1 n/O'rayn");
+        Person straightName = new Person("O'rayn", "81234567", null, List.of("Mathematics"), "Primary 6");
+        assertEquals("Edited student: O'rayn", edited.getFeedbackToUser());
+        assertStoredRoster(List.of(straightName));
+
+        logic.execute("edit 1 n/O’rayn");
+        assertStoredRoster(List.of(curlyName));
+        logic.execute("undo");
+        assertStoredRoster(List.of(straightName));
+        logic.execute("redo");
+        assertStoredRoster(List.of(curlyName));
+    }
+
+    @Test
     public void execute_malformedDelete_preservesDisplayedList() throws Exception {
         model.setAddressBook(TypicalPersons.getTypicalAddressBook());
         logic.execute("find n/Benson");

@@ -28,8 +28,8 @@ public class CommandCompletionLogic {
                     "Edit student details by displayed list index"),
             new CommandSpec("delete", "delete INDEX",
                     "Delete student by displayed list index"),
-            new CommandSpec("find", "find [--any] KEYWORD [MORE_KEYWORDS]...",
-                    "Find students by name keywords"),
+            new CommandSpec("find", "find [--any] PREFIX/VALUE [PREFIX/VALUE]...",
+                    "Search using n/ name, p/ phone, e/ email, a/ address, s/ subject, l/ level, or t/ tag."),
             new CommandSpec("list", "list",
                     "Show the complete student roster"),
             new CommandSpec("show", "show INDEX",
@@ -320,7 +320,7 @@ public class CommandCompletionLogic {
             return List.of(new Suggestion(
                     base + "--any ",
                     "--any",
-                    "Match students containing at least one keyword (OR search)"));
+                    "Match students matching at least one supplied field (OR search)"));
         }
         return Collections.emptyList();
     }

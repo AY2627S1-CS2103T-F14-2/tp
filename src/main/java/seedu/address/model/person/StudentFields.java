@@ -65,8 +65,8 @@ public final class StudentFields {
         String normalized = normalizeName(name);
         return hasLength(normalized, 1, 100) && hasLetterOrNumber(normalized)
                 && normalized.codePoints().allMatch(codePoint -> isLetterOrNumber(codePoint)
-                        || codePoint == ' ' || codePoint == '\'' || codePoint == '-'
-                        || codePoint == '.');
+                        || codePoint == ' ' || codePoint == '\'' || codePoint == '\u2019'
+                        || codePoint == '-' || codePoint == '.');
     }
 
     /** Returns whether the phone follows the new-student rule. */
