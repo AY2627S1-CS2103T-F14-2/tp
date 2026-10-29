@@ -13,8 +13,11 @@ Class HelpWindow
 Class ResultDisplay
 Class PersonListPanel
 Class PersonCard
+Class StatusBarFooter
+Class StudentDetailModal
 Class CommandBox
 Class CommandBoxLogic
+Class CommandCompletionLogic
 Class CommandHistory
 }
 
@@ -37,14 +40,17 @@ MainWindow *-down-> "1" ResultDisplay
 MainWindow *-down-> "1" PersonListPanel
 MainWindow *-down-> "1" StatusBarFooter
 MainWindow *-down-> "1" HelpWindow
+MainWindow *-down-> "0..1" StudentDetailModal
 
 PersonListPanel -down-> "*" PersonCard
 PersonListPanel ..> Person
 PersonCard ..> Person
 PersonCard ..> StudentFields
+StudentDetailModal ..> Person
 
 CommandBox *-down-> "1" CommandBoxLogic
 CommandBoxLogic *-down-> "1" CommandHistory
+CommandBoxLogic *-down-> "1" CommandCompletionLogic
 
 MainWindow -left-|> UiPart
 
@@ -54,6 +60,7 @@ PersonListPanel --|> UiPart
 PersonCard --|> UiPart
 StatusBarFooter --|> UiPart
 HelpWindow --|> UiPart
+StudentDetailModal --|> UiPart
 
 UiManager -right-> Logic
 MainWindow -left-> Logic
