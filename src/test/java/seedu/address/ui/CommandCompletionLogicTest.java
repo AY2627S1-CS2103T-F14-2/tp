@@ -175,6 +175,18 @@ public class CommandCompletionLogicTest {
     }
 
     @Test
+    public void getSuggestions_editCommandInvalidIndex_returnsNoSuggestions() {
+        for (String index : List.of("abc", "0", "-1", "+1", "2147483648", "1/")) {
+            assertTrue(completionLogic.getSuggestions("edit " + index).isEmpty());
+            assertTrue(completionLogic.getSuggestions("edit " + index + " ").isEmpty());
+            assertTrue(completionLogic.getSuggestions("edit " + index + " n/").isEmpty());
+            assertTrue(completionLogic.autocomplete("edit " + index).isEmpty());
+        }
+
+        assertEquals("edit 01 ", completionLogic.autocomplete("edit 01").orElseThrow());
+    }
+
+    @Test
     public void getSuggestions_emptyInput_includesEditCommand() {
         List<CommandCompletionLogic.Suggestion> allSuggestions = completionLogic.getSuggestions("");
         boolean hasEdit = allSuggestions.stream().anyMatch(s -> s.completionText().equals("edit "));
@@ -225,6 +237,17 @@ public class CommandCompletionLogicTest {
     }
 
     @Test
+    public void getSuggestions_tagCommandInvalidIndex_returnsNoSuggestions() {
+        for (String index : List.of("abc", "0", "-1", "+1", "2147483648", "1/")) {
+            assertTrue(completionLogic.getSuggestions("tag " + index).isEmpty());
+            assertTrue(completionLogic.getSuggestions("tag " + index + " ").isEmpty());
+            assertTrue(completionLogic.autocomplete("tag " + index).isEmpty());
+        }
+
+        assertEquals("tag 01 ", completionLogic.autocomplete("tag 01").orElseThrow());
+    }
+
+    @Test
     public void getSuggestions_untagCommand_suggestsIndexAndAllFlag() {
         // Prefix matching
         List<CommandCompletionLogic.Suggestion> uMatches = completionLogic.getSuggestions("u");
@@ -256,6 +279,30 @@ public class CommandCompletionLogicTest {
         List<CommandCompletionLogic.Suggestion> untagWithIndex = completionLogic.getSuggestions("untag 3 ");
         assertEquals(1, untagWithIndex.size());
         assertEquals("TAG", untagWithIndex.get(0).formatText());
+    }
+
+    @Test
+    public void getSuggestions_untagCommandInvalidIndex_returnsNoSuggestions() {
+        for (String index : List.of("abc", "0", "-1", "+1", "2147483648", "1/")) {
+            assertTrue(completionLogic.getSuggestions("untag " + index).isEmpty());
+            assertTrue(completionLogic.getSuggestions("untag " + index + " ").isEmpty());
+            assertTrue(completionLogic.autocomplete("untag " + index).isEmpty());
+            assertTrue(completionLogic.getSuggestions("untag --all " + index).isEmpty());
+            assertTrue(completionLogic.autocomplete("untag --all " + index).isEmpty());
+        }
+
+        assertEquals("untag 01 ", completionLogic.autocomplete("untag 01").orElseThrow());
+    }
+
+    @Test
+    public void getSuggestions_showAndDeleteCommands_onlyPromptForMissingIndex() {
+        for (String command : List.of("show", "delete")) {
+            assertEquals(command + " 1", completionLogic.autocomplete(command + " ").orElseThrow());
+            for (String index : List.of("1", "abc", "0", "-1", "+1", "2147483648")) {
+                assertTrue(completionLogic.getSuggestions(command + " " + index).isEmpty());
+                assertTrue(completionLogic.autocomplete(command + " " + index).isEmpty());
+            }
+        }
     }
 
     @Test
