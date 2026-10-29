@@ -269,7 +269,7 @@ public class CommandCompletionLogic {
                     "Space followed by fields to edit"));
         }
 
-        String prefixArgs = firstSpace >= 0 ? trimmedArgs.substring(firstSpace + 1) : "";
+        String prefixArgs = trimmedArgs.substring(firstSpace + 1);
         Set<String> usedPrefixes = extractPrefixes(prefixArgs);
         List<Suggestion> suggestions = new ArrayList<>();
 
