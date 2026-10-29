@@ -54,6 +54,29 @@ public class CommandHistoryTest {
     }
 
     @Test
+    public void next_beforeBrowsingHistory_preservesCurrentText() {
+        CommandHistory commandHistory = new CommandHistory();
+        commandHistory.add("list");
+
+        assertEquals("add n/Unfinished", commandHistory.next("add n/Unfinished"));
+        assertEquals("add n/Unfinished", commandHistory.next("add n/Unfinished"));
+        assertEquals("list", commandHistory.previous("add n/Unfinished"));
+        assertEquals("add n/Unfinished", commandHistory.next("list"));
+    }
+
+    @Test
+    public void next_afterResetNavigation_preservesEditedText() {
+        CommandHistory commandHistory = new CommandHistory();
+        commandHistory.add("list");
+        commandHistory.previous("old draft");
+        commandHistory.resetNavigation();
+
+        assertEquals("edited command", commandHistory.next("edited command"));
+        assertEquals("list", commandHistory.previous("edited command"));
+        assertEquals("edited command", commandHistory.next("list"));
+    }
+
+    @Test
     public void previous_atOldestCommand_keepsOldestCommand() {
         CommandHistory commandHistory = new CommandHistory();
         commandHistory.add("list");
