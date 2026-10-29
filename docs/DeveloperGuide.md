@@ -103,8 +103,8 @@ is displayed as an overlay over the main scene.
 * `StudentDetailModal` renders every stored field and uses `Not provided` for absent optional values.
 * `CommandBox` delegates command execution to `Logic`, keeps invalid input in the text field, and
   shows completion suggestions in a popup.
-* `CommandBoxLogic` supplies command and prefix suggestions. `CommandHistory` records commands for
-  the current session and preserves an unfinished draft while navigating.
+* `CommandBoxLogic` delegates suggestion generation to `CommandCompletionLogic`. `CommandHistory`
+  records commands for the current session and preserves an unfinished draft while navigating.
 * `HelpWindow` is a secondary, non-resizable stage. It displays the User Guide URL, copies it to the
   system clipboard, and closes on `F1`.
 
@@ -226,9 +226,24 @@ keeps older tags that exceed the new add limits readable and removable.
 `ShowCommand` returns a `CommandResult` containing the selected `Person`. `MainWindow` consumes that
 result and creates `StudentDetailModal`; the command itself does not alter the roster or filter.
 
-`CommandCompletionLogic` offers all implemented command words (`add`, `edit`, `delete`, `find`, `list`,
-`show`, `tag`, `untag`, `help`, and `exit`) and context-sensitive parameter prefixes. The completion
+Closing the modal or pressing `Esc` invokes `MainWindow.hideStudentDetails()`. This removes the modal
+from the overlay, hides the overlay, and returns keyboard focus to the student list.
+
+`CommandBoxLogic` owns `CommandCompletionLogic` and `CommandHistory`, keeping completion and command
+recall independent of JavaFX controls. It executes submitted commands through an injected
+`CommandExecutor` supplied by `CommandBox`.
+
+`CommandCompletionLogic` suggests the command words `add`, `edit`, `delete`, `find`, `list`,
+`show`, `tag`, `untag`, `help`, and `exit`, and context-sensitive parameter prefixes. The completion
 list is UI guidance only: parsers remain the source of truth for validation.
+
+Each `Suggestion` contains completion text, a displayed syntax guide, and a description. `CommandBox`
+refreshes the popup when the input changes. Pressing `Tab` applies the first suggestion; clicking a
+suggestion applies the selected suggestion and returns focus to the command box.
+
+`CommandHistory` supports Up/Down navigation through entered commands and preserves the unfinished
+draft when history browsing starts. This session command recall is separate from the model's
+undo/redo history: recalling a command changes the input text without changing the roster.
 
 ### Simple commands and lifecycle
 
