@@ -175,6 +175,25 @@ public class CommandCompletionLogicTest {
     }
 
     @Test
+    public void getSuggestions_editCommandInvalidIndex_returnsNoSuggestions() {
+        for (String index : List.of("abc", "0", "-1", "+1", "2147483648", "1/")) {
+            for (String input : List.of("edit " + index, "edit " + index + " ", "edit " + index + " n/")) {
+                assertTrue(completionLogic.getSuggestions(input).isEmpty(), input);
+                assertTrue(completionLogic.autocomplete(input).isEmpty(), input);
+            }
+        }
+
+        assertEquals("edit 01 ", completionLogic.autocomplete("edit 01").orElseThrow());
+    }
+
+    @Test
+    public void getSuggestions_editCommandTabAfterIndex_suggestsFields() {
+        String input = "edit 1\t n/Alice";
+        assertTrue(completionLogic.getSuggestions(input).stream()
+                .anyMatch(suggestion -> suggestion.completionText().equals(input + " p/")), input);
+    }
+
+    @Test
     public void getSuggestions_emptyInput_includesEditCommand() {
         List<CommandCompletionLogic.Suggestion> allSuggestions = completionLogic.getSuggestions("");
         boolean hasEdit = allSuggestions.stream().anyMatch(s -> s.completionText().equals("edit "));
@@ -225,6 +244,24 @@ public class CommandCompletionLogicTest {
     }
 
     @Test
+    public void getSuggestions_tagCommandInvalidIndex_returnsNoSuggestions() {
+        for (String index : List.of("abc", "0", "-1", "+1", "2147483648", "1/")) {
+            for (String input : List.of("tag " + index, "tag " + index + " ")) {
+                assertTrue(completionLogic.getSuggestions(input).isEmpty(), input);
+                assertTrue(completionLogic.autocomplete(input).isEmpty(), input);
+            }
+        }
+
+        assertEquals("tag 01 ", completionLogic.autocomplete("tag 01").orElseThrow());
+    }
+
+    @Test
+    public void getSuggestions_tagCommandNonBreakingSpaceBeforeIndex_suggestsTag() {
+        String input = "tag \u00a01";
+        assertEquals("tag 1 ", completionLogic.autocomplete(input).orElseThrow(), input);
+    }
+
+    @Test
     public void getSuggestions_untagCommand_suggestsIndexAndAllFlag() {
         // Prefix matching
         List<CommandCompletionLogic.Suggestion> uMatches = completionLogic.getSuggestions("u");
@@ -256,6 +293,38 @@ public class CommandCompletionLogicTest {
         List<CommandCompletionLogic.Suggestion> untagWithIndex = completionLogic.getSuggestions("untag 3 ");
         assertEquals(1, untagWithIndex.size());
         assertEquals("TAG", untagWithIndex.get(0).formatText());
+    }
+
+    @Test
+    public void getSuggestions_untagCommandInvalidIndex_returnsNoSuggestions() {
+        for (String index : List.of("abc", "0", "-1", "+1", "2147483648", "1/")) {
+            for (String input : List.of("untag " + index, "untag " + index + " ", "untag --all " + index)) {
+                assertTrue(completionLogic.getSuggestions(input).isEmpty(), input);
+                assertTrue(completionLogic.autocomplete(input).isEmpty(), input);
+            }
+        }
+
+        assertEquals("untag 01 ", completionLogic.autocomplete("untag 01").orElseThrow());
+    }
+
+    @Test
+    public void getSuggestions_untagCommandNonBreakingSpaceBeforeIndex_suggestsTag() {
+        String input = "untag \u00a01";
+        assertEquals("untag 1 ", completionLogic.autocomplete(input).orElseThrow(), input);
+    }
+
+    @Test
+    public void getSuggestions_showAndDeleteCommands_onlyPromptForMissingIndex() {
+        for (String command : List.of("show", "delete")) {
+            String missingIndexInput = command + " ";
+            assertEquals(command + " 1", completionLogic.autocomplete(missingIndexInput).orElseThrow(),
+                    missingIndexInput);
+            for (String index : List.of("1", "abc", "0", "-1", "+1", "2147483648")) {
+                String input = command + " " + index;
+                assertTrue(completionLogic.getSuggestions(input).isEmpty(), input);
+                assertTrue(completionLogic.autocomplete(input).isEmpty(), input);
+            }
+        }
     }
 
     @Test
