@@ -40,6 +40,37 @@ public class CommandCompletionLogicTest {
     }
 
     @Test
+    public void getSuggestions_rosterCommandPrefixes_suggestsMatchingCommands() {
+        for (String command : List.of("undo", "redo", "clear")) {
+            String prefix = command.substring(0, command.length() - 1);
+            List<CommandCompletionLogic.Suggestion> suggestions = completionLogic.getSuggestions(prefix);
+            assertEquals(1, suggestions.size(), prefix);
+            assertEquals(command + " ", suggestions.getFirst().completionText(), prefix);
+            assertEquals(command, suggestions.getFirst().formatText(), prefix);
+            assertEquals(Optional.of(command + " "), completionLogic.autocomplete(prefix), prefix);
+        }
+    }
+
+    @Test
+    public void getSuggestions_emptyInput_includesRosterCommands() {
+        List<String> completions = completionLogic.getSuggestions("").stream()
+                .map(CommandCompletionLogic.Suggestion::completionText)
+                .toList();
+        assertTrue(completions.containsAll(List.of("undo ", "redo ", "clear ")));
+    }
+
+    @Test
+    public void getSuggestions_rosterCommandsWithArguments_returnsNoSuggestions() {
+        for (String command : List.of("undo", "redo", "clear")) {
+            for (String arguments : List.of("", "1")) {
+                String input = command + " " + arguments;
+                assertTrue(completionLogic.getSuggestions(input).isEmpty(), input);
+                assertTrue(completionLogic.autocomplete(input).isEmpty(), input);
+            }
+        }
+    }
+
+    @Test
     public void getSuggestions_addCommand_suggestsMissingRequiredPrefixes() {
         List<CommandCompletionLogic.Suggestion> initialAdd = completionLogic.getSuggestions("add ");
         assertFalse(initialAdd.isEmpty());
@@ -265,8 +296,9 @@ public class CommandCompletionLogicTest {
     public void getSuggestions_untagCommand_suggestsIndexAndAllFlag() {
         // Prefix matching
         List<CommandCompletionLogic.Suggestion> uMatches = completionLogic.getSuggestions("u");
-        assertEquals(1, uMatches.size());
+        assertEquals(2, uMatches.size());
         assertEquals("untag ", uMatches.get(0).completionText());
+        assertEquals("undo ", uMatches.get(1).completionText());
 
         // Autocomplete on "un"
         Optional<String> completed = completionLogic.autocomplete("un");
