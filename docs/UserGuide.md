@@ -139,8 +139,9 @@ Adds a student to the end of the roster and shows the complete roster.
 | `NOTES` | Optional trimmed free text of 1–500 characters. Control characters are not allowed. | `Prefers worked examples` |
 | `TAG` | Optional. Use one `t/` for each tag; each tag is 1–30 English letters or digits with optional single hyphens. | `exam-prep` |
 
-The required fields are `n/`, `p/`, at least one `s/`, and `l/`. Each required field and each
-single-value optional field can be supplied only once. Fields can be supplied in any order.
+The required fields are `n/`, `p/`, at least one `s/`, and `l/`. The prefixes `s/` and `t/` may be
+repeated to supply multiple subjects and tags. The prefixes `n/`, `p/`, `e/`, `a/`, `l/`, and `r/`
+can each be supplied only once. Fields can be supplied in any order.
 
 Examples:
 
