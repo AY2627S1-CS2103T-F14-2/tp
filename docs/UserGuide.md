@@ -7,7 +7,9 @@ roster. The graphical interface displays the roster, while short keyboard comman
 TutorRoster is useful when you manage several students and want to update or find records faster
 than in a mouse-driven contact application. No Internet connection is required for core features.
 
-![TutorRoster main window](images/Ui.png)
+<a href="images/Ui.png">
+  <img src="images/Ui.png" alt="TutorRoster main window" width="700" style="max-width: 100%; height: auto;">
+</a>
 
 *The main window displays student cards, command feedback, the command box, and the local data-file path.*
 
