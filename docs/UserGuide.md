@@ -1,9 +1,3 @@
----
-  layout: default.md
-  title: "User Guide"
-  pageNav: 3
----
-
 # TutorRoster User Guide
 
 TutorRoster is a desktop student directory for private freelance tutors. It keeps each student's
