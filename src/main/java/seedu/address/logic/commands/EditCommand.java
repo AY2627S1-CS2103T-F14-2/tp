@@ -36,6 +36,7 @@ import seedu.address.model.person.Name;
 import seedu.address.model.person.Person;
 import seedu.address.model.person.Phone;
 import seedu.address.model.person.StudentFields;
+import seedu.address.model.person.exceptions.DuplicatePersonException;
 import seedu.address.model.tag.Tag;
 
 /**
@@ -101,11 +102,11 @@ public class EditCommand extends Command {
             throw new CommandException(exception.getMessage(), exception);
         }
 
-        if (!personToEdit.isSamePerson(editedPerson) && model.hasPerson(editedPerson)) {
-            throw new CommandException(MESSAGE_DUPLICATE_PERSON);
+        try {
+            model.setPerson(personToEdit, editedPerson);
+        } catch (DuplicatePersonException exception) {
+            throw new CommandException(MESSAGE_DUPLICATE_PERSON, exception);
         }
-
-        model.setPerson(personToEdit, editedPerson);
         model.updateFilteredPersonList(PREDICATE_SHOW_ALL_PERSONS);
         return new CommandResult(String.format(MESSAGE_EDIT_PERSON_SUCCESS, editedPerson.getName().fullName));
     }

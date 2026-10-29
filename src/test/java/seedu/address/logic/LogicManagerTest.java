@@ -21,6 +21,7 @@ import org.junit.jupiter.api.io.TempDir;
 import seedu.address.logic.commands.ClearCommand;
 import seedu.address.logic.commands.CommandResult;
 import seedu.address.logic.commands.DeleteCommand;
+import seedu.address.logic.commands.EditCommand;
 import seedu.address.logic.commands.HelpCommand;
 import seedu.address.logic.commands.ListCommand;
 import seedu.address.logic.commands.RedoCommand;
@@ -281,6 +282,30 @@ public class LogicManagerTest {
         assertCommandException(addRyan, "This student already exists in TutorRoster.");
         logic.execute("redo");
         assertEquals(2, model.getAddressBook().getPersonList().size());
+    }
+
+    @Test
+    public void execute_duplicateContactEdit_preservesRosterFilterHistoryAndFile() throws Exception {
+        logic.execute("add n/Amy Tan p/111 e/amy1@example.com s/Math l/JC 1");
+        logic.execute("add n/Amy Tan p/222 e/amy2@example.com s/Math l/JC 1");
+        logic.execute("edit 1 r/Updated notes");
+        logic.execute("undo");
+        logic.execute("find e/amy1");
+        Path dataPath = temporaryFolder.resolve("addressBook.json");
+        String storedBefore = Files.readString(dataPath);
+
+        for (String command : List.of("edit 1 e/amy2@example.com", "edit 1 p/222")) {
+            assertCommandException(command, EditCommand.MESSAGE_DUPLICATE_PERSON);
+            assertEquals(storedBefore, Files.readString(dataPath), command);
+            assertEquals(1, model.getFilteredPersonList().size(), command);
+            assertEquals("amy1@example.com", model.getFilteredPersonList().getFirst().getEmail().value, command);
+            assertTrue(model.canUndoAddressBook(), command);
+            assertTrue(model.canRedoAddressBook(), command);
+        }
+
+        logic.execute("redo");
+        assertEquals("Updated notes", model.getFilteredPersonList().getFirst().getNotes());
+        assertEquals(2, model.getFilteredPersonList().size());
     }
 
     @Test
