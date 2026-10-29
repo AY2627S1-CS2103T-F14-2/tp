@@ -1,4 +1,4 @@
-[# TutorRoster
+# TutorRoster
 
 [![CI Status](https://github.com/AY2627S1-CS2103T-F14-2/tp/workflows/Java%20CI/badge.svg)](https://github.com/AY2627S1-CS2103T-F14-2/tp/actions)
 
@@ -42,4 +42,3 @@ The coverage report includes non-FXUI code only: `seedu/address/ui/**`, `Main`, 
 
 ## Acknowledgements
 * This project is based on the AddressBook-Level3 project created by the [SE-EDU initiative](https://se-education.org).
-]()
