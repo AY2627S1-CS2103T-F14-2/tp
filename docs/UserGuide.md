@@ -81,9 +81,10 @@ only once, and an unfinished command is restored when you navigate past the newe
 * Parameters may appear in any order unless a command says otherwise.
 * Surrounding whitespace is ignored. Names, subjects, and education levels also collapse repeated
   internal whitespace to one space; their entered capitalisation is preserved.
-* Values are separated by recognised prefixes. Quoted values are not supported.
-* Do not use slash-based abbreviations such as `w/o` inside free-text notes: `/o` can be read as a
-  parameter-shaped token. Write `without` instead.
+* Recognised prefixes begin a new value when they follow whitespace. This also applies inside notes.
+  For example, `p/123` after `r/` is read as a phone field in `add`, and `s/Physics` after `r/` is
+  read as a subject field in `edit`. Unknown letter-and-slash tokens after whitespace may be rejected.
+  Quoted values and an escape syntax are not supported, so avoid standalone prefix-shaped text in notes.
 * `INDEX` is a positive integer in the list currently displayed. After `find`, use the index shown in
   the search results, not the student's old index in the full roster.
 
@@ -127,13 +128,20 @@ Adds a student to the end of the roster and shows the complete roster.
 | Field | Rules | Example |
 | --- | --- | --- |
 | `NAME` | 1–100 characters after whitespace normalisation; must contain a letter or number. Letters, numbers, spaces, apostrophes, hyphens, and full stops are allowed. | `Anne-Marie Lee` |
-| `PHONE` | 3–15 digits, optionally preceded by `+`. Do not use spaces or hyphens. | `+6591234567` |
-| `EMAIL` | Optional. Contains exactly one `@`, a non-empty local part, and a dot-separated non-empty domain. No whitespace. | `ryan@example.com` |
+| `PHONE` | 3–15 digits, optionally preceded by `+`. | `+65 9123-4567` |
+| `EMAIL` | Optional. Use a non-empty local part, one `@`, and a domain with at least two dot-separated labels. No whitespace. | `ryan@tutoring.example.com` |
 | `ADDRESS` | Optional non-blank text. | `12 Main Street` |
 | `SUBJECT` | 1–50 characters after whitespace normalisation; must contain a letter or number. Letters, numbers, spaces, `&`, `+`, `/`, apostrophes, hyphens, and full stops are allowed. | `Physics/Chemistry` |
 | `LEVEL` | 1–30 characters after whitespace normalisation; letters, numbers, spaces, and hyphens only. | `Secondary 4` |
 | `NOTES` | Optional trimmed free text of 1–500 characters. Control characters are not allowed. | `Prefers worked examples` |
 | `TAG` | Optional. Use one `t/` for each tag; each tag is 1–30 English letters or digits with optional single hyphens. | `exam-prep` |
+
+You may separate phone digit groups with spaces or hyphens. TutorRoster removes these separators before
+storing the number, so `9123 4567` is stored as `91234567`. Other punctuation is rejected.
+
+For an email, each domain label can contain up to 63 letters or digits, with hyphens allowed inside a
+label but not at either end. For example, `ryan@tutoring.example.com` is accepted, while
+`ryan@exam!ple.com` and `ryan@-example.com` are rejected.
 
 The required fields are `n/`, `p/`, at least one `s/`, and `l/`. The prefixes `s/` and `t/` may be
 repeated to supply multiple subjects and tags. The prefixes `n/`, `p/`, `e/`, `a/`, `l/`, and `r/`
@@ -156,9 +164,13 @@ new tags.
 #### Duplicate students and subjects
 
 Two students are duplicates when their normalised names match and either their phone numbers match
-(ignoring an initial `+`) or both email addresses are present and match without regard to case.
-Different names may share a phone number or email address. Subject and education-level values do not
-affect duplicate detection.
+(after removing an optional `+`, spaces, and hyphens) or both email addresses are present and match
+without regard to case. Different names may share a phone number or email address. Subject and
+education-level values do not affect duplicate detection.
+
+If a new student's normalised name matches an existing student's name but the contact details differ,
+the add succeeds and shows a warning. Check the contact details to catch a mistyped name or contact
+update. The warning does not block legitimate students who share a name.
 
 The same subject cannot be repeated in one `add` command. Subject comparison ignores case and repeated
 whitespace, so `s/English Language s/English  Language` is rejected as a duplicate subject.
@@ -166,8 +178,8 @@ whitespace, so `s/English Language s/English  Language` is rejected as a duplica
 #### Common add errors
 
 The result area identifies missing fields, unknown prefixes, repeated single-value prefixes, duplicate
-subjects, invalid field values, duplicate students, and save failures. For example, `p/9123-4567` is
-rejected because phone numbers cannot contain hyphens.
+subjects, invalid field values, duplicate students, and save failures. Spaces and hyphens are accepted
+inside phone numbers, but other punctuation is not. For example, `p/9123/4567` is rejected.
 
 ### Edit a student: `edit`
 
@@ -221,7 +233,7 @@ Displays every stored student in roster order and clears the current search filt
 Supply at least one non-empty field. Searches are case-insensitive and match part of a field:
 
 * `n/` searches names.
-* `p/` searches phone numbers, ignoring an optional leading `+` in both the query and stored number.
+* `p/` searches phone numbers after ignoring an optional leading `+`, spaces, and hyphens.
 * `e/` searches email addresses.
 * `a/` searches addresses.
 * `s/` searches subjects.
@@ -240,8 +252,13 @@ find --any n/Ryan n/Sarah
 find --any t/exam-prep t/group-class
 ```
 
-The result area reports the number of matches as `N person(s) listed!`. A search with no matches
-leaves an empty displayed list; it does not change stored records or undo history.
+The result area reports the number of matches as `1 student listed!` or `N students listed!` for zero
+or multiple matches. A search with no matches leaves an empty displayed list; it does not change stored
+records or undo history.
+
+`find` searches only the fields listed above; it does not search tutoring notes. Searching notes could
+be added as a future extension. For now, use `show INDEX` to read a student's notes after finding them
+by another field.
 
 ### Show a student's details: `show`
 
@@ -290,6 +307,11 @@ Tag names are case-insensitive and stored in lowercase. New names contain 1–30
 digits, with optional single hyphens between non-empty parts. A student can have at most 20 distinct
 new tags. Each command targets one student in the currently displayed list and keeps the current
 search filter.
+
+Changing a tag can change which students match the active search. The displayed list may grow, shrink,
+or show different indices straight away. For example, after `find t/exam-prep`, `untag 1 exam-prep`
+removes that student from the results and may renumber the remaining students. Re-read the displayed
+indices after every `tag` or `untag` before using another index.
 
 Successful feedback includes the student and tag, for example `Tag added to Ryan Tan: exam-prep`,
 `Tag removed from Ryan Tan: exam-prep`, or `All tags removed from Ryan Tan.`
@@ -375,9 +397,9 @@ If a roster change cannot be saved, the live roster and its undo/redo history ar
 and tag operations show `Unable to save student data. No changes were made.`; other save failures begin
 with `Could not save data` and include the reported cause.
 
-If an existing roster cannot be loaded, TutorRoster currently opens with an empty roster without a
-dedicated result-area warning. If this happens unexpectedly, close the app, copy the original
-`data/addressbook.json` for safekeeping, and restore a readable backup before making more changes.
+If an existing roster cannot be loaded, TutorRoster stops at startup and shows an error. It does not
+open an editable empty roster, and it leaves the original `data/addressbook.json` unchanged. Repair the
+file or restore a readable backup, then restart TutorRoster.
 
 ## FAQ and known issues
 
@@ -393,9 +415,9 @@ run `java -jar TutorRoster.jar` instead.
 
 **Why does the app open empty?**
 
-If there is no data file, sample students should be displayed. An empty roster can also mean that the
-existing data file could not be read. Make a backup of `data/addressbook.json` before entering new
-commands.
+If there is no data file, sample students should be displayed. If an existing data file cannot be read,
+TutorRoster shows an error and stops before opening the roster. Repair the file or restore a readable
+backup before restarting; TutorRoster leaves the unreadable file unchanged.
 
 **Why does the app fail to save?**
 
