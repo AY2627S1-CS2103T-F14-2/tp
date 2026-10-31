@@ -137,7 +137,24 @@ public class ArgumentTokenizer {
         int valueStartPos = currentPrefixPosition.getStartPosition() + prefix.getPrefix().length();
         String value = argsString.substring(valueStartPos, nextPrefixPosition.getStartPosition());
 
-        return value.trim();
+        return trimWhitespace(value);
+    }
+
+    /** Trims both Java whitespace and Unicode space separators. */
+    private static String trimWhitespace(String value) {
+        int start = 0;
+        int end = value.length();
+        while (start < end && isWhitespace(value.codePointAt(start))) {
+            start += Character.charCount(value.codePointAt(start));
+        }
+        while (start < end && isWhitespace(value.codePointBefore(end))) {
+            end -= Character.charCount(value.codePointBefore(end));
+        }
+        return value.substring(start, end);
+    }
+
+    private static boolean isWhitespace(int codePoint) {
+        return Character.isWhitespace(codePoint) || Character.isSpaceChar(codePoint);
     }
 
     /**

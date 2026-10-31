@@ -146,6 +146,15 @@ public class EditCommandParserTest {
     }
 
     @Test
+    public void parse_whitespaceBeforePrefix_acceptsTabsAndUnicodeSeparators() {
+        EditPersonDescriptor descriptor = new EditPersonDescriptorBuilder().withPhone("99988877").build();
+        EditCommand expected = new EditCommand(INDEX_FIRST_PERSON, descriptor);
+        for (String separator : new String[] {"\t", "\u2003", "\u00a0"}) {
+            assertParseSuccess(parser, "1" + separator + "p/99988877", expected);
+        }
+    }
+
+    @Test
     public void parse_someFieldsSpecified_success() {
         Index targetIndex = INDEX_FIRST_PERSON;
         String userInput = targetIndex.getOneBased() + PHONE_DESC_BOB + EMAIL_DESC_AMY;
