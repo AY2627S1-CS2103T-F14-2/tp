@@ -397,7 +397,7 @@ is TutorRoster.
 
 * 1a. No search field is supplied or a value is empty. TutorRoster shows usage guidance and keeps
   the prior display.
-* 2a. No students match. TutorRoster displays an empty list and `0 person(s) listed!`.
+* 2a. No students match. TutorRoster displays an empty list and `0 students listed!`.
 * 3a. The index is missing, malformed, or outside the displayed list. TutorRoster shows an error and
   changes nothing.
 * 3b. The command is `show`. TutorRoster opens the modal and leaves the roster and filter unchanged.
@@ -451,8 +451,9 @@ is TutorRoster.
 **Extensions**
 
 * 2a. The roster file is missing. TutorRoster displays sample students.
-* 2b. The roster file cannot be read. TutorRoster starts with an empty roster; the user should make a
-  backup before entering new commands.
+* 2b. The roster file cannot be read. TutorRoster shows a startup error and stops before opening the
+  roster, leaving the original file unchanged. Repair the file or restore a readable backup, then
+  restart TutorRoster.
 * 2c. Tags need migration. TutorRoster saves the normalised file before showing the roster; a failed
   migration stops startup and leaves the original file unchanged.
 
