@@ -41,6 +41,10 @@ public class PersonTest {
                 .withTags(VALID_TAG_HUSBAND).build();
         assertTrue(ALICE.isSamePerson(editedAlice));
 
+        Person compactPhoneStudent = new Person("Amy", "91234567", null, List.of("Mathematics"), "JC 1");
+        Person formattedPhoneStudent = new Person("Amy", "9123-4567", null, List.of("Mathematics"), "JC 1");
+        assertTrue(compactPhoneStudent.isSamePerson(formattedPhoneStudent));
+
         // same name, same email, other attributes different -> returns true
         editedAlice = new PersonBuilder(ALICE).withPhone(VALID_PHONE_BOB).withAddress(VALID_ADDRESS_BOB).build();
         assertTrue(ALICE.isSamePerson(editedAlice));

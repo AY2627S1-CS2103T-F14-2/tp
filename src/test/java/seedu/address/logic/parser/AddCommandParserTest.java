@@ -42,6 +42,12 @@ public class AddCommandParserTest {
     }
 
     @Test
+    public void parse_formattedPhone_storesCanonicalValue() {
+        Person expected = new Person("Amy", "91234567", null, List.of("Math"), "JC 1");
+        assertParseSuccess(parser, " n/Amy p/9123 4567 s/Math l/JC 1", new AddCommand(expected));
+    }
+
+    @Test
     public void parse_tagLimit_countsDistinctNormalizedTags() {
         String tags = IntStream.range(0, 20).mapToObj(i -> " t/tag" + i).collect(Collectors.joining());
         Set<Tag> expectedTags = IntStream.range(0, 20).mapToObj(i -> new Tag("tag" + i)).collect(Collectors.toSet());
@@ -207,7 +213,7 @@ public class AddCommandParserTest {
     @Test
     public void parse_invalidPhone_failure() {
         assertParseFailure(parser, " n/A p/12 s/Math l/JC 1", StudentFields.INVALID_PHONE);
-        assertParseFailure(parser, " n/A p/123-456 s/Math l/JC 1", StudentFields.INVALID_PHONE);
+        assertParseFailure(parser, " n/A p/123/456 s/Math l/JC 1", StudentFields.INVALID_PHONE);
         assertParseFailure(parser, " n/A p/" + "1".repeat(16) + " s/Math l/JC 1",
                 StudentFields.INVALID_PHONE);
     }

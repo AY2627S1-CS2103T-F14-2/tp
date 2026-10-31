@@ -146,6 +146,12 @@ public class EditCommandParserTest {
     }
 
     @Test
+    public void parse_formattedPhone_storesCanonicalValue() {
+        EditPersonDescriptor descriptor = new EditPersonDescriptorBuilder().withPhone("91234567").build();
+        assertParseSuccess(parser, "1 p/9123-4567", new EditCommand(INDEX_FIRST_PERSON, descriptor));
+    }
+
+    @Test
     public void parse_someFieldsSpecified_success() {
         Index targetIndex = INDEX_FIRST_PERSON;
         String userInput = targetIndex.getOneBased() + PHONE_DESC_BOB + EMAIL_DESC_AMY;
