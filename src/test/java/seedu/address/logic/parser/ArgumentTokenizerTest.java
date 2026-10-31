@@ -90,6 +90,15 @@ public class ArgumentTokenizerTest {
     }
 
     @Test
+    public void tokenize_whitespaceBeforePrefix_acceptsTabsAndUnicodeSeparators() {
+        for (String separator : new String[] {"\t", "\u2003", "\u00a0"}) {
+            ArgumentMultimap argMultimap = ArgumentTokenizer.tokenize("1" + separator + "p/91234567", pSlash);
+            assertPreamblePresent(argMultimap, "1");
+            assertArgumentPresent(argMultimap, pSlash, "91234567");
+        }
+    }
+
+    @Test
     public void tokenize_multipleArguments() {
         // Only two arguments are present
         String argsString = "SomePreambleString -t dashT-Value p/pSlash value";
