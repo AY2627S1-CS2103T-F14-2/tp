@@ -1,0 +1,87 @@
+@startuml
+!include style.puml
+skinparam ArrowFontStyle plain
+skinparam sequenceMessageAlign left
+hide footbox
+
+title Successful undo: parse, restore, save, publish
+
+box Logic LOGIC_COLOR_T1
+participant ":LogicManager" as Logic LOGIC_COLOR
+participant ":AddressBookParser" as Parser LOGIC_COLOR
+participant ":UndoCommandParser" as UndoParser LOGIC_COLOR
+participant "u:UndoCommand" as Undo LOGIC_COLOR
+end box
+
+box Model MODEL_COLOR_T1
+participant "live:ModelManager" as Live MODEL_COLOR
+participant "proposed:ModelManager" as Proposed MODEL_COLOR
+end box
+
+box Storage STORAGE_COLOR_T1
+participant ":Storage" as Storage STORAGE_COLOR
+end box
+
+[-> Logic : execute("undo")
+activate Logic
+Logic -> Parser : parseCommand("undo")
+activate Parser
+create UndoParser
+Parser -> UndoParser : <<create>>
+Parser -> UndoParser : parse("")
+activate UndoParser
+create Undo
+UndoParser -> Undo : <<create>>
+UndoParser --> Parser : u
+deactivate UndoParser
+Parser --> Logic : u
+deactivate Parser
+
+create Proposed
+Logic -> Proposed : new ModelManager(roster, prefs)
+Logic -> Live : createSnapshot()
+activate Live
+Live --> Logic : checkpoint
+deactivate Live
+Logic -> Proposed : restoreSnapshot(checkpoint)
+activate Proposed
+Proposed --> Logic
+deactivate Proposed
+
+Logic -> Undo : execute(proposed)
+activate Undo
+Undo -> Proposed : canUndoAddressBook()
+activate Proposed
+Proposed --> Undo : true
+deactivate Proposed
+Undo -> Proposed : undoAddressBook()
+activate Proposed
+note over Live, Proposed
+Restore the previous roster and
+show all students in the working copy.
+Expanded in the model diagram.
+end note
+Proposed --> Undo
+deactivate Proposed
+Undo --> Logic : result:CommandResult\n("Undo successful.")
+deactivate Undo
+
+Logic -> Storage : saveAddressBookAtomically(restoredRoster)
+activate Storage
+Storage --> Logic : save succeeds
+deactivate Storage
+Logic -> Proposed : createSnapshot()
+activate Proposed
+Proposed --> Logic : restoredCheckpoint
+deactivate Proposed
+Logic -> Live : restoreSnapshot(restoredCheckpoint)
+activate Live
+note over Live, Proposed
+Publish the restored roster, history,
+and full-list filter after saving.
+end note
+Live --> Logic
+deactivate Live
+[<-- Logic : result
+deactivate Logic
+@enduml

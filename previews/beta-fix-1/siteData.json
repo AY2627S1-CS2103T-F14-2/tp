@@ -1,0 +1,188 @@
+{
+  "enableSearch": true,
+  "pages": [
+    {
+      "src": "AboutUs.md",
+      "title": "About Us",
+      "headings": {
+        "about-us": "About Us",
+        "project-team": "Project team",
+        "bao-xiyu": "Bao Xiyu",
+        "jen-nin": "Jen Nin",
+        "jaxon-moh-xian-xuan": "Jaxon Moh Xian Xuan",
+        "dion-huang-jing-xi": "Dion Huang Jing Xi",
+        "sarina-ke": "Sarina Ke"
+      },
+      "headingKeywords": {}
+    },
+    {
+      "src": "Configuration.md",
+      "title": "Configuration guide",
+      "headings": {
+        "configuration-guide": "Configuration guide"
+      },
+      "headingKeywords": {}
+    },
+    {
+      "src": "DesignSystem.md",
+      "headings": {
+        "tutorroster-design-system": "TutorRoster design system",
+        "design-principles": "Design principles",
+        "foundations": "Foundations",
+        "colour-tokens": "Colour tokens",
+        "type": "Type",
+        "spacing-and-shape": "Spacing and shape",
+        "component-catalogue": "Component catalogue",
+        "application-shell": "Application shell",
+        "roster-surface-and-student-card": "Roster surface and student card",
+        "primary-button": "Primary button",
+        "command-bar": "Command bar",
+        "feedback": "Feedback",
+        "adding-a-component": "Adding a component",
+        "accessibility-and-interaction-rules": "Accessibility and interaction rules",
+        "verification-checklist": "Verification checklist"
+      },
+      "headingKeywords": {}
+    },
+    {
+      "src": "DevOps.md",
+      "title": "DevOps guide",
+      "headings": {
+        "devops-guide": "DevOps guide",
+        "build-automation": "Build automation",
+        "continuous-integration-ci": "Continuous integration (CI)",
+        "code-coverage": "Code coverage",
+        "repository-wide-checks": "Repository-wide checks",
+        "making-a-release": "Making a release"
+      },
+      "headingKeywords": {}
+    },
+    {
+      "src": "DeveloperGuide.md",
+      "title": "Developer Guide",
+      "headings": {
+        "tutorroster-developer-guide": "TutorRoster Developer Guide",
+        "acknowledgements": "Acknowledgements",
+        "setting-up-and-getting-started": "Setting up and getting started",
+        "prerequisites": "Prerequisites",
+        "build-and-run": "Build and run",
+        "verification-commands": "Verification commands",
+        "design": "Design",
+        "architecture": "Architecture",
+        "ui-component": "UI component",
+        "logic-component": "Logic component",
+        "model-component": "Model component",
+        "storage-component": "Storage component",
+        "implementation": "Implementation",
+        "add-and-edit-student-records": "Add and edit student records",
+        "search-and-displayed-indices": "Search and displayed indices",
+        "student-tags": "Student tags",
+        "student-detail-view-and-command-completion": "Student detail view and command completion",
+        "simple-commands-and-lifecycle": "Simple commands and lifecycle",
+        "undo-and-redo": "Undo and redo",
+        "atomic-save-and-publication-flow": "Atomic save and publication flow",
+        "testing-logging-and-devops": "Testing, logging, and DevOps",
+        "appendix-requirements": "Appendix: Requirements",
+        "product-scope": "Product scope",
+        "user-stories-implemented-in-the-current-version": "User stories implemented in the current version",
+        "requirements-yet-to-be-implemented": "Requirements yet to be implemented",
+        "use-cases": "Use cases",
+        "non-functional-requirements": "Non-functional requirements",
+        "glossary": "Glossary",
+        "appendix-instructions-for-manual-testing": "Appendix: Instructions for Manual Testing",
+        "launch-and-preferences": "Launch and preferences",
+        "basic-roster-workflow": "Basic roster workflow",
+        "tags-and-validation": "Tags and validation",
+        "index-safety-and-history": "Index safety and history",
+        "persistence-and-restart": "Persistence and restart",
+        "ui-keyboard-paths": "UI keyboard paths"
+      },
+      "headingKeywords": {}
+    },
+    {
+      "src": "Documentation.md",
+      "title": "Documentation guide",
+      "headings": {
+        "documentation-guide": "Documentation Guide"
+      },
+      "headingKeywords": {}
+    },
+    {
+      "src": "Logging.md",
+      "title": "Logging guide",
+      "headings": {
+        "logging-guide": "Logging guide"
+      },
+      "headingKeywords": {}
+    },
+    {
+      "src": "SettingUp.md",
+      "title": "Setting up and getting started",
+      "headings": {
+        "setting-up-and-getting-started": "Setting up and getting started",
+        "setting-up-the-project-on-your-computer": "Setting up the project on your computer",
+        "before-writing-code": "Before writing code"
+      },
+      "headingKeywords": {}
+    },
+    {
+      "src": "Testing.md",
+      "title": "Testing guide",
+      "headings": {
+        "testing-guide": "Testing guide",
+        "running-tests": "Running tests",
+        "types-of-tests": "Types of tests"
+      },
+      "headingKeywords": {}
+    },
+    {
+      "src": "UserGuide.md",
+      "headings": {
+        "tutorroster-user-guide": "TutorRoster User Guide",
+        "quick-start": "Quick start",
+        "reading-the-interface": "Reading the interface",
+        "keyboard-shortcuts": "Keyboard shortcuts",
+        "command-format": "Command format",
+        "command-summary": "Command summary",
+        "features": "Features",
+        "open-help-help": "Open help: help",
+        "add-a-student-add": "Add a student: add",
+        "edit-a-student-edit": "Edit a student: edit",
+        "list-students-list": "List students: list",
+        "find-students-find": "Find students: find",
+        "show-a-student-s-details-show": "Show a student's details: show",
+        "delete-a-student-delete": "Delete a student: delete",
+        "clear-the-roster-clear": "Clear the roster: clear",
+        "manage-tags-tag-and-untag": "Manage tags: tag and untag",
+        "undo-and-redo-undo-and-redo": "Undo and redo: undo and redo",
+        "exit-exit": "Exit: exit",
+        "saving-and-restoring-records": "Saving and restoring records",
+        "back-up-or-transfer-a-roster": "Back up or transfer a roster",
+        "existing-tags-from-older-files": "Existing tags from older files",
+        "write-and-load-problems": "Write and load problems",
+        "faq-and-known-issues": "FAQ and known issues"
+      },
+      "headingKeywords": {}
+    },
+    {
+      "src": "index.md",
+      "title": "",
+      "headings": {
+        "tutorroster": "TutorRoster",
+        "a-focused-student-directory-for-private-tutors": "A focused student directory for private tutors",
+        "start-here": "Start here",
+        "what-it-does": "What it does",
+        "acknowledgements": "Acknowledgements"
+      },
+      "headingKeywords": {}
+    },
+    {
+      "src": "team/johndoe.md",
+      "title": "John Doe's Project Portfolio Page",
+      "headings": {
+        "project-addressbook-level-3": "Project: AddressBook Level 3"
+      },
+      "headingKeywords": {}
+    }
+  ]
+}
