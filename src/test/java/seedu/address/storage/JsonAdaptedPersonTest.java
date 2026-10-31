@@ -80,6 +80,14 @@ public class JsonAdaptedPersonTest {
     }
 
     @Test
+    public void toModelType_formattedPhone_storesCanonicalDigits() throws Exception {
+        JsonAdaptedPerson adapted = new JsonAdaptedPerson(VALID_NAME, "+65 9123-4567", VALID_EMAIL,
+                VALID_ADDRESS, VALID_TAGS, VALID_SUBJECTS, VALID_LEVEL, VALID_NOTES);
+
+        assertEquals("+6591234567", adapted.toModelType().getPhone().value);
+    }
+
+    @Test
     public void toModelType_invalidName_throwsIllegalValueException() {
         JsonAdaptedPerson person = new JsonAdaptedPerson(INVALID_NAME, VALID_PHONE, VALID_EMAIL, VALID_ADDRESS,
                 VALID_TAGS, VALID_SUBJECTS, VALID_LEVEL, VALID_NOTES);

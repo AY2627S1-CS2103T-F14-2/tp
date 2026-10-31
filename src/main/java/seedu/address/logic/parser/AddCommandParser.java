@@ -119,7 +119,8 @@ public class AddCommandParser implements Parser<AddCommand> {
             throw new ParseException(Tag.MESSAGE_TAG_LIMIT);
         }
         Address parsedAddress = address == null ? null : new Address(address);
-        Person student = new Person(name, phone, email, normalizedSubjects, level, notes, parsedAddress)
+        Person student = new Person(name, StudentFields.normalizePhone(phone), email, normalizedSubjects, level,
+                notes, parsedAddress)
                 .withTags(tags);
         return new AddCommand(student, tags.size() < tagValues.size());
     }
