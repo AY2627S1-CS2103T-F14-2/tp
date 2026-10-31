@@ -19,7 +19,7 @@ than in a mouse-driven contact application. No Internet connection is required f
 
 1. Install Java **25 or later**. On macOS, use a Java distribution that includes JavaFX.
 1. Download the runnable JAR from the
-   [TutorRoster releases page](https://github.com/AY2627S1-CS2103T-F14-2/tp/releases).
+   [latest TutorRoster release](https://github.com/AY2627S1-CS2103T-F14-2/tp/releases/latest).
 1. Put the JAR in a folder where you can create and update files. TutorRoster needs this
    permission for `data/addressbook.json` and `preferences.json`.
 1. Open a terminal in that folder and run:
