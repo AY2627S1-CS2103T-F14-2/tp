@@ -13,6 +13,7 @@ import seedu.address.commons.util.ToStringBuilder;
 import seedu.address.logic.commands.exceptions.CommandException;
 import seedu.address.model.Model;
 import seedu.address.model.person.Person;
+import seedu.address.model.person.StudentFields;
 
 /**
  * Adds a student to TutorRoster.
@@ -33,6 +34,8 @@ public class AddCommand extends Command {
 
     public static final String MESSAGE_SUCCESS = "New student added: %1$s";
     public static final String MESSAGE_DUPLICATE_PERSON = "This student already exists in TutorRoster.";
+    public static final String MESSAGE_SAME_NAME_WARNING = "Warning: A student named %1$s is already in the roster. "
+            + "Check the contact details to make sure these are different students.";
 
     private final Person toAdd;
     private final boolean duplicateTagsIgnored;
@@ -71,8 +74,14 @@ public class AddCommand extends Command {
             throw new CommandException(MESSAGE_DUPLICATE_PERSON);
         }
 
+        boolean sameNameExists = model.getAddressBook().getPersonList().stream()
+                .anyMatch(existing -> StudentFields.nameKey(existing.getName().fullName)
+                        .equals(StudentFields.nameKey(toAdd.getName().fullName)));
         model.addPerson(toAdd);
         String feedback = String.format(MESSAGE_SUCCESS, toAdd.getName().fullName);
+        if (sameNameExists) {
+            feedback += "\n" + String.format(MESSAGE_SAME_NAME_WARNING, toAdd.getName().fullName);
+        }
         if (duplicateTagsIgnored) {
             feedback += "\nWarning: Duplicate tags were ignored.";
         }

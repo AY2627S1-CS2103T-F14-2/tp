@@ -46,6 +46,24 @@ public class MainAppStartupTest {
     }
 
     @Test
+    public void init_unreadableRoster_stopsWithoutChangingSourceFile() throws Exception {
+        Path file = folder.resolve("roster.json");
+        String original = "{\"persons\":[{\"name\":\"Amy\",\"phone\":\"123\",\"level\":\"JC 1\"}]}";
+        Files.writeString(file, original);
+        MainApp app = new MainApp(new JsonAddressBookStorage(file),
+                new JsonUserPrefsStorage(folder.resolve("prefs.json")));
+
+        app.init();
+
+        assertNull(app.model);
+        assertNull(app.logic);
+        assertNull(app.ui);
+        assertEquals(original, Files.readString(file));
+        app.stop();
+        assertEquals(original, Files.readString(file));
+    }
+
+    @Test
     public void init_migrationSucceeds_opensNormalizedRoster() throws Exception {
         Path file = writeRoster();
         var storage = new JsonAddressBookStorage(file);

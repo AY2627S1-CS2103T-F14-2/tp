@@ -88,7 +88,8 @@ public class AddCommandIntegrationTest {
         Model expectedModel = new ModelManager(model.getAddressBook(), new UserPrefs());
         expectedModel.addPerson(another);
 
-        assertCommandSuccess(new AddCommand(another), model, "New student added: Ryan Tan", expectedModel);
+        assertCommandSuccess(new AddCommand(another), model, "New student added: Ryan Tan\n"
+                + String.format(AddCommand.MESSAGE_SAME_NAME_WARNING, "Ryan Tan"), expectedModel);
     }
 
     @Test
@@ -101,7 +102,8 @@ public class AddCommandIntegrationTest {
         Model expectedModel = new ModelManager(model.getAddressBook(), new UserPrefs());
         expectedModel.addPerson(another);
 
-        assertCommandSuccess(new AddCommand(another), model, "New student added: RYAN TAN", expectedModel);
+        assertCommandSuccess(new AddCommand(another), model, "New student added: RYAN TAN\n"
+                + String.format(AddCommand.MESSAGE_SAME_NAME_WARNING, "RYAN TAN"), expectedModel);
     }
 
     @Test
@@ -114,7 +116,8 @@ public class AddCommandIntegrationTest {
         Model expectedModel = new ModelManager(model.getAddressBook(), new UserPrefs());
         expectedModel.addPerson(another);
 
-        assertCommandSuccess(new AddCommand(another), model, "New student added: Ryan Tan", expectedModel);
+        assertCommandSuccess(new AddCommand(another), model, "New student added: Ryan Tan\n"
+                + String.format(AddCommand.MESSAGE_SAME_NAME_WARNING, "Ryan Tan"), expectedModel);
     }
 
     @Test
@@ -127,7 +130,8 @@ public class AddCommandIntegrationTest {
         Model expectedModel = new ModelManager(model.getAddressBook(), new UserPrefs());
         expectedModel.addPerson(another);
 
-        assertCommandSuccess(new AddCommand(another), model, "New student added: Ryan Tan", expectedModel);
+        assertCommandSuccess(new AddCommand(another), model, "New student added: Ryan Tan\n"
+                + String.format(AddCommand.MESSAGE_SAME_NAME_WARNING, "Ryan Tan"), expectedModel);
     }
 
     @Test
