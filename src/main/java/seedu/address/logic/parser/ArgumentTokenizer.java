@@ -67,7 +67,7 @@ public class ArgumentTokenizer {
     /**
      * Returns the index of the first occurrence of {@code prefix} in
      * {@code argsString} starting from index {@code fromIndex}. An occurrence
-     * is valid if there is a whitespace before {@code prefix}. Returns -1 if no
+     * is valid if there is a whitespace character before {@code prefix}. Returns -1 if no
      * such occurrence can be found.
      *
      * E.g if {@code argsString} = "e/hip/900", {@code prefix} = "p/" and
@@ -77,9 +77,17 @@ public class ArgumentTokenizer {
      * {@code fromIndex} = 0, this method returns 5.
      */
     private static int findPrefixPosition(String argsString, String prefix, int fromIndex) {
-        int prefixIndex = argsString.indexOf(" " + prefix, fromIndex);
-        return prefixIndex == -1 ? -1
-                : prefixIndex + 1; // +1 as offset for whitespace
+        int prefixIndex = argsString.indexOf(prefix, fromIndex);
+        while (prefixIndex != -1) {
+            if (prefixIndex > 0) {
+                int previousCodePoint = argsString.codePointBefore(prefixIndex);
+                if (Character.isWhitespace(previousCodePoint) || Character.isSpaceChar(previousCodePoint)) {
+                    return prefixIndex;
+                }
+            }
+            prefixIndex = argsString.indexOf(prefix, prefixIndex + prefix.length());
+        }
+        return -1;
     }
 
     /**
