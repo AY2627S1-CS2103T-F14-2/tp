@@ -148,6 +148,10 @@ The [Model class diagram](diagrams/ModelClassDiagram.puml) shows the domain mode
 * optional notes, stored as an empty string when absent; and
 * a defensive, unmodifiable set of `Tag` values.
 
+In the domain model, `Name`, `Phone`, `Email`, `Address`, and `Tag` are implemented as dedicated value
+objects composed within `Person`, whereas `subjects` (`List<String>`), `level` (`String`), and `notes`
+(`String`) are stored directly as attributes of `Person`.
+
 `StudentFields` centralises normalisation and validation for names, phones, email addresses, subjects,
 levels, and notes. `Person.isSamePerson` defines duplicate identity using normalised name plus either
 normalised phone or case-insensitive email. `Person.equals` remains a full-record comparison, which is
