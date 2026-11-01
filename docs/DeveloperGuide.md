@@ -197,7 +197,8 @@ roster.
 `AddCommandParser` recognises `n/`, `p/`, `e/`, `a/`, `s/`, `l/`, `r/`, and repeated `t/` values at
 parameter boundaries. It rejects unknown prefixes, repeated single-use fields, missing required
 fields, empty required values, invalid field values, duplicate subjects, and more than 20 new tags.
-Names, subjects, and levels are whitespace-normalised before validation; notes are trimmed and limited
+Names, subjects, and levels are whitespace-normalised before validation; phone numbers allow
+digit-group spaces and hyphens that are stripped before storage; notes are trimmed and limited
 to 500 Unicode characters without control characters.
 
 `EditCommandParser` additionally recognises `+s/`, `-s/`, `+t/`, and `-t/`. The `EditPersonDescriptor`
@@ -540,8 +541,8 @@ that the test roster does not alter a developer's normal data.
    Expected: a `Warning:` says the student already has the tag; no new history step is created.
 3. Enter `untag 1 exam-prep`, then `untag --all 1`.
    Expected: the first removes one tag and the second clears all remaining tags.
-4. Try `add n/Test p/9123-4567 s/English l/Primary 6`.
-   Expected: validation rejects the hyphenated phone and no record is added.
+4. Try `add n/Test p/9123--4567 s/English l/Primary 6`.
+   Expected: validation rejects the invalid phone number (consecutive hyphens are not permitted) and no record is added.
 5. Try `add n/Test p/91234567 l/Primary 6`.
    Expected: the missing `s/` field is identified and no record is added.
 6. Try `find` and `find --any`.
