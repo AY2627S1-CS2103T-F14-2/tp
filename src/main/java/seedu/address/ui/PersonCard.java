@@ -53,7 +53,7 @@ public class PersonCard extends UiPart<Region> {
         super(FXML);
         this.person = person;
         CardContent content = CardContent.from(person);
-        id.setText(displayedIndex + ". ");
+        id.setText(displayedIndex + ".");
         name.setText(content.name());
         initials.setText(content.initials());
         phone.setText(content.phone());

@@ -39,11 +39,12 @@ The preferred typeface is `Helvetica`, with `Segoe UI` as the Windows fallback a
 | Page title | 22 px | Bold | `Your students` |
 | Brand name | 17 px | Regular | `TutorRoster` |
 | Card name | 15 px | Regular | `Alex Yeoh` |
+| Card index | 15 px | Bold | `1.` |
 | Body and command text | 13 px | Regular | Command input |
 | Metadata | 11 px | Regular | Phone, email, address |
 | Eyebrow and chip text | 10 px | Regular | `ROSTER`, `friends` |
 
-Only page and dialog headings use bold weight. All other interface text uses regular weight; hierarchy comes from size, spacing, and colour.
+Only page and dialog headings, and running indices, use bold weight. All other interface text uses regular weight; hierarchy comes from size, spacing, and colour.
 
 ### Spacing and shape
 
@@ -69,6 +70,7 @@ Use `.app-shell` on the root `VBox`. Put branding and menus in `.top-bar`, main 
 Wrap a list in `.roster-surface`. Each custom list-cell should render a `.person-card`. A card contains:
 
 - `.person-avatar` with `.avatar-label` for initials;
+- `.card-index` for the displayed running index;
 - `.card-name` for the student’s name;
 - `.card-meta` for phone and optional email; and
 - `.card-detail` for the ordered subjects and education level when present.
