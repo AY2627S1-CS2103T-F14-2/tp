@@ -98,8 +98,9 @@ is displayed as an overlay over the main scene.
 
 * `PersonListPanel` observes the model's filtered observable list and creates a `PersonCard` for each
   displayed student.
-* `PersonCard` renders the displayed index, initials, contact details, subjects, level, notes, and
-  sorted tag badges. Optional email and notes are hidden when absent.
+* `PersonCard` renders the displayed index, full name, initials, phone number, subjects, education
+  level, notes, and sorted tag badges. Optional email and notes are hidden when absent; student
+  address is omitted from the card and viewable in `StudentDetailModal`.
 * `StudentDetailModal` renders every stored field and uses `Not provided` for absent optional values.
 * `CommandBox` delegates command execution to `Logic`, keeps invalid input in the text field, and
   shows completion suggestions in a popup.
