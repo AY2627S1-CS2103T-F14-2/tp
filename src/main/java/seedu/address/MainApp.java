@@ -79,6 +79,10 @@ public class MainApp extends Application {
             return;
         }
 
+        if (startupError != null) {
+            return;
+        }
+        assert model != null : "Successful roster loading must create a model";
         logic = new LogicManager(model, storage);
 
         ui = new UiManager(logic, storage.getAddressBookFilePath(),
