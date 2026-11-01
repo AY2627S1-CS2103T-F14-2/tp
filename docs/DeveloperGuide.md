@@ -239,8 +239,8 @@ recall independent of JavaFX controls. It executes submitted commands through an
 `CommandExecutor` supplied by `CommandBox`.
 
 `CommandCompletionLogic` suggests the command words `add`, `edit`, `delete`, `find`, `list`,
-`show`, `tag`, `untag`, `help`, and `exit`, and context-sensitive parameter prefixes. The completion
-list is UI guidance only: parsers remain the source of truth for validation.
+`show`, `tag`, `untag`, `undo`, `redo`, `clear`, `help`, and `exit`, and context-sensitive parameter
+prefixes. The completion list is UI guidance only: parsers remain the source of truth for validation.
 
 Each `Suggestion` contains completion text, a displayed syntax guide, and a description. `CommandBox`
 refreshes the popup when the input changes. Pressing `Tab` applies the first suggestion; clicking a
