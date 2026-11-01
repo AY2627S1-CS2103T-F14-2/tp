@@ -362,8 +362,6 @@ features until implemented and tested.
 | `**` | tutor | sort students by name, level, or tag | find a record in a preferred order |
 | `**` | tutor | hide or reveal optional contact fields | reduce accidental exposure on screen |
 | `**` | tutor | record a school and structured guardian details | keep more context for each student |
-| `*` | tutor | record lesson schedules and attendance | manage the wider tutoring workflow |
-| `*` | tutor | record fees and payment status | track administrative work |
 
 ### Use cases
 
