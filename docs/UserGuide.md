@@ -163,6 +163,10 @@ new tags.
 
 #### Duplicate students and subjects
 
+Names retain their entered capitalisation for display. Duplicate detection and same-name warnings
+compare names without regard to capitalisation or differences in surrounding and repeated whitespace.
+For example, `Ryan Tan` and `RYAN TAN` match for name comparison.
+
 Two students are duplicates when their normalised names match and either their phone numbers match
 (after removing an optional `+`, spaces, and hyphens) or both email addresses are present and match
 without regard to case. Different names may share a phone number or email address. Subject and
@@ -205,17 +209,27 @@ edit INDEX [n/NAME] [p/PHONE] [e/EMAIL] [a/ADDRESS]
   with no value clears all tags.
 * The edited record must not become a duplicate of another record. A rejected edit changes nothing.
 
-Examples:
+Example sequence: start with an empty test roster, then run each command below in order.
+The first command creates Ryan at index 1. Use a disposable roster when trying this sequence.
 
 ```text
+add n/Ryan Tan p/81234567 e/ryan@example.com a/12 Main Street s/English s/Mathematics l/Secondary 4 t/old-tag
 edit 1 p/+6591234567 l/Secondary 5
-edit 1 n/Ryan Tan s/Mathematics s/Physics
-edit 1 +s/Physics -s/English +t/exam-prep -t/old-tag
+edit 1 s/Mathematics s/Physics
+edit 1 +s/Chemistry -s/Physics +t/exam-prep -t/old-tag
 edit 1 e/ a/
 edit 1 r/Prefers worked examples
+show 1
 ```
 
-**Success feedback:** `Edited student: NAME`.
+The subject replacement sets Mathematics and Physics. The next command appends Chemistry, which Ryan
+is not already studying, and removes Physics. It also adds `exam-prep` and removes `old-tag`.
+
+The final detail view shows Ryan Tan with phone `+6591234567`, subjects Mathematics and Chemistry,
+level Secondary 5, tag `exam-prep`, and notes `Prefers worked examples`. Email and address both show
+`Not provided`.
+
+**Edit success feedback:** `Edited student: NAME`.
 
 ### List students: `list`
 
