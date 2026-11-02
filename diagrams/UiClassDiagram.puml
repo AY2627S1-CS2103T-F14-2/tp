@@ -14,19 +14,24 @@ Class ResultDisplay
 Class PersonListPanel
 Class PersonCard
 Class StatusBarFooter
+Class StudentDetailModal
 Class CommandBox
+Class CommandBoxLogic
+Class CommandCompletionLogic
+Class CommandHistory
 }
 
 package Model <<Rectangle>> {
-Class HiddenModel #FFFFFF
+Class Person #FFFFFF
+Class StudentFields #FFFFFF
 }
 
 package Logic <<Rectangle>> {
-Class HiddenLogic #FFFFFF
+Class "<<interface>>\nLogic" as Logic #FFFFFF
 }
 
-Class HiddenOutside #FFFFFF
-HiddenOutside ..> Ui
+Class MainApp #FFFFFF
+MainApp ..> Ui
 
 UiManager .left.|> Ui
 UiManager -down-> "1" MainWindow
@@ -34,9 +39,18 @@ MainWindow *-down->  "1" CommandBox
 MainWindow *-down-> "1" ResultDisplay
 MainWindow *-down-> "1" PersonListPanel
 MainWindow *-down-> "1" StatusBarFooter
-MainWindow --> "0..1" HelpWindow
+MainWindow *-down-> "1" HelpWindow
+MainWindow *-down-> "0..1" StudentDetailModal
 
 PersonListPanel -down-> "*" PersonCard
+PersonListPanel ..> Person
+PersonCard ..> Person
+PersonCard ..> StudentFields
+StudentDetailModal ..> Person
+
+CommandBox *-down-> "1" CommandBoxLogic
+CommandBoxLogic *-down-> "1" CommandHistory
+CommandBoxLogic *-down-> "1" CommandCompletionLogic
 
 MainWindow -left-|> UiPart
 
@@ -46,8 +60,8 @@ PersonListPanel --|> UiPart
 PersonCard --|> UiPart
 StatusBarFooter --|> UiPart
 HelpWindow --|> UiPart
+StudentDetailModal --|> UiPart
 
-PersonCard ..> Model
 UiManager -right-> Logic
 MainWindow -left-> Logic
 
