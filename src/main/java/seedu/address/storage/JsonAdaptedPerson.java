@@ -175,8 +175,8 @@ class JsonAdaptedPerson {
         }
 
         Address storedAddress = address == null ? null : new Address(address);
-        return Person.fromStoredRecord(normalizedName, trimmedPhone, trimmedEmail, normalizedSubjects, normalizedLevel,
-                storedNotes, storedAddress, new HashSet<>(personTags));
+        return Person.fromStoredRecord(normalizedName, StudentFields.normalizePhone(trimmedPhone), trimmedEmail,
+                normalizedSubjects, normalizedLevel, storedNotes, storedAddress, new HashSet<>(personTags));
     }
 
 }

@@ -308,3 +308,45 @@ After the last row, verify there is no fifth student. Enter `exit` and require
 status 0 within 10 seconds. Relaunch using the same isolated session directory
 and enter `list`. Expect exactly `Listed all students.` and the same four
 numbered names ending with `4. O’rayn`. Enter `exit` and require status 0.
+
+
+## STARTUP-UI-01 Invalid saved student stops startup safely
+
+Aim: Show the documented blocking startup error for an existing roster whose
+student is missing required fields, without exposing an editable empty roster
+or changing the source file. This case uses its own fresh application process
+and disposable working directory; do not run the earlier command sessions.
+
+Use the Java 25 build and launch commands above, with assertions enabled.
+Create a fresh temporary working directory and `data` subdirectory. Write
+exactly this UTF-8 content to `data/addressbook.json` (no final newline):
+
+```json
+{"persons":[{"name":"Amy","phone":"123","level":"JC 1"}]}
+```
+
+Record the file's bytes before launch. No command-box input is entered.
+Within 30 seconds, expect an error dialog titled `TutorRoster error`, with
+header `Unable to start TutorRoster` and exactly this content:
+
+```text
+Error: Unable to load the existing roster. Your roster file was not changed.
+Action: Restore a readable backup or repair the data file, then restart TutorRoster.
+```
+
+The main roster window must not open. Dismiss the error using its OK button;
+require a normal process exit with status 0 within 10 seconds. Compare the
+roster file byte-for-byte with its pre-launch contents and require no changes.
+Application logs do not establish that the error dialog was displayed.
+
+## STARTUP-UI-02 Malformed JSON stops startup safely
+
+Aim: Handle damaged JSON using the same blocking error and file-preservation
+behavior. Run after STARTUP-UI-01, using a separate fresh working directory
+and application process. Use the same launch command and timeouts.
+
+Write exactly `{"persons":[` to `data/addressbook.json` (UTF-8, no final newline).
+No command-box input is entered. Expect the same dialog title, header, and
+exact content as STARTUP-UI-01. The main roster window must not open.
+Dismiss the dialog using OK, require exit status 0 within 10 seconds, and
+verify that the roster file remains byte-for-byte unchanged.

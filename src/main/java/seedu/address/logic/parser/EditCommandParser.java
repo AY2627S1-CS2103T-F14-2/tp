@@ -84,7 +84,7 @@ public class EditCommandParser implements Parser<EditCommand> {
             if (!StudentFields.isValidPhone(phone)) {
                 throw new ParseException(StudentFields.INVALID_PHONE);
             }
-            editPersonDescriptor.setPhone(Phone.fromStoredValue(phone));
+            editPersonDescriptor.setPhone(Phone.fromStoredValue(StudentFields.normalizePhone(phone)));
         }
         if (argMultimap.getValue(PREFIX_EMAIL).isPresent()) {
             String email = argMultimap.getValue(PREFIX_EMAIL).get();

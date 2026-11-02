@@ -25,4 +25,11 @@ public class MessagesTest {
         assertEquals("Error: Details\nAction: retry.", Messages.formatError("Details\r\nAction: retry."));
         assertEquals("Error: An unexpected error occurred.", Messages.formatError(null));
     }
+
+    @Test
+    public void formatStudentListOverview_usesSingularAndPlural() {
+        assertEquals("0 students listed!", Messages.formatStudentListOverview(0));
+        assertEquals("1 student listed!", Messages.formatStudentListOverview(1));
+        assertEquals("2 students listed!", Messages.formatStudentListOverview(2));
+    }
 }

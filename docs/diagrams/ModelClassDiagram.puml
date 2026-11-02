@@ -15,7 +15,11 @@ Class UserPrefs
 Class ModelSnapshot
 
 Class UniquePersonList
-Class Person
+Class Person {
+    - subjects: List<String>
+    - level: String
+    - notes: String
+}
 Class StudentFields
 Class Address
 Class Email

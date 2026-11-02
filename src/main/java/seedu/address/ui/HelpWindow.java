@@ -18,7 +18,7 @@ import seedu.address.commons.core.LogsCenter;
 public class HelpWindow extends UiPart<Stage> {
 
     public static final String USERGUIDE_URL =
-            "https://github.com/AY2627S1-CS2103T-F14-2/tp/blob/master/docs/UserGuide.md";
+            "https://ay2627s1-cs2103t-f14-2.github.io/tp/UserGuide.html";
     public static final String HELP_MESSAGE = "Refer to the user guide: " + USERGUIDE_URL;
 
     private static final KeyCombination F1_KEY_COMBINATION = KeyCombination.valueOf("F1");

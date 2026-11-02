@@ -98,8 +98,9 @@ is displayed as an overlay over the main scene.
 
 * `PersonListPanel` observes the model's filtered observable list and creates a `PersonCard` for each
   displayed student.
-* `PersonCard` renders the displayed index, initials, contact details, subjects, level, notes, and
-  sorted tag badges. Optional email and notes are hidden when absent.
+* `PersonCard` renders the displayed index, full name, initials, phone number, subjects, education
+  level, notes, and sorted tag badges. Optional email and notes are hidden when absent; student
+  address is omitted from the card and viewable in `StudentDetailModal`.
 * `StudentDetailModal` renders every stored field and uses `Not provided` for absent optional values.
 * `CommandBox` delegates command execution to `Logic`, keeps invalid input in the text field, and
   shows completion suggestions in a popup.
@@ -148,6 +149,10 @@ The [Model class diagram](diagrams/ModelClassDiagram.puml) shows the domain mode
 * optional notes, stored as an empty string when absent; and
 * a defensive, unmodifiable set of `Tag` values.
 
+In the domain model, `Name`, `Phone`, `Email`, `Address`, and `Tag` are implemented as dedicated value
+objects composed within `Person`, whereas `subjects` (`List<String>`), `level` (`String`), and `notes`
+(`String`) are stored directly as attributes of `Person`.
+
 `StudentFields` centralises normalisation and validation for names, phones, email addresses, subjects,
 levels, and notes. `Person.isSamePerson` defines duplicate identity using normalised name plus either
 normalised phone or case-insensitive email. `Person.equals` remains a full-record comparison, which is
@@ -192,7 +197,8 @@ roster.
 `AddCommandParser` recognises `n/`, `p/`, `e/`, `a/`, `s/`, `l/`, `r/`, and repeated `t/` values at
 parameter boundaries. It rejects unknown prefixes, repeated single-use fields, missing required
 fields, empty required values, invalid field values, duplicate subjects, and more than 20 new tags.
-Names, subjects, and levels are whitespace-normalised before validation; notes are trimmed and limited
+Names, subjects, and levels are whitespace-normalised before validation; phone numbers allow
+digit-group spaces and hyphens that are stripped before storage; notes are trimmed and limited
 to 500 Unicode characters without control characters.
 
 `EditCommandParser` additionally recognises `+s/`, `-s/`, `+t/`, and `-t/`. The `EditPersonDescriptor`
@@ -234,8 +240,8 @@ recall independent of JavaFX controls. It executes submitted commands through an
 `CommandExecutor` supplied by `CommandBox`.
 
 `CommandCompletionLogic` suggests the command words `add`, `edit`, `delete`, `find`, `list`,
-`show`, `tag`, `untag`, `help`, and `exit`, and context-sensitive parameter prefixes. The completion
-list is UI guidance only: parsers remain the source of truth for validation.
+`show`, `tag`, `untag`, `undo`, `redo`, `clear`, `help`, and `exit`, and context-sensitive parameter
+prefixes. The completion list is UI guidance only: parsers remain the source of truth for validation.
 
 Each `Suggestion` contains completion text, a displayed syntax guide, and a description. `CommandBox`
 refreshes the popup when the input changes. Pressing `Tab` applies the first suggestion; clicking a
@@ -356,8 +362,6 @@ features until implemented and tested.
 | `**` | tutor | sort students by name, level, or tag | find a record in a preferred order |
 | `**` | tutor | hide or reveal optional contact fields | reduce accidental exposure on screen |
 | `**` | tutor | record a school and structured guardian details | keep more context for each student |
-| `*` | tutor | record lesson schedules and attendance | manage the wider tutoring workflow |
-| `*` | tutor | record fees and payment status | track administrative work |
 
 ### Use cases
 
@@ -397,7 +401,7 @@ is TutorRoster.
 
 * 1a. No search field is supplied or a value is empty. TutorRoster shows usage guidance and keeps
   the prior display.
-* 2a. No students match. TutorRoster displays an empty list and `0 person(s) listed!`.
+* 2a. No students match. TutorRoster displays an empty list and `0 students listed!`.
 * 3a. The index is missing, malformed, or outside the displayed list. TutorRoster shows an error and
   changes nothing.
 * 3b. The command is `show`. TutorRoster opens the modal and leaves the roster and filter unchanged.
@@ -451,8 +455,9 @@ is TutorRoster.
 **Extensions**
 
 * 2a. The roster file is missing. TutorRoster displays sample students.
-* 2b. The roster file cannot be read. TutorRoster starts with an empty roster; the user should make a
-  backup before entering new commands.
+* 2b. The roster file cannot be read. TutorRoster shows a startup error and stops before opening the
+  roster, leaving the original file unchanged. Repair the file or restore a readable backup, then
+  restart TutorRoster.
 * 2c. Tags need migration. TutorRoster saves the normalised file before showing the roster; a failed
   migration stops startup and leaves the original file unchanged.
 
@@ -534,8 +539,8 @@ that the test roster does not alter a developer's normal data.
    Expected: a `Warning:` says the student already has the tag; no new history step is created.
 3. Enter `untag 1 exam-prep`, then `untag --all 1`.
    Expected: the first removes one tag and the second clears all remaining tags.
-4. Try `add n/Test p/9123-4567 s/English l/Primary 6`.
-   Expected: validation rejects the hyphenated phone and no record is added.
+4. Try `add n/Test p/9123--4567 s/English l/Primary 6`.
+   Expected: validation rejects the invalid phone number (consecutive hyphens are not permitted) and no record is added.
 5. Try `add n/Test p/91234567 l/Primary 6`.
    Expected: the missing `s/` field is identified and no record is added.
 6. Try `find` and `find --any`.

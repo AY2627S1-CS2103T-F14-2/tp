@@ -46,6 +46,17 @@ public class MainAppStartupTest {
     }
 
     @Test
+    public void init_unreadableRoster_stopsWithoutChangingSourceFile() throws Exception {
+        assertUnreadableRosterStopsWithoutChanges(
+                "{\"persons\":[{\"name\":\"Amy\",\"phone\":\"123\",\"level\":\"JC 1\"}]}");
+    }
+
+    @Test
+    public void init_malformedJson_stopsWithoutChangingSourceFile() throws Exception {
+        assertUnreadableRosterStopsWithoutChanges("{\"persons\":[");
+    }
+
+    @Test
     public void init_migrationSucceeds_opensNormalizedRoster() throws Exception {
         Path file = writeRoster();
         var storage = new JsonAddressBookStorage(file);
@@ -60,6 +71,22 @@ public class MainAppStartupTest {
                 app.model.getAddressBook().getPersonList().getFirst().getTags());
         assertEquals(app.model.getAddressBook(), storage.readAddressBook().orElseThrow());
         app.stop();
+    }
+
+    private void assertUnreadableRosterStopsWithoutChanges(String original) throws Exception {
+        Path file = folder.resolve("roster.json");
+        Files.writeString(file, original);
+        MainApp app = new MainApp(new JsonAddressBookStorage(file),
+                new JsonUserPrefsStorage(folder.resolve("prefs.json")));
+
+        app.init();
+
+        assertNull(app.model);
+        assertNull(app.logic);
+        assertNull(app.ui);
+        assertEquals(original, Files.readString(file));
+        app.stop();
+        assertEquals(original, Files.readString(file));
     }
 
     private Path writeRoster() throws IOException {

@@ -60,6 +60,16 @@ public class PersonMatchesFieldsPredicateTest {
     }
 
     @Test
+    public void test_phoneSearchAcceptsFormattedQuery() {
+        PersonMatchesFieldsPredicate predicate = new PersonMatchesFieldsPredicate(
+                List.of(new SearchTerm(SearchField.PHONE, "+65 9123-4567")), MatchMode.ALL);
+
+        Person student = new Person("Alex Alexander", "+6591234567", "alex@example.com",
+                List.of("Mathematics"), "Secondary 4");
+        assertTrue(predicate.test(student));
+    }
+
+    @Test
     public void test_anyFieldMatches_returnsTrue() {
         PersonMatchesFieldsPredicate predicate = new PersonMatchesFieldsPredicate(
                 List.of(new SearchTerm(SearchField.NAME, "Beatrice"),

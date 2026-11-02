@@ -12,9 +12,9 @@
     <Label fx:id="initials" styleClass="avatar-label" />
   </StackPane>
   <VBox alignment="CENTER_LEFT" spacing="5" minWidth="0" HBox.hgrow="ALWAYS">
-    <HBox alignment="BASELINE_LEFT" spacing="8">
-      <Label fx:id="name" styleClass="card-name" text="\$first" wrapText="true" />
+    <HBox alignment="BASELINE_LEFT" spacing="6">
       <Label fx:id="id" styleClass="card-index" />
+      <Label fx:id="name" styleClass="card-name" text="\$first" wrapText="true" />
     </HBox>
     <VBox spacing="5" styleClass="contact-row">
       <Label fx:id="phone" styleClass="card-meta" text="\$phone" />

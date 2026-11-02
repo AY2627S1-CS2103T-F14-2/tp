@@ -202,8 +202,9 @@
 }
 
 .card-index {
-    -fx-font-size: 10px;
-    -fx-text-fill: #94A39E;
+    -fx-font-size: 15px;
+    -fx-font-weight: bold;
+    -fx-text-fill: #177565;
 }
 
 .contact-row {

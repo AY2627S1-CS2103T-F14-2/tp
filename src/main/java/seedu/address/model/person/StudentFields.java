@@ -7,10 +7,10 @@ import java.util.Objects;
 public final class StudentFields {
     public static final String INVALID_NAME = "Invalid name. Names must be 1–100 characters and contain at least one "
             + "letter or number. Only letters, numbers, spaces, apostrophes, hyphens and full stops are allowed.";
-    public static final String INVALID_PHONE = "Invalid phone number. Phone numbers must contain 3–15 digits and may "
-            + "optionally begin with '+'.";
-    public static final String INVALID_EMAIL = "Invalid email. Email must be in the form local-part@domain "
-            + "and must not contain spaces.";
+    public static final String INVALID_PHONE = "Invalid phone number. Use 3–15 digits, optionally beginning with '+'. "
+            + "Spaces and hyphens may separate digit groups.";
+    public static final String INVALID_EMAIL = "Invalid email. Use local-part@domain with a domain made of valid "
+            + "letters, numbers, and hyphen-separated labels.";
     public static final String INVALID_SUBJECT = "Invalid subject. Subjects must be 1–50 characters and contain at "
             + "least one letter or number.";
     public static final String INVALID_LEVEL = "Invalid education level. Levels must be 1–30 characters and contain "
@@ -72,7 +72,17 @@ public final class StudentFields {
     /** Returns whether the phone follows the new-student rule. */
     public static boolean isValidPhone(String phone) {
         Objects.requireNonNull(phone, "phone");
-        return phone.matches("\\+?[0-9]{3,15}");
+        if (!phone.matches("\\+?[0-9]+(?:[ -][0-9]+)*")) {
+            return false;
+        }
+        long digitCount = phone.chars().filter(Character::isDigit).count();
+        return digitCount >= 3 && digitCount <= 15;
+    }
+
+    /** Removes supported spaces and hyphens from a valid phone number before storing it. */
+    public static String normalizePhone(String phone) {
+        Objects.requireNonNull(phone, "phone");
+        return phone.replace(" ", "").replace("-", "");
     }
 
     /** Returns whether the email follows the new-student rule. */
@@ -86,16 +96,8 @@ public final class StudentFields {
             return false;
         }
         String domain = email.substring(at + 1);
-        String[] labels = domain.split("\\.", -1);
-        if (labels.length < 2) {
-            return false;
-        }
-        for (String label : labels) {
-            if (label.isEmpty()) {
-                return false;
-            }
-        }
-        return true;
+        String label = "[A-Za-z0-9](?:[A-Za-z0-9-]{0,61}[A-Za-z0-9])?";
+        return domain.matches(label + "(?:\\." + label + ")+");
     }
 
     /** Returns whether the subject follows the new-student rule. */
@@ -144,10 +146,11 @@ public final class StudentFields {
         return email.toLowerCase(Locale.ROOT);
     }
 
-    /** Returns the comparison key for a phone number without its optional leading plus sign. */
+    /** Returns the comparison key for a phone number without its optional plus sign or display separators. */
     public static String phoneKey(String phone) {
         Objects.requireNonNull(phone, "phone");
-        return phone.startsWith("+") ? phone.substring(1) : phone;
+        String withoutLeadingPlus = phone.startsWith("+") ? phone.substring(1) : phone;
+        return withoutLeadingPlus.replace(" ", "").replace("-", "");
     }
 
     private static boolean hasLength(String value, int minimum, int maximum) {

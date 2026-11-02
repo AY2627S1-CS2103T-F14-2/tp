@@ -77,7 +77,7 @@ public class Person {
             throw new IllegalArgumentException(StudentFields.INVALID_NOTES);
         }
         this.name = Name.fromStoredValue(normalizedName);
-        this.phone = Phone.fromStoredValue(phone);
+        this.phone = Phone.fromStoredValue(StudentFields.normalizePhone(phone));
         this.email = email == null ? null : Email.fromStoredValue(email);
         this.subjects = List.copyOf(normalizedSubjects);
         this.level = normalizedLevel;

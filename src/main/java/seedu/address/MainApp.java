@@ -17,7 +17,6 @@ import seedu.address.commons.util.StringUtil;
 import seedu.address.logic.Logic;
 import seedu.address.logic.LogicManager;
 import seedu.address.logic.Messages;
-import seedu.address.model.AddressBook;
 import seedu.address.model.Model;
 import seedu.address.model.ModelManager;
 import seedu.address.model.ReadOnlyAddressBook;
@@ -80,6 +79,10 @@ public class MainApp extends Application {
             return;
         }
 
+        if (startupError != null) {
+            return;
+        }
+        assert model != null : "Successful roster loading must create a model";
         logic = new LogicManager(model, storage);
 
         ui = new UiManager(logic, storage.getAddressBookFilePath(),
@@ -88,9 +91,8 @@ public class MainApp extends Application {
 
     /**
      * Returns a {@code ModelManager} with the data from {@code storage}'s address book and {@code userPrefs}. <br>
-     * The data from the sample address book will be used instead if {@code storage}'s address book is not found,
-     * or an empty address book will be used instead if errors occur when reading {@code storage}'s address book.
-     * A failed tag migration save is propagated so startup can stop without exposing an empty editable roster.
+     * Sample data is used if {@code storage}'s address book is not found. Startup stops if an existing address book
+     * cannot be read, so the user cannot accidentally overwrite it by saving an empty roster.
      */
     private Model initModelManager(Storage storage, ReadOnlyUserPrefs userPrefs) throws TagMigrationException {
         logger.info("Using data file : " + storage.getAddressBookFilePath());
@@ -107,9 +109,10 @@ public class MainApp extends Application {
         } catch (TagMigrationException e) {
             throw e;
         } catch (DataLoadingException e) {
-            logger.warning("Data file at " + storage.getAddressBookFilePath() + " could not be loaded."
-                    + " Will be starting with an empty AddressBook.");
-            initialData = new AddressBook();
+            startupError = Messages.formatError("Unable to load the existing roster. Your roster file was not "
+                    + "changed.\nAction: Restore a readable backup or repair the data file, then restart TutorRoster.");
+            logger.severe("Stopping startup because the roster could not be loaded: " + e.getMessage());
+            return null;
         }
 
         return new ModelManager(initialData, userPrefs);
