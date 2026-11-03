@@ -429,6 +429,10 @@ run `java -jar TutorRoster.jar` instead.
 
 **Why does the app open empty?**
 
+If you used `clear`, TutorRoster saved the empty roster automatically and will load it when reopened.
+Add students to start a new roster, or restore a backup of `data/addressbook.json` while the app is
+closed. `undo` can restore the cleared roster only during the same session.
+
 If there is no data file, sample students should be displayed. If an existing data file cannot be read,
 TutorRoster shows an error and stops before opening the roster. Repair the file or restore a readable
 backup before restarting; TutorRoster leaves the unreadable file unchanged.

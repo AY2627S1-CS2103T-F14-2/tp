@@ -136,6 +136,8 @@ The [Logic class diagram](diagrams/LogicClassDiagram.puml) shows the parser/comm
 Display-only commands publish a changed filter without committing history or writing the roster file.
 The [parser class diagram](diagrams/ParserClasses.puml) lists the command-specific parsers.
 
+<puml src="diagrams/ParserClasses.puml" alt="TutorRoster parser classes" />
+
 ### Model component
 
 The [Model class diagram](diagrams/ModelClassDiagram.puml) shows the domain model:
@@ -465,7 +467,10 @@ is TutorRoster.
 
 1. TutorRoster must run on mainstream desktop operating systems with Java 25 or later and JavaFX.
 2. TutorRoster should support at least 1,000 student records.
-3. With up to 1,000 records, common operations should normally complete within one second.
+3. With 1,000 student records loaded on a computer with a four-core CPU, 8 GB RAM, a local SSD, and
+   Java 25, each of `add`, `edit`, `delete`, `find`, `list`, `show`, `tag`, `untag`, `undo`, and `redo`
+   should display feedback within one second in at least 19 out of 20 valid trials. Measure from
+   submitting the command until feedback appears, after application startup has completed.
 4. Core roster operations must be executable through keyboard commands without requiring a mouse.
 5. Student data must remain local and the core workflow must not depend on an Internet connection,
    database server, or remote service.
@@ -517,7 +522,7 @@ that the test roster does not alter a developer's normal data.
 1. Enter the following valid command:
 
    ```text
-   add n/Mei Lin p/+6598765432 e/mei@example.com a/12 River Road s/Mathematics s/Physics l/Secondary 3 t/exam-prep r/Prefers diagrams
+   add n/Mei Lin p/+6598765432 e/mei@example.com a/12 River Road s/Mathematics s/Physics l/Secondary 3 t/new-student r/Prefers diagrams
    ```
 
    Expected: Mei Lin appears at the end, tags are shown as a badge, and the result says
