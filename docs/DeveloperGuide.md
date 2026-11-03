@@ -29,6 +29,11 @@ We use the following open-source libraries:
 The product visual design is implemented in the repository's FXML and CSS files. No other student
 project is referenced as a source of code or documentation in the current release.
 
+### AI-generated and AI-assisted work
+
+Used ChatGPT Codex throughout the project, with AI-generated or AI-assisted work spanning almost every file changed. Uses included code implementation and refinement, testing and debugging, preliminary pull request reviews, and writing
+and revising project documentation. This use was widespread across all contributions rather than limited to a few methods or classes.
+
 ## Setting up and getting started
 
 ### Prerequisites
