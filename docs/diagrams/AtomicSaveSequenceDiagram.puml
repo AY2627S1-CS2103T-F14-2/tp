@@ -1,0 +1,58 @@
+@startuml
+!include style.puml
+skinparam ArrowFontStyle plain
+skinparam sequenceMessageAlign left
+skinparam Sequence {
+    BoxFontColor #222222
+}
+hide footbox
+
+title Changed roster: save before publication
+
+box Logic LOGIC_COLOR_T1
+participant ":LogicManager" as Logic LOGIC_COLOR
+participant "c:Command" as Command LOGIC_COLOR
+end box
+
+box Model MODEL_COLOR_T1
+participant "live:ModelManager" as Live MODEL_COLOR
+participant "proposed:ModelManager" as Proposed MODEL_COLOR
+end box
+
+box Storage STORAGE_COLOR_T1
+participant ":Storage" as Storage STORAGE_COLOR
+end box
+
+[-> Logic : execute(data-changing command)
+activate Logic
+
+create Proposed
+Logic -> Proposed : create working copy of live model
+Logic -> Command : execute(proposed)
+activate Command
+Command -> Proposed : update roster
+Command --> Logic : result
+deactivate Command
+Logic -> Proposed : commitAddressBook()
+
+Logic -> Storage : saveAddressBookAtomically(proposed roster)
+activate Storage
+alt save succeeds
+    Storage --> Logic : saved
+    deactivate Storage
+    Logic -> Live : restoreSnapshot(proposed snapshot)
+    note over Live, Proposed
+    Publish roster, filter, and history together.
+    end note
+    [<-- Logic : result
+else save fails
+    Storage --> Logic : IOException
+    deactivate Storage
+    note over Live, Proposed
+    Discard the working copy; live state is unchanged.
+    end note
+    [<-- Logic : CommandException
+end
+
+deactivate Logic
+@enduml

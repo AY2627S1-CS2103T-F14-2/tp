@@ -292,20 +292,11 @@ save boundary so that a save failure can discard the entire proposed operation.
 
 ### Atomic save and publication flow
 
-For `add`, `edit`, `delete`, `clear`, and changed tag operations, execution is intentionally isolated:
+For `add`, `edit`, `delete`, `clear`, and changed tag operations, the command changes a proposed model.
+The live roster, filter, and history are updated only after the proposed roster is saved atomically. If
+saving fails, the proposed change is discarded:
 
-```text
-live ModelManager
-        │ createSnapshot()
-        ▼
-proposed ModelManager ── command.execute() ── commit if changed
-        │
-        ├── saveAddressBookAtomically()
-        │       ├── failure: discard proposed state
-        │       └── success
-        ▼
-live ModelManager.restoreSnapshot(proposed snapshot)
-```
+<puml src="diagrams/AtomicSaveSequenceDiagram.puml" alt="Atomic save before publishing a roster change" />
 
 This design also applies to undo and redo, except that those commands move the history pointer rather
 than creating a new state. It avoids exposing a change in the UI before persistence has succeeded.
